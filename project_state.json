@@ -1,0 +1,1465 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 57,
+  "summary": "Build an automated used car price comparison system that crawls auto dealer websites (Autotrader, Cars.com, etc.) to gather and track used car prices over time. The system uses Python for scraping, Scrapy/Selenium for crawling, and MongoDB for data storage, with the goal of comparing prices for specific car models over time.",
+  "architectural_notes": [
+    "Python-based scraping stack: Scrapy for structured crawling, Selenium for JavaScript-heavy pages",
+    "MongoDB as primary data store for flexible schema car listing documents",
+    "Target sources: Autotrader, Cars.com, and other major auto dealer websites",
+    "Internet Identity integration for authentication, enabling per-user data isolation for watchlists and saved searches"
+  ],
+  "known_issues": [
+    "Anti-scraping measures (CAPTCHAs, IP blocking, rate limiting) on target sites like Autotrader and Cars.com will require proxy rotation and CAPTCHA-solving strategies"
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-build-a-dashboard-home-page-displaying-a-searchable-filterable-table-of-all-car-listings-filters-should-include-make-model-year-range-price-range-mileage-range-and-source-each-row-should-display-all-key-listing-fields",
+      "title": "Build a dashboard home page displaying a searchable, filterable table of all car listings. Filters should include make, model, year range, price range, mileage range, and source. Each row should display all key listing fields.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-manual-listing-entry-form-allowing-users-to-input-a-new-car-listing-by-filling-in-make-model-year-mileage-price-trim-condition-dealer-name-source-label-and-optional-listing-url-submit-saves-to-the-backend",
+      "title": "Build a manual listing entry form allowing users to input a new car listing by filling in make, model, year, mileage, price, trim, condition, dealer name, source label, and optional listing URL. Submit saves to the backend.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-price-comparison-chart-view-that-given-a-selected-make-and-model-and-optionally-year-trim-renders-a-line-chart-showing-price-over-time-with-separate-lines-per-source-e-g-autotrader-cars-com-manual-use-a-charting-library-compatible-with-react",
+      "title": "Build a price comparison chart view that, given a selected make and model (and optionally year/trim), renders a line chart showing price over time, with separate lines per source (e.g., Autotrader, Cars.com, Manual). Use a charting library compatible with React.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-price-statistics-summary-panel-for-a-selected-car-model-showing-lowest-recorded-price-highest-recorded-price-average-price-number-of-listings-and-which-source-has-the-cheapest-average-display-this-alongside-or-above-the-price-comparison-chart",
+      "title": "Build a price statistics summary panel for a selected car model showing: lowest recorded price, highest recorded price, average price, number of listings, and which source has the cheapest average. Display this alongside or above the price comparison chart.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-sleek-data-driven-dashboard-visual-theme-inspired-by-automotive-industry-uis-use-a-dark-charcoal-and-steel-color-palette-with-amber-orange-accent-highlights-clean-sans-serif-typography-card-based-layout-with-subtle-borders-and-shadows-and-consistent-use-of-icons-for-car-attributes-enforce-this-theme-across-all-pages",
+      "title": "Apply a sleek, data-driven dashboard visual theme inspired by automotive industry UIs. Use a dark charcoal and steel color palette with amber/orange accent highlights, clean sans-serif typography, card-based layout with subtle borders and shadows, and consistent use of icons for car attributes. Enforce this theme across all pages.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-csv-import-page-accessible-from-the-main-navigation-header-with-two-input-methods-1-a-textarea-where-users-can-paste-raw-csv-text-and-2-a-file-upload-input-accepting-csv-files-the-page-should-parse-the-csv-client-side-map-columns-to-listing-fields-make-model-year-mileage-price-trim-condition-dealer-name-source-listing-url-show-a-preview-table-of-parsed-rows-before-submission-and-submit-valid-rows-to-the-new-bulkcreatelistings-backend-function-display-a-success-message-with-the-count-of-imported-listings-and-show-row-level-validation-errors-for-any-malformed-rows",
+      "title": "Add a CSV Import page (accessible from the main navigation header) with two input methods: (1) a textarea where users can paste raw CSV text, and (2) a file upload input accepting .csv files. The page should parse the CSV client-side, map columns to listing fields (make, model, year, mileage, price, trim, condition, dealer name, source, listing URL), show a preview table of parsed rows before submission, and submit valid rows to the new bulkCreateListings backend function. Display a success message with the count of imported listings, and show row-level validation errors for any malformed rows.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-downloadable-csv-template-file-and-a-download-template-button-on-the-csv-import-page-so-users-know-exactly-which-column-headers-and-format-the-importer-expects-make-model-year-mileage-price-trim-condition-dealername-source-listingurl",
+      "title": "Add a downloadable CSV template file and a 'Download Template' button on the CSV Import page so users know exactly which column headers and format the importer expects (make, model, year, mileage, price, trim, condition, dealerName, source, listingUrl).",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usedealscores-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-getdealscores-backend-function-for-a-given-make-and-model-returning-a-map-of-listing-id-to-deal-score-string",
+      "title": "Add a `useDealScores` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the `getDealScores` backend function for a given make and model, returning a map of listing ID to deal score string.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-dashboardpage-tsx-display-a-deal-score-badge-on-each-listing-row-using-the-usedealscores-hook-the-badge-should-show-good-deal-in-green-emerald-fair-in-amber-yellow-and-overpriced-in-red-styled-consistently-with-the-existing-dark-automotive-theme-the-badge-should-appear-as-a-dedicated-column-in-the-listings-table",
+      "title": "In `DashboardPage.tsx`, display a deal score badge on each listing row using the `useDealScores` hook. The badge should show 'Good Deal' in green/emerald, 'Fair' in amber/yellow, and 'Overpriced' in red, styled consistently with the existing dark automotive theme. The badge should appear as a dedicated column in the listings table.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-comparisonpage-tsx-show-the-deal-score-badge-next-to-each-listing-s-data-point-or-in-the-price-statistics-panel-for-each-listing-returned-by-the-price-history-query-annotate-it-with-its-deal-score-using-the-usedealscores-hook-for-the-currently-selected-make-and-model",
+      "title": "In `ComparisonPage.tsx`, show the deal score badge next to each listing's data point or in the price statistics panel. For each listing returned by the price history query, annotate it with its deal score using the `useDealScores` hook for the currently selected make and model.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-export-csv-button-to-the-dashboardpage-that-when-clicked-generates-and-downloads-a-csv-file-containing-all-currently-visible-filtered-listings-the-csv-should-include-columns-make-model-year-mileage-price-trim-condition-dealername-source-listingurl-timestamp-and-dealscore-if-available-the-filename-should-be-car-listings-export-csv-the-export-must-be-performed-entirely-client-side-no-backend-call-required-using-the-data-already-loaded-in-the-component",
+      "title": "Add an 'Export CSV' button to the DashboardPage that, when clicked, generates and downloads a CSV file containing all currently visible (filtered) listings. The CSV should include columns: make, model, year, mileage, price, trim, condition, dealerName, source, listingUrl, timestamp, and dealScore (if available). The filename should be 'car-listings-export.csv'. The export must be performed entirely client-side (no backend call required) using the data already loaded in the component.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-export-csv-button-to-the-comparisonpage-that-when-clicked-downloads-a-csv-report-of-the-currently-displayed-price-history-data-for-the-selected-make-and-model-the-csv-should-include-columns-make-model-year-trim-price-source-timestamp-and-dealscore-the-filename-should-be-price-comparison-make-model-csv-lowercased-spaces-replaced-with-hyphens-the-export-must-be-performed-entirely-client-side-using-the-price-history-data-already-fetched-by-the-existing-query-hooks",
+      "title": "Add an 'Export CSV' button to the ComparisonPage that, when clicked, downloads a CSV report of the currently displayed price history data for the selected make and model. The CSV should include columns: make, model, year, trim, price, source, timestamp, and dealScore. The filename should be 'price-comparison-{make}-{model}.csv' (lowercased, spaces replaced with hyphens). The export must be performed entirely client-side using the price history data already fetched by the existing query hooks.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-dashboardpage-tsx-add-an-export-filter-panel-that-appears-when-the-user-initiates-a-csv-export-the-panel-should-allow-users-to-filter-the-subset-of-listings-to-export-by-make-text-or-select-model-text-or-select-year-range-min-max-price-range-min-max-mileage-range-min-max-source-multi-select-or-checkboxes-and-deal-score-multi-select-good-deal-fair-overpriced-the-panel-should-pre-populate-with-the-current-active-dashboard-filters-as-defaults-the-exported-csv-should-only-include-rows-matching-the-selected-export-filters-and-the-filename-remains-car-listings-export-csv",
+      "title": "In DashboardPage.tsx, add an export filter panel that appears when the user initiates a CSV export. The panel should allow users to filter the subset of listings to export by: make (text or select), model (text or select), year range (min/max), price range (min/max), mileage range (min/max), source (multi-select or checkboxes), and deal score (multi-select: 'Good Deal', 'Fair', 'Overpriced'). The panel should pre-populate with the current active dashboard filters as defaults. The exported CSV should only include rows matching the selected export filters, and the filename remains 'car-listings-export.csv'.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-comparisonpage-tsx-add-an-export-filter-panel-that-appears-when-the-user-initiates-a-csv-export-the-panel-should-allow-users-to-filter-the-subset-of-price-history-data-to-export-by-year-range-min-max-trim-text-input-or-multi-select-based-on-available-values-source-multi-select-checkboxes-from-available-sources-in-the-current-result-set-price-range-min-max-and-deal-score-multi-select-good-deal-fair-overpriced-the-exported-csv-should-only-include-rows-matching-the-selected-export-filters-and-the-filename-pattern-remains-price-comparison-make-model-csv",
+      "title": "In ComparisonPage.tsx, add an export filter panel that appears when the user initiates a CSV export. The panel should allow users to filter the subset of price history data to export by: year range (min/max), trim (text input or multi-select based on available values), source (multi-select checkboxes from available sources in the current result set), price range (min/max), and deal score (multi-select: 'Good Deal', 'Fair', 'Overpriced'). The exported CSV should only include rows matching the selected export filters, and the filename pattern remains 'price-comparison-{make}-{model}.csv'.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-for-filter-presets-in-frontend-src-hooks-usequeries-ts-usefilterpresets-presettype-fetches-all-presets-for-a-given-type-usesavefilterpreset-mutation-saves-a-new-preset-usedeletefilterpreset-mutation-deletes-a-preset-by-id-and-userenamefilterpreset-mutation-renames-a-preset-invalidate-the-filterpresets-query-key-after-any-mutation",
+      "title": "Add React Query hooks for filter presets in `frontend/src/hooks/useQueries.ts`: `useFilterPresets(presetType)` fetches all presets for a given type, `useSaveFilterPreset()` mutation saves a new preset, `useDeleteFilterPreset()` mutation deletes a preset by ID, and `useRenameFilterPreset()` mutation renames a preset. Invalidate the `filterPresets` query key after any mutation.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-exportfilterpanel-tsx-the-dashboard-export-filter-panel-add-a-saved-presets-ui-section-include-1-a-save-as-preset-button-that-opens-an-inline-input-to-name-and-save-the-current-filter-state-as-a-dashboard-preset-2-a-dropdown-or-list-of-existing-saved-presets-showing-each-preset-s-name-with-an-apply-button-to-restore-those-filters-into-the-panel-a-rename-pencil-icon-action-and-a-delete-trash-icon-action-style-consistently-with-the-existing-dark-automotive-theme-using-amber-orange-accents",
+      "title": "In `frontend/src/components/ExportFilterPanel.tsx` (the Dashboard export filter panel), add a saved presets UI section. Include: (1) a 'Save as Preset' button that opens an inline input to name and save the current filter state as a 'dashboard' preset, (2) a dropdown or list of existing saved presets showing each preset's name with an 'Apply' button to restore those filters into the panel, a rename (pencil icon) action, and a delete (trash icon) action. Style consistently with the existing dark automotive theme using amber/orange accents.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-comparisonexportfilterpanel-tsx-the-comparison-page-export-filter-panel-add-the-same-saved-presets-ui-section-as-described-for-req-21-but-using-presettype-comparison-include-1-a-save-as-preset-button-that-saves-the-current-comparison-export-filter-state-2-a-list-of-existing-comparison-presets-with-apply-rename-and-delete-actions-style-consistently-with-the-existing-dark-automotive-theme",
+      "title": "In `frontend/src/components/ComparisonExportFilterPanel.tsx` (the Comparison page export filter panel), add the same saved presets UI section as described for REQ-21, but using presetType='comparison'. Include: (1) a 'Save as Preset' button that saves the current comparison export filter state, (2) a list of existing 'comparison' presets with Apply, Rename, and Delete actions. Style consistently with the existing dark automotive theme.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-saved-views-quick-access-toolbar-section-near-the-existing-filter-controls-above-or-below-the-filter-row-this-section-lists-all-saved-dashboard-presets-as-clickable-chips-badges-clicking-a-chip-instantly-applies-that-preset-s-filter-values-to-the-active-dashboard-filters-make-model-year-range-price-range-mileage-range-source-without-opening-the-export-dialog-include-a-small-delete-icon-on-each-chip-to-remove-the-preset",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Saved Views' quick-access toolbar section near the existing filter controls (above or below the filter row). This section lists all saved 'dashboard' presets as clickable chips/badges. Clicking a chip instantly applies that preset's filter values to the active dashboard filters (make, model, year range, price range, mileage range, source) without opening the export dialog. Include a small delete (×) icon on each chip to remove the preset.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-the-new-watchlist-backend-functions-usewatchlist-fetches-the-current-user-s-watchlist-entries-useaddtowatchlist-mutation-adds-an-entry-and-useremovefromwatchlist-mutation-removes-an-entry-by-id-all-hooks-must-pass-through-the-authenticated-actor-from-useactor-invalidate-the-watchlist-query-key-after-any-mutation",
+      "title": "Add React Query hooks in `frontend/src/hooks/useQueries.ts` for the new watchlist backend functions: `useWatchlist()` fetches the current user's watchlist entries, `useAddToWatchlist()` mutation adds an entry, and `useRemoveFromWatchlist()` mutation removes an entry by ID. All hooks must pass through the authenticated actor from `useActor`. Invalidate the `watchlist` query key after any mutation.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-the-new-saved-searches-backend-functions-usesavedsearches-fetches-the-current-user-s-saved-searches-usesavesearch-mutation-saves-a-new-search-usedeletesavedsearch-mutation-deletes-by-id-and-userenamesavedsearch-mutation-renames-by-id-all-hooks-use-the-authenticated-actor-invalidate-the-savedsearches-query-key-after-any-mutation",
+      "title": "Add React Query hooks in `frontend/src/hooks/useQueries.ts` for the new saved searches backend functions: `useSavedSearches()` fetches the current user's saved searches, `useSaveSearch()` mutation saves a new search, `useDeleteSavedSearch()` mutation deletes by ID, and `useRenameSavedSearch()` mutation renames by ID. All hooks use the authenticated actor. Invalidate the `savedSearches` query key after any mutation.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navigation-header-in-frontend-src-app-tsx-to-display-the-internet-identity-login-logout-state-when-the-user-is-not-logged-in-show-a-sign-in-button-that-triggers-the-internet-identity-login-flow-using-the-existing-useinternetidentity-hook-when-logged-in-show-the-abbreviated-principal-first-5-chars-and-a-sign-out-button-style-these-controls-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "Update the navigation header in `frontend/src/App.tsx` to display the Internet Identity login/logout state. When the user is not logged in, show a 'Sign In' button that triggers the Internet Identity login flow using the existing `useInternetIdentity` hook. When logged in, show the abbreviated principal (first 5 chars + '…') and a 'Sign Out' button. Style these controls consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-watchlistpage-at-frontend-src-pages-watchlistpage-tsx-this-page-displays-the-current-user-s-watchlist-entries-in-a-card-based-list-each-card-shows-the-make-model-and-optional-label-plus-a-remove-button-to-delete-the-entry-include-an-add-to-watchlist-inline-form-make-model-optional-label-inputs-at-the-top-of-the-page-if-the-user-is-not-logged-in-show-a-prompt-to-sign-in-via-internet-identity-add-a-watchlist-navigation-link-in-frontend-src-app-tsx-style-consistently-with-the-existing-dark-automotive-theme",
+      "title": "Create a new `WatchlistPage` at `frontend/src/pages/WatchlistPage.tsx`. This page displays the current user's watchlist entries in a card-based list. Each card shows the make, model, and optional label, plus a 'Remove' button to delete the entry. Include an 'Add to Watchlist' inline form (make, model, optional label inputs) at the top of the page. If the user is not logged in, show a prompt to sign in via Internet Identity. Add a 'Watchlist' navigation link in `frontend/src/App.tsx`. Style consistently with the existing dark automotive theme.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-the-new-price-alert-backend-functions-usepricealerts-fetches-all-price-alerts-for-the-current-user-via-getpricealerts-usesetpricealert-mutation-calls-setpricealert-make-model-targetprice-and-usedeletepricealert-mutation-calls-deletepricealert-id-all-hooks-use-the-authenticated-actor-from-useactor-invalidate-the-pricealerts-query-key-after-any-mutation",
+      "title": "Add React Query hooks in `frontend/src/hooks/useQueries.ts` for the new price alert backend functions: `usePriceAlerts()` fetches all price alerts for the current user via `getPriceAlerts`, `useSetPriceAlert()` mutation calls `setPriceAlert(make, model, targetPrice)`, and `useDeletePriceAlert()` mutation calls `deletePriceAlert(id)`. All hooks use the authenticated actor from `useActor`. Invalidate the `priceAlerts` query key after any mutation.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-pricealertspage-at-frontend-src-pages-pricealertspage-tsx-the-page-must-1-gate-access-behind-internet-identity-login-show-a-sign-in-to-set-price-alerts-prompt-if-the-user-is-not-authenticated-2-display-an-add-update-alert-inline-form-at-the-top-with-inputs-for-make-text-model-text-and-target-price-number-and-a-save-alert-button-that-calls-usesetpricealert-3-list-all-existing-price-alerts-in-a-card-based-layout-each-card-shows-make-model-and-the-target-price-formatted-as-currency-along-with-a-remove-button-that-calls-usedeletepricealert-4-for-each-alert-card-query-listings-below-the-target-price-using-getlistingsbelowtargetprice-add-a-uselistingsbelowtargetprice-make-model-react-query-hook-and-display-the-count-of-matching-listings-as-a-badge-e-g-3-listings-below-target-clicking-this-badge-or-a-view-link-navigates-to-the-dashboard-filtered-by-that-make-model-style-the-page-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "Create a new `PriceAlertsPage` at `frontend/src/pages/PriceAlertsPage.tsx`. The page must: (1) Gate access behind Internet Identity login — show a 'Sign in to set price alerts' prompt if the user is not authenticated. (2) Display an 'Add / Update Alert' inline form at the top with inputs for Make (text), Model (text), and Target Price (number), and a 'Save Alert' button that calls `useSetPriceAlert`. (3) List all existing price alerts in a card-based layout. Each card shows make, model, and the target price formatted as currency, along with a 'Remove' button that calls `useDeletePriceAlert`. (4) For each alert card, query listings below the target price using `getListingsBelowTargetPrice` (add a `useListingsBelowTargetPrice(make, model)` React Query hook) and display the count of matching listings as a badge (e.g., '3 listings below target'). Clicking this badge or a 'View' link navigates to the Dashboard filtered by that make/model. Style the page consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-visual-below-target-flag-to-listings-that-fall-below-the-user-s-stored-price-alert-for-their-make-model-when-the-user-is-authenticated-and-has-price-alerts-set-listings-whose-price-is-below-the-target-price-for-their-make-model-should-display-a-highlighted-amber-orange-badge-or-icon-e-g-a-downward-arrow-or-below-target-label-in-the-listings-table-as-an-additional-column-or-appended-to-the-price-cell-use-usepricealerts-to-retrieve-the-current-user-s-alerts-client-side-and-compare-against-each-row-s-make-model-and-price-if-the-user-is-not-logged-in-or-has-no-alerts-this-column-should-be-hidden-or-show-no-badges",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a visual 'Below Target' flag to listings that fall below the user's stored price alert for their make/model. When the user is authenticated and has price alerts set, listings whose price is below the target price for their make/model should display a highlighted amber/orange badge or icon (e.g., a downward arrow or 'Below Target' label) in the listings table, as an additional column or appended to the price cell. Use `usePriceAlerts()` to retrieve the current user's alerts client-side and compare against each row's make, model, and price. If the user is not logged in or has no alerts, this column should be hidden or show no badges.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-price-alerts-navigation-link-to-the-main-header-in-frontend-src-app-tsx-that-routes-to-the-new-pricealertspage-register-the-route-at-path-alerts-in-the-tanstack-router-configuration",
+      "title": "Add a 'Price Alerts' navigation link to the main header in `frontend/src/App.tsx` that routes to the new `PriceAlertsPage`. Register the route at path `/alerts` in the TanStack Router configuration.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-savedsearchespage-at-frontend-src-pages-savedsearchespage-tsx-the-page-must-1-gate-access-behind-internet-identity-login-show-a-sign-in-to-view-saved-searches-prompt-if-the-user-is-not-authenticated-2-fetch-and-display-all-saved-searches-for-the-current-user-using-the-existing-usesavedsearches-react-query-hook-3-render-each-saved-search-as-a-card-showing-the-search-name-and-a-formatted-summary-of-the-stored-filter-values-parsed-from-filterjson-4-each-card-includes-an-apply-button-that-navigates-to-the-dashboard-with-the-saved-filter-values-applied-as-url-query-parameters-or-sessionstorage-state-so-the-dashboard-filters-pre-populate-5-each-card-includes-a-rename-action-pencil-icon-that-opens-an-inline-input-to-submit-a-new-name-via-the-existing-userenamesavedsearch-mutation-6-each-card-includes-a-delete-action-trash-icon-that-calls-the-existing-usedeletesavedsearch-mutation-with-a-confirmation-step-7-style-the-page-consistently-with-the-existing-dark-automotive-amber-orange-theme-dark-charcoal-card-backgrounds-amber-orange-accents-card-based-layout-with-subtle-borders-and-shadows",
+      "title": "Create a new `SavedSearchesPage` at `frontend/src/pages/SavedSearchesPage.tsx`. The page must: (1) Gate access behind Internet Identity login — show a 'Sign in to view saved searches' prompt if the user is not authenticated. (2) Fetch and display all saved searches for the current user using the existing `useSavedSearches()` React Query hook. (3) Render each saved search as a card showing the search name and a formatted summary of the stored filter values parsed from `filterJson`. (4) Each card includes an 'Apply' button that navigates to the Dashboard (`/`) with the saved filter values applied as URL query parameters or sessionStorage state so the dashboard filters pre-populate. (5) Each card includes a 'Rename' action (pencil icon) that opens an inline input to submit a new name via the existing `useRenameSavedSearch()` mutation. (6) Each card includes a 'Delete' action (trash icon) that calls the existing `useDeleteSavedSearch()` mutation with a confirmation step. (7) Style the page consistently with the existing dark automotive amber/orange theme: dark charcoal card backgrounds, amber/orange accents, card-based layout with subtle borders and shadows.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-saved-searches-navigation-link-to-the-main-header-in-frontend-src-app-tsx-that-routes-to-the-new-savedsearchespage-register-the-route-at-path-searches-in-the-tanstack-router-configuration",
+      "title": "Add a 'Saved Searches' navigation link to the main header in `frontend/src/App.tsx` that routes to the new `SavedSearchesPage`. Register the route at path `/searches` in the TanStack Router configuration.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-alert-banner-that-appears-immediately-after-the-user-logs-in-via-internet-identity-the-banner-should-1-use-the-existing-usepricealerts-hook-to-retrieve-the-authenticated-user-s-price-alerts-2-for-each-alert-use-the-existing-uselistingsbelowtargetprice-make-model-hook-to-count-listings-below-the-target-price-3-if-any-make-model-pair-has-one-or-more-listings-below-the-target-price-display-a-dismissible-amber-orange-banner-at-the-top-of-the-page-above-the-main-content-below-the-navigation-header-listing-each-affected-make-model-pair-with-its-count-of-matching-listings-e-g-toyota-camry-3-listings-below-your-18-000-target-4-each-entry-in-the-banner-includes-a-view-link-that-navigates-to-the-dashboard-filtered-by-that-make-and-model-5-the-banner-includes-a-dismiss-button-to-hide-it-for-the-current-session-6-if-no-listings-are-below-any-target-price-no-banner-is-shown-7-the-banner-is-only-shown-when-the-user-is-authenticated-it-must-not-appear-for-unauthenticated-users-8-render-the-banner-in-frontend-src-app-tsx-so-it-appears-globally-across-all-pages-when-conditions-are-met",
+      "title": "Add an in-app alert banner that appears immediately after the user logs in via Internet Identity. The banner should: (1) Use the existing `usePriceAlerts()` hook to retrieve the authenticated user's price alerts. (2) For each alert, use the existing `useListingsBelowTargetPrice(make, model)` hook to count listings below the target price. (3) If any make/model pair has one or more listings below the target price, display a dismissible amber/orange banner at the top of the page (above the main content, below the navigation header) listing each affected make/model pair with its count of matching listings (e.g., 'Toyota Camry: 3 listings below your $18,000 target'). (4) Each entry in the banner includes a 'View' link that navigates to the Dashboard filtered by that make and model. (5) The banner includes a dismiss (×) button to hide it for the current session. (6) If no listings are below any target price, no banner is shown. (7) The banner is only shown when the user is authenticated; it must not appear for unauthenticated users. (8) Render the banner in `frontend/src/App.tsx` so it appears globally across all pages when conditions are met.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-useupdatelisting-react-query-mutation-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-updatelisting-id-data-function-the-mutation-should-invalidate-the-listings-query-key-on-success",
+      "title": "Add a `useUpdateListing()` React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the backend `updateListing(id, data)` function. The mutation should invalidate the `listings` query key on success.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-an-inline-edit-capability-to-each-listing-row-in-the-listings-table-each-row-should-have-an-edit-pencil-icon-button-clicking-it-opens-an-inline-edit-form-or-a-modal-dialog-pre-populated-with-the-listing-s-current-values-allowing-the-user-to-modify-make-model-year-mileage-price-trim-condition-dealername-source-and-listingurl-fields-a-save-button-submits-the-changes-via-useupdatelisting-and-a-cancel-button-dismisses-the-form-without-changes-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add an inline edit capability to each listing row in the listings table. Each row should have an 'Edit' (pencil icon) button. Clicking it opens an inline edit form (or a modal dialog) pre-populated with the listing's current values, allowing the user to modify make, model, year, mileage, price, trim, condition, dealerName, source, and listingUrl fields. A 'Save' button submits the changes via `useUpdateListing()` and a 'Cancel' button dismisses the form without changes. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-age-column-to-the-listings-table-that-displays-how-long-ago-each-listing-was-added-formatted-as-a-human-readable-relative-time-string-e-g-added-3-days-ago-added-1-hour-ago-added-2-months-ago-derive-the-age-from-the-listing-s-existing-timestamp-field-the-column-should-be-positioned-near-the-other-metadata-columns-and-styled-consistently-with-the-existing-dark-automotive-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Age' column to the listings table that displays how long ago each listing was added, formatted as a human-readable relative time string (e.g., 'Added 3 days ago', 'Added 1 hour ago', 'Added 2 months ago'). Derive the age from the listing's existing `timestamp` field. The column should be positioned near the other metadata columns and styled consistently with the existing dark automotive theme.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-when-the-listings-query-has-loaded-successfully-but-returns-zero-results-and-no-active-filters-are-applied-replace-the-empty-table-body-with-a-centered-onboarding-prompt-card-the-card-should-include-a-car-icon-or-illustration-a-headline-such-as-no-listings-yet-a-short-description-encouraging-the-user-to-get-started-a-primary-add-your-first-listing-button-that-navigates-to-add-and-a-secondary-import-csv-button-that-navigates-to-import-style-the-card-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, when the listings query has loaded successfully but returns zero results and no active filters are applied, replace the empty table body with a centered onboarding prompt card. The card should include: a car icon or illustration, a headline such as 'No listings yet', a short description encouraging the user to get started, a primary 'Add Your First Listing' button that navigates to `/add`, and a secondary 'Import CSV' button that navigates to `/import`. Style the card consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-frontend-src-pages-dashboardpage-tsx-fully-mobile-responsive-on-small-screens-below-md-breakpoint-the-filter-panel-should-collapse-into-an-expandable-collapsible-drawer-or-accordion-toggled-by-a-filters-button-the-listings-table-should-either-horizontally-scroll-within-a-fixed-width-container-or-switch-to-a-card-per-listing-stacked-layout-action-buttons-edit-export-csv-should-remain-accessible-and-not-overflow-the-viewport-ensure-the-saved-views-chips-toolbar-also-wraps-gracefully-on-narrow-screens-all-changes-must-be-compatible-with-the-existing-tailwind-dark-automotive-theme",
+      "title": "Make `frontend/src/pages/DashboardPage.tsx` fully mobile-responsive. On small screens (below `md` breakpoint): the filter panel should collapse into an expandable/collapsible drawer or accordion toggled by a 'Filters' button; the listings table should either horizontally scroll within a fixed-width container or switch to a card-per-listing stacked layout; action buttons (Edit, Export CSV) should remain accessible and not overflow the viewport. Ensure the Saved Views chips toolbar also wraps gracefully on narrow screens. All changes must be compatible with the existing Tailwind dark automotive theme.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-client-side-pagination-to-the-listings-table-in-frontend-src-pages-dashboardpage-tsx-display-a-fixed-number-of-rows-per-page-default-25-with-a-user-selectable-option-for-10-25-50-or-100-rows-per-page-render-pagination-controls-below-the-table-showing-the-current-page-total-pages-previous-next-buttons-and-optionally-numbered-page-buttons-pagination-must-operate-on-the-already-fetched-and-filtered-dataset-no-additional-backend-calls-are-required-the-current-page-should-reset-to-page-1-whenever-any-filter-changes-style-the-pagination-controls-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "Add client-side pagination to the listings table in `frontend/src/pages/DashboardPage.tsx`. Display a fixed number of rows per page (default 25, with a user-selectable option for 10, 25, 50, or 100 rows per page). Render pagination controls below the table showing the current page, total pages, previous/next buttons, and optionally numbered page buttons. Pagination must operate on the already-fetched and filtered dataset — no additional backend calls are required. The current page should reset to page 1 whenever any filter changes. Style the pagination controls consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usepricetrend-make-string-model-string-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getpricetrend-make-model-function-and-returns-the-trend-string-up-down-or-stable-the-query-should-only-be-enabled-when-both-make-and-model-are-non-empty-strings",
+      "title": "Add a `usePriceTrend(make: string, model: string)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getPriceTrend(make, model)` function and returns the trend string ('up', 'down', or 'stable'). The query should only be enabled when both `make` and `model` are non-empty strings.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-comparisonpage-tsx-display-a-price-trend-indicator-badge-icon-next-to-the-selected-make-model-heading-or-within-the-price-statistics-panel-use-the-usepricetrend-hook-for-the-currently-selected-make-and-model-show-an-upward-arrow-icon-with-an-amber-orange-label-trending-up-when-the-trend-is-up-a-downward-arrow-icon-with-a-red-label-trending-down-when-down-and-a-horizontal-arrow-icon-with-a-steel-gray-label-stable-when-stable-the-indicator-should-only-render-when-both-make-and-model-are-selected-and-the-query-has-returned-a-result-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/ComparisonPage.tsx`, display a price trend indicator badge/icon next to the selected make/model heading or within the price statistics panel. Use the `usePriceTrend` hook for the currently selected make and model. Show an upward arrow icon with an amber/orange label 'Trending Up' when the trend is 'up', a downward arrow icon with a red label 'Trending Down' when 'down', and a horizontal arrow icon with a steel-gray label 'Stable' when 'stable'. The indicator should only render when both make and model are selected and the query has returned a result. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-usedistinctmakes-and-usedistinctmodels-make-string-react-query-hooks-in-frontend-src-hooks-usequeries-ts-that-call-the-backend-getdistinctmakes-and-getdistinctmodels-make-functions-respectively-usedistinctmodels-should-only-be-enabled-when-make-is-a-non-empty-string",
+      "title": "Add `useDistinctMakes()` and `useDistinctModels(make: string)` React Query hooks in `frontend/src/hooks/useQueries.ts` that call the backend `getDistinctMakes()` and `getDistinctModels(make)` functions respectively. `useDistinctModels` should only be enabled when `make` is a non-empty string.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-comparisonpage-tsx-replace-the-plain-text-inputs-for-make-and-model-with-autocomplete-typeahead-inputs-the-make-input-should-use-usedistinctmakes-to-populate-suggestions-as-the-user-types-show-a-filtered-dropdown-list-of-matching-makes-when-a-make-is-selected-the-model-input-should-use-usedistinctmodels-selectedmake-to-populate-model-suggestions-filtered-by-the-chosen-make-selecting-a-suggestion-from-the-dropdown-fills-the-input-the-inputs-must-still-accept-free-text-entry-not-locked-to-suggestions-style-the-dropdown-suggestions-consistently-with-the-existing-dark-automotive-amber-orange-theme-dark-charcoal-dropdown-background-amber-orange-highlight-on-hover-selection-subtle-border",
+      "title": "In `frontend/src/pages/ComparisonPage.tsx`, replace the plain text inputs for Make and Model with autocomplete/typeahead inputs. The Make input should use `useDistinctMakes()` to populate suggestions; as the user types, show a filtered dropdown list of matching makes. When a make is selected, the Model input should use `useDistinctModels(selectedMake)` to populate model suggestions filtered by the chosen make. Selecting a suggestion from the dropdown fills the input. The inputs must still accept free-text entry (not locked to suggestions). Style the dropdown suggestions consistently with the existing dark automotive amber/orange theme (dark charcoal dropdown background, amber/orange highlight on hover/selection, subtle border).",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usemarketoverview-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getmarketoverview-function-the-query-should-always-be-enabled-and-use-a-stale-time-appropriate-for-aggregate-data-e-g-5-minutes",
+      "title": "Add a `useMarketOverview()` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getMarketOverview()` function. The query should always be enabled and use a stale time appropriate for aggregate data (e.g., 5 minutes).",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-marketoverviewpage-at-frontend-src-pages-marketoverviewpage-tsx-the-page-must-display-three-card-sections-using-data-from-usemarketoverview-1-most-tracked-models-a-ranked-list-top-10-of-make-model-pairs-with-their-listing-count-each-row-clickable-to-navigate-to-the-comparison-page-pre-filled-with-that-make-and-model-2-biggest-price-drops-a-ranked-list-top-10-of-make-model-pairs-showing-the-first-recorded-price-latest-price-and-the-absolute-and-percentage-drop-formatted-as-currency-and-percent-each-row-clickable-to-navigate-to-the-comparison-page-3-best-deals-right-now-a-card-grid-top-10-showing-each-listing-s-make-model-price-and-a-good-deal-badge-with-the-percentage-below-average-include-a-loading-skeleton-state-while-data-is-fetching-and-an-empty-state-message-if-no-data-is-available-add-a-market-overview-navigation-link-in-frontend-src-app-tsx-and-register-the-route-at-path-market-style-the-page-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme-card-based-layout-subtle-borders-and-shadows-amber-orange-accent-highlights",
+      "title": "Create a new `MarketOverviewPage` at `frontend/src/pages/MarketOverviewPage.tsx`. The page must display three card sections using data from `useMarketOverview()`: (1) 'Most Tracked Models' — a ranked list (top 10) of make/model pairs with their listing count, each row clickable to navigate to the Comparison page pre-filled with that make and model; (2) 'Biggest Price Drops' — a ranked list (top 10) of make/model pairs showing the first recorded price, latest price, and the absolute and percentage drop formatted as currency and percent, each row clickable to navigate to the Comparison page; (3) 'Best Deals Right Now' — a card grid (top 10) showing each listing's make, model, price, and a 'Good Deal' badge with the percentage below average. Include a loading skeleton state while data is fetching and an empty state message if no data is available. Add a 'Market Overview' navigation link in `frontend/src/App.tsx` and register the route at path `/market`. Style the page consistently with the existing dark charcoal and amber/orange automotive theme (card-based layout, subtle borders and shadows, amber/orange accent highlights).",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usepricedroplistings-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getpricedroplistings-function-the-query-should-always-be-enabled",
+      "title": "Add a `usePriceDropListings()` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getPriceDropListings()` function. The query should always be enabled.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-price-drops-section-to-frontend-src-pages-marketoverviewpage-tsx-or-as-a-dedicated-tab-within-that-page-that-displays-all-listings-returned-by-usepricedroplistings-render-each-result-as-a-table-row-or-card-showing-make-model-year-trim-source-first-recorded-price-latest-price-drop-amount-formatted-as-currency-e-g-1-500-and-drop-percent-formatted-as-a-percentage-e-g-8-3-the-drop-amount-and-percent-should-be-highlighted-in-green-emerald-to-indicate-a-price-decrease-include-a-search-filter-input-to-filter-the-list-by-make-or-model-display-a-no-price-drops-detected-yet-empty-state-if-the-list-is-empty-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "Add a 'Price Drops' section to `frontend/src/pages/MarketOverviewPage.tsx` (or as a dedicated tab within that page) that displays all listings returned by `usePriceDropListings()`. Render each result as a table row or card showing: make, model, year, trim, source, first recorded price, latest price, drop amount (formatted as currency, e.g. '−$1,500'), and drop percent (formatted as a percentage, e.g. '−8.3%'). The drop amount and percent should be highlighted in green/emerald to indicate a price decrease. Include a search/filter input to filter the list by make or model. Display a 'No price drops detected yet' empty state if the list is empty. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-price-drop-badge-to-the-listings-table-in-frontend-src-pages-dashboardpage-tsx-using-the-data-from-usepricedroplistings-cross-reference-each-listing-row-by-its-id-if-a-listing-appears-in-the-price-drop-results-display-a-small-green-emerald-badge-or-icon-e-g-a-downward-arrow-labeled-drop-in-a-dedicated-column-or-appended-to-the-price-cell-the-badge-should-show-the-drop-percent-e-g-8-3-if-no-price-drop-data-is-available-or-the-listing-has-no-price-drop-show-nothing-in-that-cell-the-column-header-should-be-labeled-price-change-this-column-should-always-be-visible-regardless-of-authentication-state",
+      "title": "Add a 'Price Drop' badge to the listings table in `frontend/src/pages/DashboardPage.tsx`. Using the data from `usePriceDropListings()`, cross-reference each listing row by its ID. If a listing appears in the price drop results, display a small green/emerald badge or icon (e.g., a downward arrow labeled '↓ Drop') in a dedicated column or appended to the price cell. The badge should show the drop percent (e.g., '↓ 8.3%'). If no price drop data is available or the listing has no price drop, show nothing in that cell. The column header should be labeled 'Price Change'. This column should always be visible regardless of authentication state.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usemileageadjustedlistings-make-string-model-string-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getmileageadjustedlistings-make-model-function-the-query-should-only-be-enabled-when-both-make-and-model-are-non-empty-strings",
+      "title": "Add a `useMileageAdjustedListings(make: string, model: string)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getMileageAdjustedListings(make, model)` function. The query should only be enabled when both `make` and `model` are non-empty strings.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-comparisonpage-tsx-add-a-mileage-adjusted-pricing-section-below-the-existing-price-statistics-panel-when-a-make-and-model-are-selected-use-the-usemileageadjustedlistings-make-model-hook-to-render-a-table-of-listings-sorted-by-price-per-mile-lowest-first-the-table-should-include-columns-year-trim-mileage-price-price-mile-formatted-to-4-decimal-places-as-a-dollar-value-e-g-0-0123-source-and-dealer-a-price-mile-column-header-tooltip-or-subtitle-should-explain-the-metric-e-g-lower-is-better-price-divided-by-mileage-highlight-the-top-3-lowest-price-per-mile-rows-with-an-amber-orange-left-border-or-badge-display-a-loading-state-while-fetching-and-an-empty-state-if-no-data-is-returned-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/ComparisonPage.tsx`, add a 'Mileage-Adjusted Pricing' section below the existing price statistics panel. When a make and model are selected, use the `useMileageAdjustedListings(make, model)` hook to render a table of listings sorted by price-per-mile (lowest first). The table should include columns: Year, Trim, Mileage, Price, Price/Mile (formatted to 4 decimal places as a dollar value, e.g. '$0.0123'), Source, and Dealer. A 'Price/Mile' column header tooltip or subtitle should explain the metric (e.g., 'Lower is better — price divided by mileage'). Highlight the top 3 lowest price-per-mile rows with an amber/orange left border or badge. Display a loading state while fetching and an empty state if no data is returned. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-price-mile-column-to-the-listings-table-compute-the-value-client-side-as-price-mileage-formatted-as-0-0000-for-each-listing-where-mileage-0-for-listings-where-mileage-0-or-mileage-is-absent-display-in-that-cell-the-column-should-be-positioned-adjacent-to-the-mileage-and-price-columns-the-column-header-should-include-a-small-info-icon-with-a-tooltip-price-per-mile-lower-is-better-style-consistently-with-the-existing-dark-automotive-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Price/Mile' column to the listings table. Compute the value client-side as `price / mileage` (formatted as '$0.0000') for each listing where `mileage > 0`. For listings where `mileage == 0` or `mileage` is absent, display '—' in that cell. The column should be positioned adjacent to the Mileage and Price columns. The column header should include a small info icon with a tooltip 'Price per mile — lower is better'. Style consistently with the existing dark automotive theme.",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-for-bulk-delete-archiving-and-duplicate-merge-in-frontend-src-hooks-usequeries-ts-add-usedeletelistings-mutation-calling-deletelistings-ids-invalidates-listings-query-key-on-success-usearchivelisting-mutation-calling-archivelisting-id-invalidates-listings-on-success-useunarchivelisting-mutation-calling-unarchivelisting-id-invalidates-listings-on-success-usearchivedlistings-query-calling-getarchivedlistings-usenearduplicates-query-calling-getnearduplicates-usemergelistings-mutation-calling-mergelistings-keepid-discardids-invalidates-listings-and-nearduplicates-query-keys-on-success",
+      "title": "Add React Query hooks for bulk delete, archiving, and duplicate merge in `frontend/src/hooks/useQueries.ts`. Add: `useDeleteListings()` mutation calling `deleteListings(ids)`, invalidates `listings` query key on success; `useArchiveListing()` mutation calling `archiveListing(id)`, invalidates `listings` on success; `useUnarchiveListing()` mutation calling `unarchiveListing(id)`, invalidates `listings` on success; `useArchivedListings()` query calling `getArchivedListings()`; `useNearDuplicates()` query calling `getNearDuplicates()`; `useMergeListings()` mutation calling `mergeListings(keepId, discardIds)`, invalidates `listings` and `nearDuplicates` query keys on success.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-bulk-delete-functionality-to-the-active-listings-table-add-a-checkbox-column-as-the-first-column-in-the-table-header-and-each-row-when-one-or-more-checkboxes-are-checked-display-a-bulk-action-toolbar-above-or-below-the-table-showing-the-count-of-selected-listings-e-g-3-selected-and-a-delete-selected-button-clicking-delete-selected-shows-a-confirmation-prompt-e-g-inline-text-or-a-browser-confirm-dialog-then-calls-usedeletelistings-with-the-selected-ids-on-success-clear-the-selection-and-show-a-brief-success-notification-e-g-3-listings-deleted-add-a-select-all-checkbox-in-the-header-that-selects-deselects-all-currently-visible-paginated-rows-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add bulk-delete functionality to the active listings table. Add a checkbox column as the first column in the table header and each row. When one or more checkboxes are checked, display a bulk-action toolbar above (or below) the table showing the count of selected listings (e.g., '3 selected') and a 'Delete Selected' button. Clicking 'Delete Selected' shows a confirmation prompt (e.g., inline text or a browser confirm dialog), then calls `useDeleteListings()` with the selected IDs. On success, clear the selection and show a brief success notification (e.g., '3 listings deleted'). Add a 'Select All' checkbox in the header that selects/deselects all currently visible (paginated) rows. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-per-row-archive-and-unarchive-actions-each-active-listing-row-should-have-an-archive-action-e-g-an-archive-box-icon-button-in-the-actions-column-alongside-the-existing-edit-and-delete-buttons-clicking-archive-calls-usearchivelisting-for-that-listing-s-id-add-an-archived-view-toggle-a-tab-toggle-button-or-filter-chip-near-the-top-of-the-page-labeled-show-archived-that-when-activated-switches-the-table-to-display-results-from-usearchivedlistings-instead-of-the-normal-listings-in-the-archived-view-each-row-has-an-unarchive-button-calling-useunarchivelisting-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add per-row archive and unarchive actions. Each active listing row should have an 'Archive' action (e.g., an archive/box icon button) in the actions column alongside the existing Edit and Delete buttons. Clicking 'Archive' calls `useArchiveListing()` for that listing's ID. Add an 'Archived' view toggle — a tab, toggle button, or filter chip near the top of the page labeled 'Show Archived' — that, when activated, switches the table to display results from `useArchivedListings()` instead of the normal listings. In the archived view, each row has an 'Unarchive' button calling `useUnarchiveListing()`. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-duplicatemergepage-at-frontend-src-pages-duplicatemergepage-tsx-the-page-fetches-near-duplicate-clusters-using-usenearduplicates-display-each-cluster-as-a-card-group-showing-all-near-matching-listings-side-by-side-or-stacked-on-mobile-with-their-key-fields-make-model-year-mileage-price-trim-source-dealer-and-listing-url-within-each-cluster-the-user-selects-one-listing-to-keep-radio-button-or-keep-this-button-and-the-others-are-automatically-marked-as-discards-a-merge-button-per-cluster-calls-usemergelistings-keepid-discardids-show-a-loading-skeleton-while-fetching-a-no-duplicate-listings-detected-empty-state-if-the-result-is-empty-and-a-success-notification-after-each-merge-add-a-duplicates-navigation-link-in-frontend-src-app-tsx-and-register-the-route-at-path-duplicates-style-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme",
+      "title": "Create a new `DuplicateMergePage` at `frontend/src/pages/DuplicateMergePage.tsx`. The page fetches near-duplicate clusters using `useNearDuplicates()`. Display each cluster as a card group showing all near-matching listings side-by-side (or stacked on mobile) with their key fields: make, model, year, mileage, price, trim, source, dealer, and listing URL. Within each cluster, the user selects one listing to keep (radio button or 'Keep this' button) and the others are automatically marked as discards. A 'Merge' button per cluster calls `useMergeListings(keepId, discardIds)`. Show a loading skeleton while fetching, a 'No duplicate listings detected' empty state if the result is empty, and a success notification after each merge. Add a 'Duplicates' navigation link in `frontend/src/App.tsx` and register the route at path `/duplicates`. Style consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-column-visibility-and-reorder-control-to-the-listings-table-render-a-columns-button-e-g-a-settings-columns-icon-near-the-table-toolbar-clicking-it-opens-a-dropdown-or-popover-panel-listing-all-available-column-names-checkbox-make-model-year-mileage-price-price-mile-trim-condition-dealer-source-deal-score-price-change-below-target-age-actions-each-column-has-a-toggle-checkbox-to-show-or-hide-it-support-drag-and-drop-or-up-down-arrow-buttons-to-reorder-columns-persist-the-user-s-column-visibility-and-order-preferences-in-localstorage-under-the-key-dashboard-column-prefs-so-the-configuration-is-restored-on-page-reload-the-checkbox-bulk-select-and-actions-columns-must-always-remain-visible-and-cannot-be-hidden-style-the-button-and-panel-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a column visibility and reorder control to the listings table. Render a 'Columns' button (e.g., a settings/columns icon) near the table toolbar. Clicking it opens a dropdown or popover panel listing all available column names (Checkbox, Make, Model, Year, Mileage, Price, Price/Mile, Trim, Condition, Dealer, Source, Deal Score, Price Change, Below Target, Age, Actions). Each column has a toggle checkbox to show or hide it. Support drag-and-drop or up/down arrow buttons to reorder columns. Persist the user's column visibility and order preferences in localStorage under the key `dashboard_column_prefs` so the configuration is restored on page reload. The 'Checkbox' (bulk select) and 'Actions' columns must always remain visible and cannot be hidden. Style the button and panel consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-comparisonpage-tsx-add-a-print-share-button-in-the-page-header-or-near-the-price-statistics-panel-clicking-this-button-1-opens-a-print-friendly-view-use-a-dedicated-css-media-query-media-print-or-a-modal-overlay-that-shows-a-clean-minimal-layout-containing-the-selected-make-model-heading-the-price-statistics-summary-min-max-average-listing-count-cheapest-source-the-price-trend-indicator-the-price-comparison-line-chart-and-the-mileage-adjusted-pricing-table-all-sidebar-navigation-filter-controls-and-action-buttons-must-be-hidden-in-the-print-layout-2-also-generates-a-shareable-url-by-encoding-the-currently-selected-make-model-and-any-active-filters-as-url-query-parameters-and-copying-the-resulting-url-to-the-clipboard-showing-a-brief-link-copied-toast-notification-the-button-should-use-a-share-print-icon-and-be-styled-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/ComparisonPage.tsx`, add a 'Print / Share' button in the page header or near the price statistics panel. Clicking this button: (1) Opens a print-friendly view — use a dedicated CSS media query (`@media print`) or a modal/overlay that shows a clean, minimal layout containing the selected make/model heading, the price statistics summary (min, max, average, listing count, cheapest source), the price trend indicator, the price comparison line chart, and the mileage-adjusted pricing table. All sidebar navigation, filter controls, and action buttons must be hidden in the print layout. (2) Also generates a shareable URL by encoding the currently selected make, model, and any active filters as URL query parameters and copying the resulting URL to the clipboard, showing a brief 'Link copied!' toast notification. The button should use a share/print icon and be styled consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dark-light-theme-toggle-to-the-application-in-frontend-src-app-tsx-add-a-theme-toggle-button-sun-moon-icon-in-the-sticky-navigation-header-alongside-the-existing-auth-controls-the-toggle-switches-between-the-current-dark-automotive-theme-and-a-light-mode-variant-the-light-mode-should-use-a-light-warm-white-light-gray-background-dark-charcoal-text-and-retain-amber-orange-as-the-accent-color-to-preserve-brand-identity-implement-theme-state-using-react-context-or-a-simple-localstorage-key-app-theme-initialized-from-the-stored-value-on-load-and-defaulting-to-dark-apply-the-active-theme-by-toggling-a-light-or-dark-class-on-the-html-or-body-element-define-light-mode-css-custom-property-overrides-in-frontend-src-index-css-under-a-light-or-data-theme-light-selector-that-override-the-existing-dark-mode-tokens-the-toggle-must-work-consistently-across-all-pages-style-the-toggle-button-itself-consistently-with-the-existing-header-design",
+      "title": "Add a dark/light theme toggle to the application. In `frontend/src/App.tsx`, add a theme toggle button (sun/moon icon) in the sticky navigation header alongside the existing auth controls. The toggle switches between the current dark automotive theme and a light mode variant. The light mode should use a light warm-white/light-gray background, dark charcoal text, and retain amber/orange as the accent color to preserve brand identity. Implement theme state using React context or a simple localStorage key (`app_theme`), initialized from the stored value on load and defaulting to `dark`. Apply the active theme by toggling a `light` or `dark` class on the `<html>` or `<body>` element. Define light-mode CSS custom property overrides in `frontend/src/index.css` under a `.light` or `[data-theme='light']` selector that override the existing dark-mode tokens. The toggle must work consistently across all pages. Style the toggle button itself consistently with the existing header design.",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-two-react-query-hooks-in-frontend-src-hooks-usequeries-ts-useuserpreferences-that-calls-the-backend-getuserpreferences-function-enabled-only-when-the-user-is-authenticated-via-useactor-and-usesaveuserpreferences-mutation-that-calls-saveuserpreferences-columnprefsjson-theme-and-invalidates-the-userpreferences-query-key-on-success-both-hooks-must-pass-through-the-authenticated-actor-from-useactor",
+      "title": "Add two React Query hooks in `frontend/src/hooks/useQueries.ts`: `useUserPreferences()` that calls the backend `getUserPreferences()` function (enabled only when the user is authenticated via `useActor`), and `useSaveUserPreferences()` mutation that calls `saveUserPreferences(columnPrefsJson, theme)` and invalidates the `userPreferences` query key on success. Both hooks must pass through the authenticated actor from `useActor`.",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-hooks-usecolumnpreferences-ts-to-sync-column-visibility-and-order-preferences-with-the-backend-when-the-user-is-authenticated-on-initial-load-if-the-user-is-authenticated-fetch-preferences-via-useuserpreferences-and-hydrate-the-column-state-from-columnprefsjson-parsed-from-json-instead-of-or-in-addition-to-localstorage-whenever-the-column-configuration-changes-and-the-user-is-authenticated-call-usesaveuserpreferences-with-the-updated-columnprefsjson-serialized-to-json-and-the-current-theme-value-when-the-user-is-not-authenticated-continue-using-localstorage-dashboard-column-prefs-as-the-sole-persistence-mechanism-if-backend-preferences-exist-on-load-they-should-take-precedence-over-localstorage",
+      "title": "Update `frontend/src/hooks/useColumnPreferences.ts` to sync column visibility and order preferences with the backend when the user is authenticated. On initial load, if the user is authenticated, fetch preferences via `useUserPreferences()` and hydrate the column state from `columnPrefsJson` (parsed from JSON) instead of (or in addition to) localStorage. Whenever the column configuration changes and the user is authenticated, call `useSaveUserPreferences()` with the updated `columnPrefsJson` (serialized to JSON) and the current theme value. When the user is not authenticated, continue using localStorage (`dashboard_column_prefs`) as the sole persistence mechanism. If backend preferences exist on load, they should take precedence over localStorage.",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-hooks-usetheme-ts-to-sync-the-theme-choice-with-the-backend-when-the-user-is-authenticated-on-initial-load-if-the-user-is-authenticated-fetch-preferences-via-useuserpreferences-and-apply-the-stored-theme-value-dark-or-light-to-the-document-root-overriding-the-localstorage-value-whenever-the-theme-is-toggled-and-the-user-is-authenticated-call-usesaveuserpreferences-with-the-current-columnprefsjson-from-the-existing-column-preferences-state-and-the-new-theme-value-when-not-authenticated-continue-using-localstorage-app-theme-as-the-sole-persistence-mechanism-if-backend-preferences-exist-on-load-they-take-precedence-over-localstorage",
+      "title": "Update `frontend/src/hooks/useTheme.ts` to sync the theme choice with the backend when the user is authenticated. On initial load, if the user is authenticated, fetch preferences via `useUserPreferences()` and apply the stored `theme` value ('dark' or 'light') to the document root, overriding the localStorage value. Whenever the theme is toggled and the user is authenticated, call `useSaveUserPreferences()` with the current `columnPrefsJson` (from the existing column preferences state) and the new theme value. When not authenticated, continue using localStorage (`app_theme`) as the sole persistence mechanism. If backend preferences exist on load, they take precedence over localStorage.",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-watchlistpage-tsx-after-a-successful-useaddtowatchlist-mutation-show-an-inline-toast-or-dismissible-notice-informing-the-user-that-a-price-alert-has-been-automatically-created-for-the-added-make-model-e-g-watchlist-entry-added-a-price-alert-for-toyota-camry-has-been-set-update-your-target-price-on-the-price-alerts-page-include-a-direct-link-to-alerts-within-the-notice-style-the-notice-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/WatchlistPage.tsx`, after a successful `useAddToWatchlist()` mutation, show an inline toast or dismissible notice informing the user that a price alert has been automatically created for the added make/model (e.g., 'Watchlist entry added. A price alert for Toyota Camry has been set — update your target price on the Price Alerts page.'). Include a direct link to `/alerts` within the notice. Style the notice consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usewatchlistbestdeals-react-query-hook-in-frontend-src-hooks-usequeries-ts-for-a-given-array-of-watchlist-entries-make-model-pairs-this-hook-should-call-getlistings-the-existing-listings-query-and-client-side-compute-for-each-unique-make-model-pair-in-the-watchlist-the-listing-with-the-lowest-price-whose-deal-score-from-getdealscores-is-good-deal-or-if-no-good-deal-listing-exists-fall-back-to-the-listing-with-the-absolute-lowest-price-for-that-make-model-the-hook-should-return-a-map-of-make-model-key-to-the-best-matching-listing-or-null-if-no-listings-exist-for-that-make-model-the-query-should-be-enabled-only-when-the-watchlist-has-at-least-one-entry-and-the-user-is-authenticated",
+      "title": "Add a `useWatchlistBestDeals()` React Query hook in `frontend/src/hooks/useQueries.ts`. For a given array of watchlist entries (make/model pairs), this hook should call `getListings()` (the existing listings query) and client-side compute, for each unique make/model pair in the watchlist, the listing with the lowest price whose deal score (from `getDealScores`) is 'Good Deal' — or if no 'Good Deal' listing exists, fall back to the listing with the absolute lowest price for that make/model. The hook should return a map of `{make}-{model}` key to the best matching listing (or `null` if no listings exist for that make/model). The query should be enabled only when the watchlist has at least one entry and the user is authenticated.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-pages-watchlistpage-tsx-to-display-a-best-deal-summary-section-on-each-watchlist-entry-card-use-the-data-from-the-usewatchlistbestdeals-hook-for-each-watchlist-card-if-a-best-deal-listing-exists-for-that-make-model-render-an-inline-summary-showing-the-listing-price-formatted-as-currency-year-mileage-source-and-a-good-deal-badge-green-emerald-if-the-listing-s-deal-score-is-good-deal-or-a-lowest-price-badge-amber-if-it-is-a-fallback-include-a-view-on-dashboard-link-that-navigates-to-the-dashboard-pre-filtered-by-that-make-and-model-using-sessionstorage-or-url-params-consistent-with-how-savedsearchespage-applies-filters-if-no-listings-exist-for-the-make-model-display-a-muted-no-listings-tracked-yet-message-in-that-section-show-a-loading-skeleton-while-the-data-is-fetching-style-all-additions-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme",
+      "title": "Update `frontend/src/pages/WatchlistPage.tsx` to display a 'Best Deal' summary section on each watchlist entry card. Use the data from the `useWatchlistBestDeals()` hook. For each watchlist card, if a best deal listing exists for that make/model, render an inline summary showing: the listing price (formatted as currency), year, mileage, source, and a 'Good Deal' badge (green/emerald) if the listing's deal score is 'Good Deal' or a 'Lowest Price' badge (amber) if it is a fallback. Include a 'View on Dashboard' link that navigates to the Dashboard (`/`) pre-filtered by that make and model (using sessionStorage or URL params consistent with how `SavedSearchesPage` applies filters). If no listings exist for the make/model, display a muted 'No listings tracked yet' message in that section. Show a loading skeleton while the data is fetching. Style all additions consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-three-react-query-hooks-in-frontend-src-hooks-usequeries-ts-1-usestalelistings-thresholddays-number-that-calls-the-backend-getstalelistings-thresholddays-function-enabled-when-thresholddays-0-2-usepriceannotations-listingid-number-that-calls-getpriceannotations-listingid-enabled-when-listingid-is-a-valid-positive-number-3-useconfidencescores-make-string-model-string-that-calls-getconfidencescores-make-model-enabled-when-both-make-and-model-are-non-empty-strings-also-add-useaddpriceannotation-mutation-calling-addpriceannotation-listingid-note-that-invalidates-the-priceannotations-query-key-for-the-affected-listingid-on-success-and-usedeletepriceannotation-mutation-calling-deletepriceannotation-id-that-also-invalidates-the-priceannotations-query-key-on-success",
+      "title": "Add three React Query hooks in `frontend/src/hooks/useQueries.ts`: (1) `useStaleListings(thresholdDays: number)` that calls the backend `getStaleListings(thresholdDays)` function, enabled when `thresholdDays > 0`; (2) `usePriceAnnotations(listingId: number)` that calls `getPriceAnnotations(listingId)`, enabled when `listingId` is a valid positive number; (3) `useConfidenceScores(make: string, model: string)` that calls `getConfidenceScores(make, model)`, enabled when both `make` and `model` are non-empty strings. Also add `useAddPriceAnnotation()` mutation calling `addPriceAnnotation(listingId, note)` that invalidates the `priceAnnotations` query key for the affected listingId on success, and `useDeletePriceAnnotation()` mutation calling `deletePriceAnnotation(id)` that also invalidates the `priceAnnotations` query key on success.",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-stale-badge-to-listing-rows-that-have-not-been-updated-within-a-configurable-threshold-add-a-threshold-selector-a-dropdown-or-input-e-g-7-14-30-60-days-near-the-existing-filter-controls-or-table-toolbar-defaulting-to-30-days-use-the-usestalelistings-thresholddays-hook-to-obtain-the-set-of-stale-listing-ids-then-cross-reference-each-row-by-id-if-a-listing-is-stale-display-an-amber-orange-badge-labeled-stale-in-a-dedicated-freshness-column-or-appended-to-the-age-cell-if-the-listing-is-not-stale-show-nothing-in-that-cell-the-freshness-column-should-be-included-in-the-column-visibility-reorder-panel-under-the-key-freshness-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Stale' badge to listing rows that have not been updated within a configurable threshold. Add a threshold selector (a dropdown or input, e.g., 7 / 14 / 30 / 60 days) near the existing filter controls or table toolbar, defaulting to 30 days. Use the `useStaleListings(thresholdDays)` hook to obtain the set of stale listing IDs, then cross-reference each row by ID. If a listing is stale, display an amber/orange badge labeled 'Stale' in a dedicated 'Freshness' column or appended to the 'Age' cell. If the listing is not stale, show nothing in that cell. The 'Freshness' column should be included in the column visibility/reorder panel under the key `freshness`. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-confidence-column-to-the-listings-table-for-the-currently-displayed-make-model-filter-if-both-are-set-use-useconfidencescores-make-model-to-obtain-confidence-scores-and-labels-for-each-matching-listing-cross-reference-each-row-by-listing-id-and-display-the-score-label-as-a-badge-high-in-green-emerald-medium-in-amber-yellow-low-in-red-if-no-make-model-filter-is-active-i-e-listings-span-multiple-makes-models-compute-the-confidence-score-client-side-using-the-same-field-completeness-logic-trim-mileage-listingurl-condition-dealername-year-and-display-the-badge-accordingly-the-column-should-be-included-in-the-column-visibility-reorder-panel-under-the-key-confidence-style-consistently-with-the-existing-dark-automotive-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Confidence' column to the listings table. For the currently displayed make/model filter (if both are set), use `useConfidenceScores(make, model)` to obtain confidence scores and labels for each matching listing. Cross-reference each row by listing ID and display the score label as a badge: 'High' in green/emerald, 'Medium' in amber/yellow, 'Low' in red. If no make+model filter is active (i.e., listings span multiple makes/models), compute the confidence score client-side using the same field-completeness logic (trim, mileage, listingUrl, condition, dealerName, year) and display the badge accordingly. The column should be included in the column visibility/reorder panel under the key `confidence`. Style consistently with the existing dark automotive theme.",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-comparisonpage-tsx-add-a-price-history-annotations-feature-below-the-price-comparison-line-chart-render-an-annotations-section-this-section-displays-all-annotations-for-each-listing-in-the-currently-selected-make-model-result-set-fetched-via-usepriceannotations-listingid-for-each-listing-display-annotations-as-a-compact-list-grouped-by-listing-showing-listing-year-trim-source-and-price-alongside-the-note-text-and-creation-date-when-the-user-is-authenticated-show-an-inline-add-note-form-per-listing-a-text-input-and-a-save-button-that-calls-useaddpriceannotation-authenticated-users-who-own-an-annotation-should-see-a-delete-trash-icon-button-that-calls-usedeletepriceannotation-if-no-annotations-exist-for-any-listing-show-a-muted-no-annotations-yet-message-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/ComparisonPage.tsx`, add a price history annotations feature. Below the price comparison line chart, render an 'Annotations' section. This section displays all annotations for each listing in the currently selected make/model result set, fetched via `usePriceAnnotations(listingId)` for each listing. Display annotations as a compact list grouped by listing (showing listing year, trim, source, and price alongside the note text and creation date). When the user is authenticated, show an inline 'Add Note' form per listing (a text input and a 'Save' button) that calls `useAddPriceAnnotation()`. Authenticated users who own an annotation should see a delete (trash icon) button that calls `useDeletePriceAnnotation()`. If no annotations exist for any listing, show a muted 'No annotations yet' message. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usebulkupdatelistings-react-query-mutation-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-bulkupdatelistings-ids-field-value-function-the-mutation-should-invalidate-the-listings-query-key-on-success",
+      "title": "Add a `useBulkUpdateListings()` React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the backend `bulkUpdateListings(ids, field, value)` function. The mutation should invalidate the `listings` query key on success.",
+      "reqIds": [
+        "REQ-108"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-bulk-edit-action-to-the-existing-bulk-action-toolbar-that-appears-when-one-or-more-listing-checkboxes-are-checked-add-an-edit-field-button-alongside-the-existing-delete-selected-button-clicking-edit-field-opens-a-small-inline-panel-or-modal-with-1-a-dropdown-to-select-which-field-to-update-with-options-source-condition-trim-dealer-name-2-a-text-input-for-the-new-value-3-an-apply-to-n-selected-button-that-calls-usebulkupdatelistings-with-the-selected-listing-ids-the-chosen-field-key-and-the-new-value-on-success-clear-the-selection-close-the-panel-and-show-a-brief-success-notification-such-as-5-listings-updated-a-cancel-button-dismisses-the-panel-without-changes-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a bulk edit action to the existing bulk-action toolbar that appears when one or more listing checkboxes are checked. Add an 'Edit Field' button alongside the existing 'Delete Selected' button. Clicking 'Edit Field' opens a small inline panel or modal with: (1) a dropdown to select which field to update with options 'Source', 'Condition', 'Trim', 'Dealer Name'; (2) a text input for the new value; (3) an 'Apply to N Selected' button that calls `useBulkUpdateListings()` with the selected listing IDs, the chosen field key, and the new value. On success, clear the selection, close the panel, and show a brief success notification such as '5 listings updated'. A 'Cancel' button dismisses the panel without changes. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-109"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-two-react-query-hooks-in-frontend-src-hooks-usequeries-ts-1-usegeneratewatchlistsharetoken-mutation-that-calls-the-backend-generatewatchlistsharetoken-function-via-the-authenticated-actor-2-usesharedwatchlist-token-string-query-that-calls-the-backend-getsharedwatchlist-token-function-enabled-only-when-token-is-a-non-empty-string",
+      "title": "Add two React Query hooks in `frontend/src/hooks/useQueries.ts`: (1) `useGenerateWatchlistShareToken()` mutation that calls the backend `generateWatchlistShareToken()` function via the authenticated actor; (2) `useSharedWatchlist(token: string)` query that calls the backend `getSharedWatchlist(token)` function, enabled only when `token` is a non-empty string.",
+      "reqIds": [
+        "REQ-111"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-watchlistpage-tsx-add-a-share-watchlist-button-near-the-top-of-the-page-visible-only-when-the-user-is-authenticated-clicking-it-calls-usegeneratewatchlistsharetoken-and-on-success-constructs-a-shareable-url-in-the-format-window-location-origin-shared-watchlist-token-and-copies-it-to-the-clipboard-showing-an-inline-link-copied-toast-notification-styled-with-the-existing-amber-orange-theme-the-button-should-use-a-share-icon-and-be-styled-consistently-with-the-existing-dark-automotive-theme",
+      "title": "In `frontend/src/pages/WatchlistPage.tsx`, add a 'Share Watchlist' button near the top of the page visible only when the user is authenticated. Clicking it calls `useGenerateWatchlistShareToken()` and on success constructs a shareable URL in the format `{window.location.origin}/shared-watchlist/{token}` and copies it to the clipboard, showing an inline 'Link copied!' toast notification styled with the existing amber/orange theme. The button should use a share icon and be styled consistently with the existing dark automotive theme.",
+      "reqIds": [
+        "REQ-112"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-sharedwatchlistpage-at-frontend-src-pages-sharedwatchlistpage-tsx-this-page-reads-the-token-route-parameter-from-the-url-path-shared-watchlist-token-calls-usesharedwatchlist-token-to-fetch-the-watchlist-entries-and-displays-them-in-a-read-only-card-based-list-each-card-shows-the-make-model-and-optional-label-the-page-should-show-a-loading-skeleton-while-fetching-a-watchlist-not-found-message-if-the-token-is-invalid-or-the-query-returns-null-and-an-empty-state-message-if-the-watchlist-has-no-entries-no-edit-remove-or-add-controls-are-shown-register-the-route-at-path-shared-watchlist-token-in-the-tanstack-router-configuration-in-frontend-src-app-tsx-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "Create a new `SharedWatchlistPage` at `frontend/src/pages/SharedWatchlistPage.tsx`. This page reads the `token` route parameter from the URL path `/shared-watchlist/$token`, calls `useSharedWatchlist(token)` to fetch the watchlist entries, and displays them in a read-only card-based list. Each card shows the make, model, and optional label. The page should show a loading skeleton while fetching, a 'Watchlist not found' message if the token is invalid or the query returns null, and an empty state message if the watchlist has no entries. No edit, remove, or add controls are shown. Register the route at path `/shared-watchlist/$token` in the TanStack Router configuration in `frontend/src/App.tsx`. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-113"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-useactivitylog-limit-number-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getactivitylog-limit-function-the-query-should-always-be-enabled-and-use-a-stale-time-of-30-seconds",
+      "title": "Add a `useActivityLog(limit: number)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getActivityLog(limit)` function. The query should always be enabled and use a stale time of 30 seconds.",
+      "reqIds": [
+        "REQ-115"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-activitylogpage-at-frontend-src-pages-activitylogpage-tsx-the-page-must-1-fetch-activity-log-entries-using-useactivitylog-100-2-display-entries-in-reverse-chronological-order-as-a-timeline-or-table-each-entry-shows-a-human-readable-action-label-such-as-listing-edited-listing-archived-listings-merged-listings-deleted-bulk-field-updated-the-affected-listing-ids-the-field-changed-and-old-new-values-for-edit-actions-formatted-as-source-oldvalue-to-newvalue-the-abbreviated-principal-first-5-chars-followed-by-ellipsis-and-the-timestamp-formatted-as-relative-time-with-the-full-date-visible-on-hover-3-include-a-search-or-filter-input-to-filter-entries-by-action-type-or-listing-id-4-show-a-loading-skeleton-while-fetching-and-a-no-activity-recorded-yet-empty-state-if-the-list-is-empty-5-add-an-activity-log-navigation-link-in-frontend-src-app-tsx-and-register-the-route-at-path-activity-style-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme",
+      "title": "Create a new `ActivityLogPage` at `frontend/src/pages/ActivityLogPage.tsx`. The page must: (1) Fetch activity log entries using `useActivityLog(100)`. (2) Display entries in reverse-chronological order as a timeline or table. Each entry shows a human-readable action label such as 'Listing Edited', 'Listing Archived', 'Listings Merged', 'Listings Deleted', 'Bulk Field Updated', the affected listing IDs, the field changed and old/new values for edit actions formatted as 'source: OldValue to NewValue', the abbreviated principal (first 5 chars followed by ellipsis), and the timestamp formatted as relative time with the full date visible on hover. (3) Include a search or filter input to filter entries by action type or listing ID. (4) Show a loading skeleton while fetching and a 'No activity recorded yet' empty state if the list is empty. (5) Add an 'Activity Log' navigation link in `frontend/src/App.tsx` and register the route at path `/activity`. Style consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-116"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usedashboardstats-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getdashboardstats-function-the-query-should-always-be-enabled-and-use-a-stale-time-of-60-seconds",
+      "title": "Add a `useDashboardStats()` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getDashboardStats()` function. The query should always be enabled and use a stale time of 60 seconds.",
+      "reqIds": [
+        "REQ-119"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-row-of-three-summary-stat-cards-at-the-very-top-of-the-page-above-the-filter-controls-and-listings-table-use-the-usedashboardstats-hook-to-populate-the-cards-the-three-cards-must-display-1-total-listings-the-totallistings-count-with-a-list-car-icon-2-average-price-the-averageprice-formatted-as-currency-e-g-18-450-with-a-price-tag-icon-3-added-this-week-the-listingsthisweek-count-with-a-calendar-clock-icon-each-card-should-use-the-existing-dark-charcoal-card-background-a-subtle-border-and-shadow-amber-orange-accent-for-the-stat-value-and-a-muted-label-in-steel-gray-while-the-query-is-loading-render-a-skeleton-placeholder-for-each-card-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a row of three summary stat cards at the very top of the page, above the filter controls and listings table. Use the `useDashboardStats()` hook to populate the cards. The three cards must display: (1) 'Total Listings' — the `totalListings` count with a list/car icon; (2) 'Average Price' — the `averagePrice` formatted as currency (e.g., '$18,450') with a price/tag icon; (3) 'Added This Week' — the `listingsThisWeek` count with a calendar/clock icon. Each card should use the existing dark charcoal card background, a subtle border and shadow, amber/orange accent for the stat value, and a muted label in steel-gray. While the query is loading, render a skeleton placeholder for each card. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-120"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-implement-the-following-keyboard-shortcuts-for-power-users-shortcuts-must-be-registered-using-a-useeffect-with-keydown-event-listeners-and-cleaned-up-on-unmount-implement-the-following-bindings-1-focus-the-main-search-make-filter-input-2-n-when-no-input-is-focused-navigate-to-add-to-open-the-add-listing-form-3-i-when-no-input-is-focused-navigate-to-import-to-open-the-csv-import-page-4-arrowright-or-when-no-input-is-focused-go-to-the-next-page-in-the-pagination-5-arrowleft-or-when-no-input-is-focused-go-to-the-previous-page-in-the-pagination-6-escape-clear-the-currently-focused-filter-input-or-close-any-open-modal-inline-panel-edit-form-bulk-edit-panel-column-customization-panel-display-a-keyboard-shortcuts-reference-tooltip-or-small-help-icon-button-e-g-a-icon-in-the-table-toolbar-area-clicking-it-opens-a-small-popover-or-modal-listing-all-available-shortcuts-with-their-descriptions-style-the-shortcuts-reference-popover-consistently-with-the-existing-dark-automotive-amber-orange-theme-dark-charcoal-background-amber-orange-accent-for-key-labels-subtle-border",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, implement the following keyboard shortcuts for power users. Shortcuts must be registered using a `useEffect` with `keydown` event listeners and cleaned up on unmount. Implement the following bindings: (1) `/` — focus the main search/make filter input; (2) `N` (when no input is focused) — navigate to `/add` to open the Add Listing form; (3) `I` (when no input is focused) — navigate to `/import` to open the CSV Import page; (4) `ArrowRight` or `→` (when no input is focused) — go to the next page in the pagination; (5) `ArrowLeft` or `←` (when no input is focused) — go to the previous page in the pagination; (6) `Escape` — clear the currently focused filter input or close any open modal/inline panel (edit form, bulk edit panel, column customization panel). Display a keyboard shortcuts reference tooltip or small help icon button (e.g., a `?` icon) in the table toolbar area. Clicking it opens a small popover or modal listing all available shortcuts with their descriptions. Style the shortcuts reference popover consistently with the existing dark automotive amber/orange theme (dark charcoal background, amber/orange accent for key labels, subtle border).",
+      "reqIds": [
+        "REQ-121"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-two-react-query-hooks-in-frontend-src-hooks-usequeries-ts-1-uselistingsolderthan-thresholddays-number-that-calls-the-backend-getlistingsolderthan-thresholddays-function-enabled-only-when-thresholddays-0-2-usebulkarchiveolderthan-mutation-that-calls-bulkarchiveolderthan-thresholddays-and-invalidates-the-listings-query-key-on-success",
+      "title": "Add two React Query hooks in `frontend/src/hooks/useQueries.ts`: (1) `useListingsOlderThan(thresholdDays: number)` that calls the backend `getListingsOlderThan(thresholdDays)` function, enabled only when `thresholdDays > 0`; (2) `useBulkArchiveOlderThan()` mutation that calls `bulkArchiveOlderThan(thresholdDays)` and invalidates the `listings` query key on success.",
+      "reqIds": [
+        "REQ-123"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-stale-re-check-panel-or-section-that-appears-when-stale-listings-exist-add-a-threshold-selector-dropdown-7-14-30-60-90-days-defaulting-to-30-near-the-existing-stale-threshold-control-or-table-toolbar-use-uselistingsolderthan-thresholddays-to-obtain-the-list-of-stale-listings-when-one-or-more-listings-are-older-than-the-threshold-display-a-dismissible-amber-orange-banner-or-collapsible-panel-above-the-table-with-the-message-you-have-n-listing-s-older-than-x-days-please-verify-or-remove-them-the-panel-must-list-each-stale-listing-make-model-year-price-age-as-a-row-with-two-inline-actions-1-a-keep-button-that-dismisses-that-individual-row-from-the-reminder-panel-for-the-current-session-without-modifying-the-listing-and-2-a-archive-button-that-calls-usearchivelisting-for-that-listing-s-id-if-the-user-dismisses-all-rows-individually-or-clicks-a-dismiss-all-button-on-the-panel-the-panel-hides-for-the-current-session-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Stale Re-check' panel or section that appears when stale listings exist. Add a threshold selector (dropdown: 7 / 14 / 30 / 60 / 90 days, defaulting to 30) near the existing stale threshold control or table toolbar. Use `useListingsOlderThan(thresholdDays)` to obtain the list of stale listings. When one or more listings are older than the threshold, display a dismissible amber/orange banner or collapsible panel above the table with the message 'You have N listing(s) older than X days — please verify or remove them.' The panel must list each stale listing (make, model, year, price, age) as a row with two inline actions: (1) a 'Keep' button that dismisses that individual row from the reminder panel for the current session without modifying the listing; and (2) a 'Archive' button that calls `useArchiveListing()` for that listing's ID. If the user dismisses all rows individually or clicks a 'Dismiss All' button on the panel, the panel hides for the current session. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-124"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-bulk-archive-by-age-action-button-in-the-table-toolbar-or-near-the-stale-re-check-threshold-selector-the-button-should-be-labeled-archive-all-older-than-x-days-where-x-reflects-the-currently-selected-threshold-clicking-it-shows-a-confirmation-prompt-e-g-archive-all-n-listings-older-than-x-days-this-cannot-be-undone-easily-then-calls-usebulkarchiveolderthan-with-the-current-threshold-value-on-success-clear-any-stale-reminder-panel-state-show-a-brief-success-notification-e-g-n-listings-archived-and-invalidate-the-listings-query-the-button-should-be-disabled-and-show-a-tooltip-no-listings-older-than-x-days-when-uselistingsolderthan-returns-an-empty-array-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Bulk Archive by Age' action button in the table toolbar or near the stale re-check threshold selector. The button should be labeled 'Archive All Older Than X Days' (where X reflects the currently selected threshold). Clicking it shows a confirmation prompt (e.g., 'Archive all N listings older than X days? This cannot be undone easily.') then calls `useBulkArchiveOlderThan()` with the current threshold value. On success, clear any stale reminder panel state, show a brief success notification (e.g., 'N listings archived'), and invalidate the listings query. The button should be disabled and show a tooltip 'No listings older than X days' when `useListingsOlderThan` returns an empty array. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-125"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usepricedropevents-make-string-model-string-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getpricedropevents-make-model-function-the-query-should-only-be-enabled-when-both-make-and-model-are-non-empty-strings-use-a-stale-time-of-2-minutes",
+      "title": "Add a `usePriceDropEvents(make: string, model: string)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getPriceDropEvents(make, model)` function. The query should only be enabled when both `make` and `model` are non-empty strings. Use a stale time of 2 minutes.",
+      "reqIds": [
+        "REQ-127"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-comparisonpage-tsx-overlay-price-drop-event-annotation-markers-directly-on-the-existing-price-comparison-line-chart-use-the-usepricedropevents-make-model-hook-for-the-currently-selected-make-and-model-for-each-pricedropevent-render-a-vertical-dashed-line-or-a-distinct-marker-e-g-a-downward-arrow-or-triangle-on-the-chart-at-the-event-s-timestamp-x-axis-position-positioned-at-the-newprice-y-axis-value-on-hover-of-the-marker-show-a-tooltip-displaying-source-year-trim-previous-price-formatted-as-currency-new-price-formatted-as-currency-drop-amount-e-g-1-200-and-drop-percent-e-g-6-5-markers-should-use-a-green-emerald-color-to-indicate-a-price-decrease-the-annotations-layer-must-not-obscure-the-existing-chart-lines-and-should-only-render-when-usepricedropevents-returns-at-least-one-result-if-the-data-is-loading-show-no-markers-do-not-block-chart-render-style-consistently-with-the-existing-dark-automotive-amber-orange-theme",
+      "title": "In `frontend/src/pages/ComparisonPage.tsx`, overlay price drop event annotation markers directly on the existing price comparison line chart. Use the `usePriceDropEvents(make, model)` hook for the currently selected make and model. For each `PriceDropEvent`, render a vertical dashed line or a distinct marker (e.g., a downward arrow or triangle) on the chart at the event's `timestamp` x-axis position, positioned at the `newPrice` y-axis value. On hover of the marker, show a tooltip displaying: source, year, trim, previous price (formatted as currency), new price (formatted as currency), drop amount (e.g., '−$1,200'), and drop percent (e.g., '−6.5%'). Markers should use a green/emerald color to indicate a price decrease. The annotations layer must not obscure the existing chart lines and should only render when `usePriceDropEvents` returns at least one result. If the data is loading, show no markers (do not block chart render). Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-128"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-three-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-dashboard-widgets-usedashboardwidgets-that-calls-getdashboardwidgets-enabled-only-when-the-user-is-authenticated-via-useactor-useadddashboardwidget-mutation-that-calls-adddashboardwidget-make-model-label-and-invalidates-the-dashboardwidgets-query-key-on-success-useremovedashboardwidget-mutation-that-calls-removedashboardwidget-id-and-invalidates-the-dashboardwidgets-query-key-on-success",
+      "title": "Add three React Query hooks in `frontend/src/hooks/useQueries.ts` for dashboard widgets: `useDashboardWidgets()` that calls `getDashboardWidgets()` (enabled only when the user is authenticated via `useActor`); `useAddDashboardWidget()` mutation that calls `addDashboardWidget(make, model, label)` and invalidates the `dashboardWidgets` query key on success; `useRemoveDashboardWidget()` mutation that calls `removeDashboardWidget(id)` and invalidates the `dashboardWidgets` query key on success.",
+      "reqIds": [
+        "REQ-130"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-dashboardpage-tsx-add-a-my-widgets-section-above-the-stat-summary-cards-and-below-the-navigation-header-this-section-is-only-visible-when-the-user-is-authenticated-it-renders-the-user-s-pinned-make-model-stat-cards-fetched-via-usedashboardwidgets-each-widget-card-displays-the-make-and-model-as-the-card-title-and-optional-label-if-present-the-current-average-price-for-that-make-model-computed-client-side-from-the-already-loaded-listings-data-the-listing-count-for-that-make-model-a-deal-score-summary-count-of-good-deal-listings-using-usedealscores-and-a-price-trend-indicator-using-usepricetrend-make-model-up-down-stable-arrow-icon-each-card-includes-a-remove-button-that-calls-useremovedashboardwidget-add-an-add-widget-button-e-g-a-icon-button-or-small-inline-form-that-opens-an-inline-input-panel-allowing-the-user-to-enter-a-make-model-and-optional-label-then-calls-useadddashboardwidget-on-submit-show-a-confirmation-if-the-user-is-already-at-the-8-widget-limit-e-g-widget-limit-reached-remove-an-existing-widget-to-add-a-new-one-show-a-loading-skeleton-for-each-widget-card-while-usedashboardwidgets-is-loading-if-the-user-has-no-widgets-yet-display-a-muted-prompt-no-widgets-yet-add-a-make-model-card-to-track-it-here-style-all-widget-cards-and-the-add-panel-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme-card-based-layout-subtle-borders-and-shadows-amber-orange-accent-values",
+      "title": "In `frontend/src/pages/DashboardPage.tsx`, add a 'My Widgets' section above the stat summary cards and below the navigation header. This section is only visible when the user is authenticated. It renders the user's pinned make/model stat cards fetched via `useDashboardWidgets()`. Each widget card displays: the make and model as the card title (and optional label if present), the current average price for that make/model (computed client-side from the already-loaded listings data), the listing count for that make/model, a deal score summary (count of 'Good Deal' listings using `useDealScores`), and a 'Price Trend' indicator using `usePriceTrend(make, model)` (up/down/stable arrow icon). Each card includes a remove (×) button that calls `useRemoveDashboardWidget()`. Add an 'Add Widget' button (e.g., a `+` icon button or small inline form) that opens an inline input panel allowing the user to enter a make, model, and optional label, then calls `useAddDashboardWidget()` on submit. Show a confirmation if the user is already at the 8-widget limit (e.g., 'Widget limit reached — remove an existing widget to add a new one'). Show a loading skeleton for each widget card while `useDashboardWidgets` is loading. If the user has no widgets yet, display a muted prompt: 'No widgets yet — add a make/model card to track it here.' Style all widget cards and the add panel consistently with the existing dark charcoal and amber/orange automotive theme (card-based layout, subtle borders and shadows, amber/orange accent values).",
+      "reqIds": [
+        "REQ-131"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-depreciationcurvepage-at-frontend-src-pages-depreciationcurvepage-tsx-the-page-must-display-a-depreciation-curve-chart-for-a-selected-make-and-model-using-static-mock-data-no-backend-call-yet-include-1-a-make-input-and-a-model-input-at-the-top-of-the-page-plain-text-inputs-no-backend-wiring-required-at-this-stage-2-a-line-chart-rendered-using-the-same-charting-library-already-used-in-comparisonpage-tsx-recharts-or-equivalent-showing-projected-value-loss-over-time-the-x-axis-represents-time-in-months-years-from-the-listing-date-and-the-y-axis-represents-price-in-dollars-3-seed-the-chart-with-placeholder-depreciation-data-points-e-g-year-0-30-000-year-1-25-500-year-2-22-000-year-3-19-200-year-4-17-000-year-5-15-200-so-the-chart-renders-visibly-without-a-backend-4-display-a-card-above-the-chart-showing-three-summary-stats-computed-from-the-placeholder-data-starting-price-est-5-year-value-and-total-depreciation-5-show-a-muted-notice-below-the-make-model-inputs-depreciation-projections-are-based-on-your-listing-data-add-more-listings-to-improve-accuracy-6-add-a-depreciation-curve-navigation-link-in-frontend-src-app-tsx-and-register-the-route-at-path-depreciation-in-the-tanstack-router-configuration-7-style-the-page-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme-card-based-layout-subtle-borders-and-shadows-amber-orange-accent-highlights-rajdhani-inter-typography",
+      "title": "Create a new `DepreciationCurvePage` at `frontend/src/pages/DepreciationCurvePage.tsx`. The page must display a depreciation curve chart for a selected make and model using static/mock data (no backend call yet). Include: (1) A make input and a model input at the top of the page (plain text inputs, no backend wiring required at this stage). (2) A line chart rendered using the same charting library already used in `ComparisonPage.tsx` (Recharts or equivalent) showing projected value loss over time — the X axis represents time in months/years from the listing date, and the Y axis represents price in dollars. (3) Seed the chart with placeholder depreciation data points (e.g., year 0 = $30,000, year 1 = $25,500, year 2 = $22,000, year 3 = $19,200, year 4 = $17,000, year 5 = $15,200) so the chart renders visibly without a backend. (4) Display a card above the chart showing three summary stats computed from the placeholder data: 'Starting Price', 'Est. 5-Year Value', and 'Total Depreciation %'. (5) Show a muted notice below the make/model inputs: 'Depreciation projections are based on your listing data. Add more listings to improve accuracy.' (6) Add a 'Depreciation Curve' navigation link in `frontend/src/App.tsx` and register the route at path `/depreciation` in the TanStack Router configuration. (7) Style the page consistently with the existing dark charcoal and amber/orange automotive theme (card-based layout, subtle borders and shadows, amber/orange accent highlights, Rajdhani/Inter typography).",
+      "reqIds": [
+        "REQ-133"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usedepreciationcurve-make-string-model-string-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getdepreciationcurve-make-model-function-and-returns-the-array-of-depreciation-data-points-the-query-should-only-be-enabled-when-both-make-and-model-are-non-empty-strings-use-a-stale-time-of-5-minutes",
+      "title": "Add a `useDepreciationCurve(make: string, model: string)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getDepreciationCurve(make, model)` function and returns the array of depreciation data points. The query should only be enabled when both `make` and `model` are non-empty strings. Use a stale time of 5 minutes.",
+      "reqIds": [
+        "REQ-135"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-pages-depreciationcurvepage-tsx-to-replace-the-static-placeholder-data-with-live-data-from-the-usedepreciationcurve-make-model-hook-when-both-make-and-model-inputs-have-values-call-the-hook-and-use-the-returned-depreciationdatapoint-array-to-populate-the-line-chart-mapping-monthsfromfirst-to-the-x-axis-and-avgprice-to-the-y-axis-recompute-the-summary-stat-cards-starting-price-est-latest-value-total-depreciation-from-the-live-data-instead-of-the-placeholder-constants-while-the-query-is-loading-render-a-loading-skeleton-or-spinner-in-place-of-the-chart-if-the-query-returns-an-empty-array-display-a-muted-message-such-as-not-enough-listing-data-to-project-a-depreciation-curve-add-more-listings-for-this-make-model-if-either-input-is-empty-continue-showing-the-placeholder-data-so-the-chart-always-renders-visibly-style-all-changes-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme",
+      "title": "Update `frontend/src/pages/DepreciationCurvePage.tsx` to replace the static placeholder data with live data from the `useDepreciationCurve(make, model)` hook. When both make and model inputs have values, call the hook and use the returned `DepreciationDataPoint` array to populate the line chart (mapping `monthsFromFirst` to the X axis and `avgPrice` to the Y axis). Recompute the summary stat cards ('Starting Price', 'Est. Latest Value', 'Total Depreciation %') from the live data instead of the placeholder constants. While the query is loading, render a loading skeleton or spinner in place of the chart. If the query returns an empty array, display a muted message such as 'Not enough listing data to project a depreciation curve — add more listings for this make/model.' If either input is empty, continue showing the placeholder data so the chart always renders visibly. Style all changes consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-136"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usecrossmodelsearch-maxprice-number-maxmileage-number-react-query-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-getcrossmodelsearch-maxprice-maxmileage-function-the-query-should-only-be-enabled-when-maxprice-0-and-maxmileage-0-use-a-stale-time-of-60-seconds",
+      "title": "Add a `useCrossModelSearch(maxPrice: number, maxMileage: number)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getCrossModelSearch(maxPrice, maxMileage)` function. The query should only be enabled when `maxPrice > 0` and `maxMileage > 0`. Use a stale time of 60 seconds.",
+      "reqIds": [
+        "REQ-139"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-crossmodelsearchpage-at-frontend-src-pages-crossmodelsearchpage-tsx-the-page-must-1-display-two-filter-inputs-at-the-top-a-max-budget-number-input-currency-e-g-25-000-and-a-max-mileage-number-input-both-required-to-trigger-a-search-2-show-a-search-button-that-when-clicked-calls-usecrossmodelsearch-maxprice-maxmileage-with-the-entered-values-3-display-results-in-a-card-grid-or-table-showing-for-each-listing-make-model-year-trim-mileage-price-formatted-as-currency-source-dealer-price-per-mile-formatted-as-0-0000-or-if-mileage-is-0-and-a-deal-score-badge-good-deal-in-green-emerald-fair-in-amber-yellow-overpriced-in-red-4-group-or-visually-separate-results-by-deal-score-tier-good-deal-listings-appear-first-in-a-highlighted-section-5-include-a-secondary-text-filter-input-to-further-narrow-results-by-make-or-model-name-client-side-without-re-fetching-6-show-a-loading-skeleton-while-the-query-is-in-progress-7-show-a-no-listings-found-matching-your-criteria-empty-state-if-the-query-returns-zero-results-8-show-a-muted-prompt-enter-a-budget-and-max-mileage-to-find-the-best-deals-across-all-makes-and-models-before-any-search-has-been-submitted-9-add-a-cross-model-search-navigation-link-in-frontend-src-app-tsx-and-register-the-route-at-path-cross-search-in-the-tanstack-router-configuration-10-style-the-page-consistently-with-the-existing-dark-charcoal-and-amber-orange-automotive-theme-card-based-layout-subtle-borders-and-shadows-amber-orange-accent-highlights",
+      "title": "Create a new `CrossModelSearchPage` at `frontend/src/pages/CrossModelSearchPage.tsx`. The page must: (1) Display two filter inputs at the top — a 'Max Budget' number input (currency, e.g., '$25,000') and a 'Max Mileage' number input, both required to trigger a search. (2) Show a 'Search' button that, when clicked, calls `useCrossModelSearch(maxPrice, maxMileage)` with the entered values. (3) Display results in a card grid or table showing for each listing: make, model, year, trim, mileage, price (formatted as currency), source, dealer, price-per-mile (formatted as '$0.0000' or '—' if mileage is 0), and a deal score badge ('Good Deal' in green/emerald, 'Fair' in amber/yellow, 'Overpriced' in red). (4) Group or visually separate results by deal score tier — 'Good Deal' listings appear first in a highlighted section. (5) Include a secondary text filter input to further narrow results by make or model name client-side without re-fetching. (6) Show a loading skeleton while the query is in progress. (7) Show a 'No listings found matching your criteria' empty state if the query returns zero results. (8) Show a muted prompt 'Enter a budget and max mileage to find the best deals across all makes and models' before any search has been submitted. (9) Add a 'Cross-Model Search' navigation link in `frontend/src/App.tsx` and register the route at path `/cross-search` in the TanStack Router configuration. (10) Style the page consistently with the existing dark charcoal and amber/orange automotive theme (card-based layout, subtle borders and shadows, amber/orange accent highlights).",
+      "reqIds": [
+        "REQ-140"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-crossmodelsearchpage-tsx-ensure-the-deal-score-badge-rendering-and-result-grouping-are-fully-wired-to-the-dealscore-field-returned-by-usecrossmodelsearch-the-good-deal-section-must-only-render-listings-where-dealscore-good-deal-the-badge-colors-must-be-green-emerald-for-good-deal-amber-yellow-for-fair-red-for-overpriced-if-a-listing-s-dealscore-is-missing-or-empty-treat-it-as-fair-verify-the-sorting-and-grouping-logic-in-the-component-matches-the-server-side-ordering-good-deal-first-fair-second-overpriced-third",
+      "title": "In `frontend/src/pages/CrossModelSearchPage.tsx`, ensure the deal score badge rendering and result grouping are fully wired to the `dealScore` field returned by `useCrossModelSearch`. The 'Good Deal' section must only render listings where `dealScore === 'Good Deal'`. The badge colors must be: green/emerald for 'Good Deal', amber/yellow for 'Fair', red for 'Overpriced'. If a listing's `dealScore` is missing or empty, treat it as 'Fair'. Verify the sorting and grouping logic in the component matches the server-side ordering — 'Good Deal' first, 'Fair' second, 'Overpriced' third.",
+      "reqIds": [
+        "REQ-142"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Web scraper using Scrapy/Selenium to crawl Autotrader, Cars.com and other auto dealer sites for used car listings",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "MongoDB data storage layer to persist scraped car listing data including price, model, year, mileage, dealer info",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Price comparison feature to track and compare prices for specific car models over time",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Automated scheduling system to periodically re-crawl sources and update price data",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Create a backend data model and actor to store used car listings with fields: make, model, year, mileage, price, trim, condition, dealer name, source (e.g., 'Autotrader', 'Cars.com', 'Manual'), listing URL, and timestamp. Support create, read, update, and delete operations for listings.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Create a backend function to retrieve price history for a specific car model (filtered by make + model + optionally year/trim), returning a time-sorted list of price snapshots suitable for charting trends over time.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "CSV bulk import feature: allow users to paste or upload a CSV of car listings to quickly load batches of data without manual entry one-by-one",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add a backend function that accepts an array of listing records (same fields as the existing ListingData: make, model, year, mileage, price, trim, condition, dealer name, source, listing URL, timestamp) and bulk-inserts them into the Map store, returning the count of successfully imported records.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Deal score/rating feature: automatically flag listings as 'Good Deal,' 'Fair,' or 'Overpriced' based on how the listing price compares to the average price for that make/model",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add a backend query function `getDealScores` that, for a given make and model, computes the average price across all matching listings and returns each listing ID annotated with a deal score: 'Good Deal' if the listing price is more than 10% below average, 'Overpriced' if more than 10% above average, and 'Fair' otherwise.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Export to CSV: allow users to download comparison reports as CSV files from the dashboard or comparison view",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add filtering options to the CSV export functionality so users can export only specific subsets of listings (e.g., filter by make, model, year range, price range, source, deal score before exporting)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add saved filter presets feature so users can save, name, and quickly re-apply their favorite filter configurations on the dashboard and comparison export panels",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add a saved filter presets system to the backend that stores named filter configurations. Implement backend functions: `saveFilterPreset(name: Text, filterJson: Text, presetType: Text) : async Nat` (returns preset ID), `getFilterPresets(presetType: Text) : async [FilterPreset]` (where FilterPreset includes id, name, filterJson, presetType, createdAt), `deleteFilterPreset(id: Nat) : async Bool`, and `renameFilterPreset(id: Nat, newName: Text) : async Bool`. Store presets in a stable in-memory map alongside existing listing data.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add multi-user support with Internet Identity login so each user can save their own watchlists and searches independently",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Update the backend actor to scope all per-user data (filter presets, and any future watchlist/search entries) by the caller's Internet Identity principal. Modify `saveFilterPreset`, `getFilterPresets`, `deleteFilterPreset`, and `renameFilterPreset` so that each preset is stored and retrieved relative to the authenticated caller's principal (using `msg.caller`). A user must only see and mutate their own presets. Unauthenticated callers (anonymous principal) should receive an empty list or an error as appropriate.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add a `Watchlist` data structure to the backend. Implement: `addToWatchlist(make: Text, model: Text, label: ?Text) : async Nat` (returns watchlist entry ID), `getWatchlist() : async [WatchlistEntry]` (returns all watchlist entries for the calling principal), `removeFromWatchlist(id: Nat) : async Bool`. Each `WatchlistEntry` includes id, principal, make, model, optional label, and createdAt timestamp. All operations are scoped to the calling principal.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add `SavedSearch` data structure to the backend. Implement: `saveSearch(name: Text, filterJson: Text) : async Nat` (returns search ID), `getSavedSearches() : async [SavedSearch]` (returns all saved searches for calling principal), `deleteSavedSearch(id: Nat) : async Bool`, and `renameSavedSearch(id: Nat, newName: Text) : async Bool`. Each `SavedSearch` includes id, principal, name, filterJson, and createdAt. All operations are scoped to the calling principal.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Update `frontend/src/components/ExportFilterPanel.tsx` and `frontend/src/components/ComparisonExportFilterPanel.tsx` so that the saved presets sections (save, apply, rename, delete) use the per-user `useFilterPresets`, `useSaveFilterPreset`, `useDeleteFilterPreset`, and `useRenameFilterPreset` hooks — which now return only the current user's presets from the updated backend. No visual changes are required; the hooks simply now return user-scoped data automatically.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Generate a migration module (`backend/migration.mo`) that preserves all existing listings and filter presets data, while initializing the new per-principal watchlist and saved searches stable maps. The migration must not discard any previously stored listings or presets.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Allow users to set a target price for a specific make/model and flag (highlight/alert) any listings that drop below that target price",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Add a `PriceAlert` data structure to the backend actor in `backend/main.mo`. Implement the following functions: `setPriceAlert(make: Text, model: Text, targetPrice: Float) : async Nat` (creates or updates a price alert for the calling principal, returns alert ID), `getPriceAlerts() : async [PriceAlert]` (returns all price alerts for the calling principal), `deletePriceAlert(id: Nat) : async Bool`. Each `PriceAlert` record includes: id (Nat), principal (Principal), make (Text), model (Text), targetPrice (Float), and createdAt (Int timestamp). All operations must be scoped to `msg.caller`. Store alerts in a stable map alongside existing data structures.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add a backend query function `getListingsBelowTargetPrice(make: Text, model: Text) : async [Listing]` that returns all listings for the given make/model whose price is strictly less than the calling principal's stored target price for that make/model. If no alert is set for that make/model by the caller, return an empty array.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Update `backend/migration.mo` to preserve all existing data (listings, filter presets, watchlist entries, saved searches) while initializing the new `priceAlerts` stable map as empty during canister upgrade. No existing records should be lost during migration.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Create a dedicated Saved Searches page at `frontend/src/pages/SavedSearchesPage.tsx` that displays the current user's saved searches, allows applying a search (navigating to dashboard with filters), renaming, and deleting entries. Add a navigation link in App.tsx. Gate behind Internet Identity login.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Add an in-app alert banner that appears upon login when any listings fall below the user's stored price alert targets. The banner should list affected make/model pairs with counts and link to the dashboard filtered by that make/model.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Listing deduplication — prevent duplicate entries when the same listing is imported multiple times via CSV or manual entry (e.g., deduplicate by make+model+year+mileage+price+source or listing URL)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Listing edit/update — allow users to edit existing listings in the dashboard to fix typos or update prices manually",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Listing age indicator — show how old each listing is (e.g. 'Added 3 days ago') in the listings table so users know if data is stale",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Add listing deduplication logic to the backend. When a listing is created (via `createListing` or `bulkCreateListings`), check for an existing listing that matches on make + model + year + mileage + price + source. If a non-empty `listingUrl` is provided, also treat a matching `listingUrl` as a duplicate. If a duplicate is detected, skip insertion and do not create a new record. `bulkCreateListings` should return the count of successfully inserted (non-duplicate) rows; duplicates are silently skipped.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Add an `updateListing(id: Nat, data: ListingData) : async Bool` function to the backend actor that allows updating all fields of an existing listing by its ID. The function should return `true` if the listing was found and updated, `false` if not found.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Onboarding empty state — when a new user has no listings, show a guided prompt to add their first listing or import a CSV",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Mobile-responsive layout — ensure the dashboard table and filter panel work well on smaller screens",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Pagination or infinite scroll for the dashboard listings table to handle large datasets without rendering hundreds of rows at once",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Price trend indicator — show a visual trend (up/down/stable) on listings or the comparison chart to indicate whether prices for a make/model are trending up, down, or stable over recent data points",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Comparison page autocomplete — add autocomplete/typeahead suggestions for make and model inputs on the ComparisonPage so users can quickly find and select car models from existing listing data",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Add a backend query function `getPriceTrend(make: Text, model: Text) : async Text` that analyzes the price history for the given make/model and returns a trend label: 'up' if the average price of the most recent 30% of listings (by timestamp) is more than 5% higher than the average of the oldest 30%, 'down' if more than 5% lower, and 'stable' otherwise. The function should be callable anonymously and return 'stable' if there are fewer than 3 listings for the make/model.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Add a backend query function `getDistinctMakes() : async [Text]` that returns a deduplicated, sorted list of all make values present in the current listings store. Add a second function `getDistinctModels(make: Text) : async [Text]` that returns a deduplicated, sorted list of all model values for the given make. Both functions should be public query functions callable without authentication.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Market overview dashboard — aggregate stats across all makes/models showing most tracked models, biggest price drops, and best deals",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Price drop notifications — flag listings whose price has decreased since they were first added to the system",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Mileage-adjusted pricing — show price-per-mile or normalize prices by mileage for fairer comparisons across listings",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Add backend query functions for the market overview dashboard: (1) `getMarketOverview() : async MarketOverview` where `MarketOverview` is a record containing: `mostTracked` (array of `{make: Text; model: Text; count: Nat}` sorted by listing count descending, top 10), `biggestPriceDrops` (array of `{make: Text; model: Text; firstPrice: Float; latestPrice: Float; dropAmount: Float; dropPercent: Float}` for make/model pairs where the latest listing price is lower than the earliest listing price, sorted by absolute drop amount descending, top 10), and `bestDeals` (array of listing IDs annotated with deal score 'Good Deal', top 10 by percentage below average for their make/model, including make, model, price, and dealScore fields). All fields must be computed from the existing listings stable map. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Add a backend function `getPriceDropListings() : async [PriceDropListing]` where `PriceDropListing` is a record containing all standard listing fields plus `firstPrice: Float`, `latestPrice: Float`, `dropAmount: Float`, and `dropPercent: Float`. The function groups all listings by a deduplication key of make + model + year + trim + source, and for each group compares the earliest listing's price (by timestamp) with the latest listing's price. If the latest price is strictly lower than the earliest price, the latest listing record is included in the result annotated with `firstPrice`, `latestPrice`, `dropAmount` (firstPrice − latestPrice), and `dropPercent` ((dropAmount / firstPrice) × 100). Results should be sorted by `dropPercent` descending. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Add a backend query function `getMileageAdjustedListings(make: Text, model: Text) : async [MileageAdjustedListing]` where `MileageAdjustedListing` includes all standard listing fields plus a `pricePerMile: Float` field (computed as `price / mileage` for listings where `mileage > 0`; listings with `mileage == 0` should have `pricePerMile` set to 0.0 and be included at the end of the results). Results should be filtered to the given make and model, and sorted by `pricePerMile` ascending (lowest price-per-mile first). The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Bulk delete — allow users to select multiple listings via checkboxes in the dashboard table and delete them all at once with a single action",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Listing archiving — add soft-delete functionality so listings can be archived (hidden from active view) without being permanently deleted, preserving price history",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Duplicate merge — when deduplication finds near-matching listings, present a review UI allowing users to manually inspect and merge duplicate listings into a single canonical record",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Add bulk delete support to the backend actor in `backend/main.mo`. Implement a `deleteListings(ids: [Nat]) : async Nat` function that accepts an array of listing IDs and removes all matching listings from the stable map, returning the count of successfully deleted records. Listings not found are silently skipped.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Add listing archiving (soft-delete) support to the backend actor in `backend/main.mo`. Add an `archived: Bool` field to the `CarListing` record (defaulting to `false` for all existing and new listings). Implement `archiveListing(id: Nat) : async Bool` (sets `archived = true`, returns `true` if found) and `unarchiveListing(id: Nat) : async Bool` (sets `archived = false`, returns `true` if found). Modify `getListings()` to only return listings where `archived == false` by default. Add a separate `getArchivedListings() : async [CarListing]` query that returns only archived listings.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Add a duplicate detection query to the backend actor in `backend/main.mo`. Implement `getNearDuplicates() : async [[CarListing]]` that groups listings into clusters of near-matches. Two listings are near-matches if they share the same make, model, year, and source, AND their prices are within 2% of each other OR their mileage values are within 500 miles of each other. Return each cluster as an array of listings (only clusters with 2 or more listings). Also implement `mergeListings(keepId: Nat, discardIds: [Nat]) : async Bool` that retains the listing with `keepId` (unchanged) and permanently deletes all listings in `discardIds`, returning `true` on success.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "Update `backend/migration.mo` to preserve all existing stable data (listings, filter presets, watchlist entries, saved searches, price alerts) while initializing the new `archived` field to `false` for all existing listings during canister upgrade. No existing records should be lost or modified beyond the `archived` field addition.",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "Dashboard column customization — let users show/hide or reorder table columns in the listings table",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-72",
+      "summary": "Print/share view — a clean printable or shareable summary of a comparison (e.g., print-friendly layout or shareable link for the ComparisonPage)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-73",
+      "summary": "Dark/light theme toggle — allow users to switch between the existing dark automotive theme and a light mode variant",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-74",
+      "summary": "Persist column visibility/order preferences and theme choice (dark/light) per authenticated user via Internet Identity, so each user's preferences are restored across sessions and devices",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "Add a `UserPreferences` data structure to the backend actor in `backend/main.mo`. Implement the following functions: `saveUserPreferences(columnPrefsJson: Text, theme: Text) : async Bool` (stores or overwrites the calling principal's preferences, returns true on success), `getUserPreferences() : async ?UserPreferences` (returns the preferences for the calling principal, or null if none saved). Each `UserPreferences` record includes: principal (Principal), columnPrefsJson (Text, a JSON-serialized column visibility/order config), theme (Text, 'dark' or 'light'), and updatedAt (Int timestamp). All operations must be scoped to `msg.caller`. Store preferences in a new stable map alongside existing data structures.",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "Update `backend/migration.mo` to initialize the new `userPreferences` stable map as empty during canister upgrade, while preserving all existing stable data (listings, filter presets, watchlist entries, saved searches, price alerts, archived flags). No existing records should be lost.",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "Watchlist price alerts — automatically create/link a price alert when the user adds a car to the watchlist (pre-populate the alert with the make/model from the watchlist entry)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-78",
+      "summary": "Watchlist summary card — show the current best deal (lowest price / good deal listing) for each watched make/model inline on the WatchlistPage",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-79",
+      "summary": "Update the backend `addToWatchlist(make: Text, model: Text, label: ?Text)` function in `backend/main.mo` so that when a new watchlist entry is successfully created, it automatically calls the same logic as `setPriceAlert` to create a price alert for that `make` and `model` scoped to the calling principal. If a price alert already exists for that make/model for the caller, do not create a duplicate — leave the existing alert unchanged. The auto-created alert should use a sentinel target price of `0.0` (meaning no specific target yet) so the user can later update it on the Price Alerts page. Return the watchlist entry ID as before.",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-80",
+      "summary": "Stale listing alerts — flag listings that haven't been updated in X days, showing a visual indicator in the dashboard table",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-81",
+      "summary": "Price history annotations — let users add notes to specific price points on a listing (e.g., 'dealer promotion'), stored per listing and visible in the comparison chart or price history view",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-82",
+      "summary": "Confidence score — rate how reliable a listing's data is based on field completeness (e.g., missing trim, mileage, or listing URL lowers the score), displayed as a badge in the dashboard table",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-83",
+      "summary": "Add stale listing detection to the backend actor in `backend/main.mo`. Add a `lastUpdatedAt: Int` field to the `CarListing` record (initialized to the listing's `timestamp` on creation and updated to the current time whenever `updateListing` is called). Implement a public query function `getStaleListings(thresholdDays: Nat) : async [CarListing]` that returns all non-archived listings whose `lastUpdatedAt` is more than `thresholdDays` days ago (computed as `thresholdDays * 86_400_000_000_000` nanoseconds). The function must be callable without authentication.",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-84",
+      "summary": "Add price history annotations to the backend actor in `backend/main.mo`. Define a `PriceAnnotation` record with fields: `id: Nat`, `listingId: Nat`, `note: Text`, `createdAt: Int`, and `principal: Principal`. Implement the following functions: `addPriceAnnotation(listingId: Nat, note: Text) : async Nat` (stores a new annotation scoped to the calling principal, returns annotation ID), `getPriceAnnotations(listingId: Nat) : async [PriceAnnotation]` (returns all annotations for the given listing ID, callable without authentication), and `deletePriceAnnotation(id: Nat) : async Bool` (deletes the annotation if it belongs to the calling principal, returns true on success). Store annotations in a new stable map `priceAnnotations: HashMap<Nat, PriceAnnotation>` with an auto-incrementing ID counter.",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-85",
+      "summary": "Add a confidence score computation to the backend actor in `backend/main.mo`. Implement a public query function `getConfidenceScores(make: Text, model: Text) : async [(Nat, Nat, Text)]` that returns a list of tuples `(listingId, scorePercent, scoreLabel)` for all listings matching the given make and model. Compute the score as follows: start at 0 and add points for each present and non-empty field — `trim` (+15), `mileage > 0` (+20), `listingUrl` non-empty (+20), `condition` non-empty (+15), `dealerName` non-empty (+15), `year > 0` (+15). The maximum score is 100. Map score to label: 90–100 = 'High', 60–89 = 'Medium', below 60 = 'Low'. The function must be callable without authentication.",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-86",
+      "summary": "Update `backend/migration.mo` to initialize the new `lastUpdatedAt` field on all existing `CarListing` records to their existing `timestamp` value, initialize the new `priceAnnotations` stable map as empty, and initialize the new `confidenceScores`-related fields (none on the listing record itself beyond `lastUpdatedAt`) during canister upgrade. All existing data (listings, filter presets, watchlist entries, saved searches, price alerts, archived flags, user preferences) must be preserved without loss.",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-87",
+      "summary": "Similar models suggester — when viewing a make/model on the ComparisonPage, suggest comparable models with lower average prices",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-88",
+      "summary": "Best time to buy indicator — based on historical price patterns, show whether prices for a model are seasonally high or low",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-89",
+      "summary": "Listing comparison side-by-side — let users pin 2-4 specific listings and compare them in a dedicated view",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-90",
+      "summary": "Add a backend query function `getSimilarModels(make: Text, model: Text) : async [SimilarModel]` to `backend/main.mo`. A `SimilarModel` record should contain: `make: Text`, `model: Text`, `avgPrice: Float`, `listingCount: Nat`, and `priceDiffPercent: Float` (how much cheaper this model is relative to the queried model's average price, as a positive percentage). The function should: (1) compute the average price of the queried make/model from all non-archived listings; (2) find all other make/model pairs in the listings store whose average price is strictly lower than the queried model's average; (3) return the top 5 results sorted by `priceDiffPercent` descending (most savings first). If fewer than 2 listings exist for the queried make/model, return an empty array. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-91",
+      "summary": "Add a `useSimilarModels(make: string, model: string)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getSimilarModels(make, model)` function. The query should only be enabled when both `make` and `model` are non-empty strings.",
+      "reqIds": [
+        "REQ-97"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-92",
+      "summary": "In `frontend/src/pages/ComparisonPage.tsx`, add a 'Similar Models' section below the price statistics panel. When a make and model are selected and `useSimilarModels` returns results, render a card or table listing each comparable model with: make, model, average price (formatted as currency), listing count, and a badge showing the percentage cheaper (e.g., '−12% cheaper'). Each row should be clickable and navigate to the Comparison page with that make and model pre-filled, replacing the current selection. If no similar models are found, display a muted 'No comparable models found' message. Show a loading skeleton while the query is in progress. Style consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-93",
+      "summary": "Add a backend query function `getBestTimeToBuy(make: Text, model: Text) : async BestTimeToBuy` to `backend/main.mo`. The `BestTimeToBuy` record should include: `indicator: Text` ('high', 'low', or 'neutral'), `reason: Text` (a short human-readable explanation, e.g., 'Prices are currently above the 6-month average'), `currentAvgPrice: Float`, `historicalAvgPrice: Float`, and `sampleSize: Nat`. The function should: (1) compute `historicalAvgPrice` as the average price of all non-archived listings for the given make/model; (2) compute `currentAvgPrice` as the average price of listings added in the most recent 60 days; (3) if `currentAvgPrice` is more than 5% above `historicalAvgPrice`, return `indicator = 'high'`; if more than 5% below, return `indicator = 'low'`; otherwise return `indicator = 'neutral'`. Return `indicator = 'neutral'` and `sampleSize = 0` if fewer than 3 total listings exist. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-99"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-94",
+      "summary": "Add a `useBestTimeToBuy(make: string, model: string)` React Query hook in `frontend/src/hooks/useQueries.ts` that calls the backend `getBestTimeToBuy(make, model)` function. The query should only be enabled when both `make` and `model` are non-empty strings. Use a stale time of 5 minutes.",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-95",
+      "summary": "In `frontend/src/pages/ComparisonPage.tsx`, add a 'Best Time to Buy' indicator badge/card within or adjacent to the price statistics panel. Use the `useBestTimeToBuy(make, model)` hook for the currently selected make and model. Display: a green/emerald badge with a downward arrow and label 'Good Time to Buy' when the indicator is 'low'; an amber/orange badge with an upward arrow and label 'Prices Are High' when the indicator is 'high'; a steel-gray badge with a horizontal arrow and label 'Average Pricing' when the indicator is 'neutral'. Below the badge, show the `reason` text and a small stat line displaying current vs. historical average price. Only render this section when both make and model are selected and the query has returned a result. Show a loading skeleton while fetching. Style consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-96",
+      "summary": "Add a `pinnedListings` stable map and associated backend functions to `backend/main.mo` to support listing comparison pinning. Implement: `pinListing(id: Nat) : async Bool` (pins a listing for the calling principal, max 4 pinned listings per user; returns false if already at capacity or listing not found), `unpinListing(id: Nat) : async Bool` (removes a listing from the calling principal's pinned set), `getPinnedListings() : async [CarListing]` (returns full listing records for all pinned listing IDs for the calling principal). All operations must be scoped to `msg.caller`. Unauthenticated callers receive an empty array or false as appropriate.",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-97",
+      "summary": "Add three React Query hooks in `frontend/src/hooks/useQueries.ts` for listing pinning: `usePinnedListings()` that calls `getPinnedListings()` (enabled only when the user is authenticated via `useActor`); `usePinListing()` mutation that calls `pinListing(id)` and invalidates the `pinnedListings` query key on success; `useUnpinListing()` mutation that calls `unpinListing(id)` and invalidates the `pinnedListings` query key on success.",
+      "reqIds": [
+        "REQ-103"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-98",
+      "summary": "In `frontend/src/pages/DashboardPage.tsx`, add a 'Pin' action button (pin/thumbtack icon) to the actions column of each active listing row alongside the existing Edit and Archive buttons. When the user is authenticated: clicking 'Pin' calls `usePinListing()` for that listing's ID; if the listing is already pinned, the icon should appear filled/highlighted and clicking it calls `useUnpinListing()`. If the user is not authenticated, the pin button should be hidden or disabled with a tooltip 'Sign in to pin listings'. When 1–4 listings are pinned, show a persistent 'Compare Pinned (N)' button in the table toolbar (or bulk-action toolbar area) that navigates to `/compare-pinned`. Style the pin icon and toolbar button consistently with the existing dark automotive amber/orange theme.",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-99",
+      "summary": "Create a new `PinnedComparisonPage` at `frontend/src/pages/PinnedComparisonPage.tsx`. The page must: (1) Gate access behind Internet Identity login — show a 'Sign in to compare listings' prompt if the user is not authenticated. (2) Fetch pinned listings via `usePinnedListings()`. (3) Display all pinned listings (2–4) in a side-by-side comparison layout: each listing occupies a column (or a card on mobile that stacks vertically) showing all key fields as labeled rows — Make, Model, Year, Trim, Mileage, Price, Condition, Dealer, Source, Price/Mile (computed client-side), Deal Score (from `useDealScores` for each listing's make/model), Listing URL (as a clickable link if non-empty), and Age (relative time from `timestamp`). (4) Highlight the best value in each numeric row (lowest price, lowest mileage, lowest price-per-mile) with an amber/orange accent border or badge. (5) Include an 'Unpin' button on each listing column header that calls `useUnpinListing()` for that listing. (6) If fewer than 2 listings are pinned, show a prompt: 'Pin at least 2 listings from the Dashboard to compare them side-by-side' with a link back to `/`. (7) Add a 'Pinned Comparison' navigation link in `frontend/src/App.tsx` (visible only when the user is authenticated and has at least 1 pinned listing) and register the route at path `/compare-pinned`. (8) Show a loading skeleton while data is fetching. Style consistently with the existing dark charcoal and amber/orange automotive theme.",
+      "reqIds": [
+        "REQ-105"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-100",
+      "summary": "Update `backend/migration.mo` to initialize the new `pinnedListings` stable map as empty during canister upgrade, while preserving all existing stable data (listings, filter presets, watchlist entries, saved searches, price alerts, archived flags, user preferences, price annotations). No existing records should be lost.",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-101",
+      "summary": "Bulk edit — select multiple listings and update a shared field (e.g., source or condition) across all selected rows at once",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-102",
+      "summary": "Shareable watchlist — generate a public read-only link to share your watchlist with others",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-103",
+      "summary": "Activity log / audit trail — show a history of changes made to listings (edits, archives, merges)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-104",
+      "summary": "Add a `bulkUpdateListings(ids: [Nat], field: Text, value: Text) : async Nat` function to the backend actor in `backend/main.mo`. This function accepts an array of listing IDs, a field name (one of: 'source', 'condition', 'trim', 'dealerName'), and a new string value, then updates that field on all matching listings and returns the count of successfully updated records. Listings not found are silently skipped. The function must validate that `field` is one of the allowed field names and return 0 if the field name is invalid.",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-107",
+      "summary": "Add a shareable watchlist feature to the backend actor in `backend/main.mo`. Implement: `generateWatchlistShareToken() : async Text` which creates or retrieves a unique share token string for the calling principal's watchlist and stores it in a new stable map `watchlistShareTokens` mapping token to principal, returning the token. Also implement `getSharedWatchlist(token: Text) : async ?[WatchlistEntry]` as a public query callable without authentication that looks up the principal by token and returns that principal's watchlist entries, or null if the token is invalid. The token should be produced by combining the principal text and a stable counter to produce a unique, deterministic string.",
+      "reqIds": [
+        "REQ-110"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-111",
+      "summary": "Add an activity log system to the backend actor in `backend/main.mo`. Define an `ActivityLogEntry` record with fields: `id: Nat`, `action: Text`, `listingId: ?Nat`, `affectedIds: [Nat]`, `fieldChanged: ?Text`, `oldValue: ?Text`, `newValue: ?Text`, `principal: Principal`, and `timestamp: Int`. Store entries in a new stable map `activityLog` with an auto-incrementing counter. Implement a public query function `getActivityLog(limit: Nat) : async [ActivityLogEntry]` that returns the most recent `limit` entries sorted by timestamp descending, callable without authentication. Update the following existing functions to append an activity log entry upon successful execution: `updateListing` (action 'edit'), `archiveListing` (action 'archive'), `unarchiveListing` (action 'unarchive'), `mergeListings` (action 'merge'), `deleteListings` (action 'delete'), and `bulkUpdateListings` (action 'bulk_edit').",
+      "reqIds": [
+        "REQ-114"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-114",
+      "summary": "Update `backend/migration.mo` to initialize the new `activityLog` stable map as empty and the new `watchlistShareTokens` stable map as empty during canister upgrade, while preserving all existing stable data including listings, filter presets, watchlist entries, saved searches, price alerts, archived flags, user preferences, price annotations, and pinned listings. No existing records should be lost.",
+      "reqIds": [
+        "REQ-117"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-115",
+      "summary": "Add summary stat widgets/cards at the top of the DashboardPage showing: total listings count, average price across all listings, and number of listings added this week",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-116",
+      "summary": "Add keyboard shortcuts for power users on the dashboard — shortcuts for filtering, navigating pages, and opening forms (e.g., add listing, import CSV)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-117",
+      "summary": "Add a backend query function `getDashboardStats() : async DashboardStats` to `backend/main.mo`. The `DashboardStats` record should include: `totalListings: Nat` (count of all non-archived listings), `averagePrice: Float` (average price across all non-archived listings, 0.0 if no listings), and `listingsThisWeek: Nat` (count of non-archived listings whose `timestamp` falls within the last 7 days, computed as 7 * 86_400_000_000_000 nanoseconds before the current time). The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-118"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-118",
+      "summary": "Stale listing re-check reminders — prompt users to verify or remove listings older than X days (configurable threshold), with inline actions to keep or remove each stale listing",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-119",
+      "summary": "Bulk archive by age — add a one-click action to archive all listings older than a user-selected age threshold (e.g., 30, 60, 90 days) from the dashboard",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-120",
+      "summary": "Add a backend query function `getListingsOlderThan(thresholdDays: Nat) : async [CarListing]` to `backend/main.mo` that returns all non-archived listings whose `timestamp` is older than `thresholdDays` days (computed as `thresholdDays * 86_400_000_000_000` nanoseconds before the current time). The function must be a public query callable without authentication. Also add a backend update function `bulkArchiveOlderThan(thresholdDays: Nat) : async Nat` that archives all non-archived listings older than the given threshold (sets `archived = true`) and returns the count of listings archived. Append an activity log entry with action 'bulk_archive' and the list of affected IDs upon successful execution.",
+      "reqIds": [
+        "REQ-122"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-121",
+      "summary": "Price drop history chart overlay — show annotation markers directly on the comparison line chart to indicate price drop events",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-122",
+      "summary": "Custom dashboard widgets — let users pin specific make/model stat cards to a personal home view for quick access",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-123",
+      "summary": "Add a backend query function `getPriceDropEvents(make: Text, model: Text) : async [PriceDropEvent]` to `backend/main.mo`. A `PriceDropEvent` record should contain: `listingId: Nat`, `make: Text`, `model: Text`, `year: Nat`, `trim: Text`, `source: Text`, `previousPrice: Float`, `newPrice: Float`, `dropAmount: Float`, `dropPercent: Float`, and `timestamp: Int`. The function groups all listings for the given make/model by the deduplication key (make + model + year + trim + source), then for each group computes consecutive price transitions from oldest to newest listing by timestamp — emitting a `PriceDropEvent` for each transition where the newer price is strictly lower than the prior price. Results should be sorted by `timestamp` ascending. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-126"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-126",
+      "summary": "Add a `DashboardWidget` data structure and supporting backend functions to `backend/main.mo` for custom pinned make/model stat widgets. Define a `DashboardWidget` record with fields: `id: Nat`, `principal: Principal`, `make: Text`, `model: Text`, `label: ?Text`, and `createdAt: Int`. Implement the following functions: `addDashboardWidget(make: Text, model: Text, label: ?Text) : async Nat` (stores a new widget for the calling principal, returns widget ID; max 8 widgets per user — return 0 if at capacity), `getDashboardWidgets() : async [DashboardWidget]` (returns all widgets for the calling principal, sorted by `createdAt` ascending), `removeDashboardWidget(id: Nat) : async Bool` (removes the widget if it belongs to the calling principal, returns true on success). All operations must be scoped to `msg.caller`. Unauthenticated callers receive an empty array or false as appropriate. Store widgets in a new stable map `dashboardWidgets`.",
+      "reqIds": [
+        "REQ-129"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-129",
+      "summary": "Update `backend/migration.mo` to initialize the new `dashboardWidgets` stable map as empty during canister upgrade, while preserving all existing stable data (listings, filter presets, watchlist entries, saved searches, price alerts, archived flags, user preferences, price annotations, pinned listings, activity log, watchlist share tokens). No existing records should be lost.",
+      "reqIds": [
+        "REQ-132"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-130",
+      "summary": "Depreciation curve — show projected value loss over time for a make/model based on listing data (chart UI + backend logic)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-131",
+      "summary": "Cross-model search — search across all makes/models by budget + max mileage to surface the best options regardless of model",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-132",
+      "summary": "Regional sourcing breakdown — tag listings by dealer state/region and show a breakdown by geography",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-133",
+      "summary": "Add a backend query function `getDepreciationCurve(make: Text, model: Text) : async [DepreciationDataPoint]` to `backend/main.mo`. A `DepreciationDataPoint` record should contain: `monthsFromFirst: Nat` (months elapsed since the earliest listing for this make/model), `avgPrice: Float` (average price of all non-archived listings for this make/model whose timestamp falls within that month bucket), and `listingCount: Nat`. The function groups all non-archived listings for the given make/model by calendar month relative to the earliest listing timestamp, computes the average price per month bucket, and returns the results sorted by `monthsFromFirst` ascending. If fewer than 2 listings exist for the make/model, return an empty array. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-134"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-134",
+      "summary": "Add a backend query function `getDepreciationCurve(make: Text, model: Text) : async [DepreciationDataPoint]` to `backend/main.mo`. A `DepreciationDataPoint` record should contain: `monthsFromFirst: Nat` (months elapsed since the earliest listing for this make/model), `avgPrice: Float` (average price of all non-archived listings for this make/model whose timestamp falls within that month bucket), and `listingCount: Nat`. The function groups all non-archived listings for the given make/model by calendar month relative to the earliest listing timestamp, computes the average price per month bucket, and returns the results sorted by `monthsFromFirst` ascending. If fewer than 2 listings exist for the make/model, return an empty array. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-137"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-135",
+      "summary": "Add a backend query function `getCrossModelSearch(maxPrice: Float, maxMileage: Nat) : async [CrossModelResult]` to `backend/main.mo`. A `CrossModelResult` record should contain all standard listing fields plus `dealScore: Text` (computed using the same logic as `getDealScores` — 'Good Deal' if price is more than 10% below the average for that make/model, 'Overpriced' if more than 10% above, 'Fair' otherwise) and `pricePerMile: Float` (computed as `price / mileage` for listings where `mileage > 0`, otherwise `0.0`). The function should return all non-archived listings whose `price <= maxPrice` AND (`mileage <= maxMileage` OR `mileage == 0`), sorted by `dealScore` priority first ('Good Deal' before 'Fair' before 'Overpriced'), then by `price` ascending within each tier. The function must be a public query callable without authentication.",
+      "reqIds": [
+        "REQ-138"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-136",
+      "summary": "In `backend/main.mo`, ensure the `getCrossModelSearch` function computes `dealScore` for each result using the same average-price logic as `getDealScores`: for each unique make/model pair in the filtered result set, compute the average price across all non-archived listings for that make/model, then label each listing 'Good Deal' if its price is more than 10% below the average, 'Overpriced' if more than 10% above, and 'Fair' otherwise. Sort results by deal score tier first ('Good Deal' before 'Fair' before 'Overpriced'), then by price ascending within each tier. Verify this logic is fully implemented and not returning a hardcoded or empty `dealScore` field.",
+      "reqIds": [
+        "REQ-141"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Used Car Price Comparison Scraper",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

@@ -1,0 +1,25 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-in-frontend-src-pages-crossmodelsearchpage-tsx-ensure-the-deal-score-badge-rendering-and-result-grouping-are-fully-wired-to-the-dealscore-field-returned-by-usecrossmodelsearch-the-good-deal-section-must-only-render-listings-where-dealscore-good-deal-the-badge-colors-must-be-green-emerald-for-good-deal-amber-yellow-for-fair-red-for-overpriced-if-a-listing-s-dealscore-is-missing-or-empty-treat-it-as-fair-verify-the-sorting-and-grouping-logic-in-the-component-matches-the-server-side-ordering-good-deal-first-fair-second-overpriced-third",
+      "featureTitle": "In `frontend/src/pages/CrossModelSearchPage.tsx`, ensure the deal score badge rendering and result grouping are fully wired to the `dealScore` field returned by `useCrossModelSearch`. The 'Good Deal' section must only render listings where `dealScore === 'Good Deal'`. The badge colors must be: green/emerald for 'Good Deal', amber/yellow for 'Fair', red for 'Overpriced'. If a listing's `dealScore` is missing or empty, treat it as 'Fair'. Verify the sorting and grouping logic in the component matches the server-side ordering — 'Good Deal' first, 'Fair' second, 'Overpriced' third.",
+      "files": [
+        "frontend/src/pages/CrossModelSearchPage.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-142"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

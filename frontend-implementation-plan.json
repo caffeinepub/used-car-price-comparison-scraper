@@ -1,0 +1,26 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Wire up deal scoring and sorting logic in CrossModelSearchPage",
+  "requirements": [
+    {
+      "id": "REQ-142",
+      "summary": "Wire deal score badge rendering and result grouping in CrossModelSearchPage to match backend dealScore field with proper tier ordering and color coding",
+      "acceptanceCriteria": [
+        "The highlighted 'Good Deal' section only contains listings whose `dealScore` field equals 'Good Deal'.",
+        "Deal score badges display green/emerald for 'Good Deal', amber/yellow for 'Fair', and red for 'Overpriced'.",
+        "Listings with a missing or empty `dealScore` are treated as 'Fair' and display the amber/yellow badge.",
+        "The result list is visually grouped: 'Good Deal' listings in a highlighted section appear before 'Fair' and 'Overpriced' listings.",
+        "Within each tier, listings are ordered by price ascending.",
+        "The secondary make/model text filter correctly narrows results across all tiers without disrupting the tier grouping."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/CrossModelSearchPage.tsx",
+          "operation": "modify",
+          "description": "Update deal score badge rendering to use green/emerald for 'Good Deal', amber/yellow for 'Fair', and red for 'Overpriced'. Ensure the 'Good Deal' section filter checks `dealScore === 'Good Deal'` exactly. Treat missing or empty dealScore as 'Fair'. Verify the result grouping logic displays 'Good Deal' listings first in a highlighted section, followed by 'Fair' and 'Overpriced' listings, with price ascending within each tier. Ensure the secondary make/model text filter works across all tiers without breaking tier grouping."
+        }
+      ]
+    }
+  ]
+}

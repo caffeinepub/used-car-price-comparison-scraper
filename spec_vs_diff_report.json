@@ -1,0 +1,32 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-25T18:51:21.981Z",
+  "summary": "The diff modifies backend/main.mo and frontend/src/pages/CrossModelSearchPage.tsx to implement deal scoring and sorting. The frontend implementation (REQ-142) appears largely complete with proper badge colors, normalization of missing scores to 'Fair', and tier grouping. The backend file (backend/main.mo) is truncated in the diff, making it impossible to verify the full getCrossModelSearch implementation for REQ-141.",
+  "missing_requirements": [
+    {
+      "id": "REQ-141",
+      "requirement": "getCrossModelSearch must compute dealScore for each result using average-price logic (10% thresholds), label listings 'Good Deal'/'Fair'/'Overpriced', and sort results by tier then price ascending.",
+      "reason": "The backend/main.mo diff is truncated and does not show the getCrossModelSearch function body. The visible portion only shows imports, type definitions, and the getDepreciationCurve/getCallerUserProfile functions. There is no evidence in the diff that the deal score computation logic (average price per make/model, 10% thresholds, tier sorting) is implemented in getCrossModelSearch.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "ResultCard applies a green border/background highlight (border-emerald-500/30 bg-emerald-500/5) to 'Good Deal' cards and a red border (border-red-500/20) to 'Overpriced' cards beyond just the badge.",
+      "reason": "The build request only specifies badge colors (green/emerald for Good Deal, amber/yellow for Fair, red for Overpriced) but does not request card-level border or background color changes based on deal score tier.",
+      "evidence": [
+        "frontend/src/pages/CrossModelSearchPage.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/pages/CrossModelSearchPage.tsx",
+    "project_state.json"
+  ]
+}

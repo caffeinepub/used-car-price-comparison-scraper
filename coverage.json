@@ -1,0 +1,45 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-25T18:51:21.988Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 2,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-141",
+        "summary": "In `backend/main.mo`, ensure the `getCrossModelSearch` function computes `dealScore` for each result using the same average-price logic as `getDealScores`: for each unique make/model pair in the filtered result set, compute the average price across all non-archived listings for that make/model, then label each listing 'Good Deal' if its price is more than 10% below the average, 'Overpriced' if more than 10% above, and 'Fair' otherwise. Sort results by deal score tier first ('Good Deal' before 'Fair' before 'Overpriced'), then by price ascending within each tier. Verify this logic is fully implemented and not returning a hardcoded or empty `dealScore` field.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-142",
+        "summary": "In `frontend/src/pages/CrossModelSearchPage.tsx`, ensure the deal score badge rendering and result grouping are fully wired to the `dealScore` field returned by `useCrossModelSearch`. The 'Good Deal' section must only render listings where `dealScore === 'Good Deal'`. The badge colors must be: green/emerald for 'Good Deal', amber/yellow for 'Fair', red for 'Overpriced'. If a listing's `dealScore` is missing or empty, treat it as 'Fair'. Verify the sorting and grouping logic in the component matches the server-side ordering — 'Good Deal' first, 'Fair' second, 'Overpriced' third.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/CrossModelSearchPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/CrossModelSearchPage.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/pages/CrossModelSearchPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
