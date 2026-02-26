@@ -1,2 +1,3 @@
-# used-car-price-comparison-scraper
-Exported from Caffeine project: Used Car Price Comparison Scraper
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
