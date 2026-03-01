@@ -31,13 +31,13 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { ThemeProvider } from "next-themes";
+
 import type React from "react";
 import { useEffect, useState } from "react";
 import PriceAlertBanner from "./components/PriceAlertBanner";
 import { useActor } from "./hooks/useActor";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
-import { useTheme } from "./hooks/useTheme";
+import { ThemeContext, useTheme, useThemeState } from "./hooks/useTheme";
 
 import ActivityLogPage from "./pages/ActivityLogPage";
 import AddListingPage from "./pages/AddListingPage";
@@ -537,13 +537,20 @@ declare module "@tanstack/react-router" {
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
+function ThemeBootstrapper({ children }: { children: React.ReactNode }) {
+  const themeState = useThemeState();
+  return (
+    <ThemeContext.Provider value={themeState}>{children}</ThemeContext.Provider>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <ThemeBootstrapper>
         <RouterProvider router={router} />
         <Toaster richColors position="top-right" />
-      </ThemeProvider>
+      </ThemeBootstrapper>
     </QueryClientProvider>
   );
 }
