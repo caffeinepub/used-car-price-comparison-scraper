@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StickyNote, Loader2, Trash2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import type { PrivateNote } from '../backend.d';
-import { useActor } from '../hooks/useActor';
+} from "@/components/ui/tooltip";
+import { Loader2, StickyNote, Trash2 } from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import type { PrivateNote } from "../backend.d";
+import { useActor } from "../hooks/useActor";
 
 const MAX_CHARS = 500;
 
@@ -26,11 +27,14 @@ function formatRelativeTime(timestamp: bigint): string {
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
-  if (diffSec < 60) return 'just now';
+  if (diffSec < 60) return "just now";
   if (diffMin < 60) return `${diffMin}m ago`;
   if (diffHour < 24) return `${diffHour}h ago`;
   if (diffDay < 30) return `${diffDay}d ago`;
-  return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(ms).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export interface ListingNoteButtonProps {
@@ -48,7 +52,7 @@ export default function ListingNoteButton({
 }: ListingNoteButtonProps) {
   const { actor } = useActor();
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export default function ListingNoteButton({
   // Sync local text state when popover opens or note changes
   useEffect(() => {
     if (open) {
-      setText(note?.text ?? '');
+      setText(note?.text ?? "");
       setError(null);
       // Focus textarea after open animation
       requestAnimationFrame(() => {
@@ -68,7 +72,7 @@ export default function ListingNoteButton({
 
   const hasNote = Boolean(note?.text);
   const charsLeft = MAX_CHARS - text.length;
-  const isDirty = text !== (note?.text ?? '');
+  const isDirty = text !== (note?.text ?? "");
 
   const handleSave = async () => {
     if (!actor || !isDirty || text.length === 0) return;
@@ -84,8 +88,8 @@ export default function ListingNoteButton({
       };
       onNoteChange(listingId, updated);
       setOpen(false);
-    } catch (err) {
-      setError('Failed to save note. Please try again.');
+    } catch (_err) {
+      setError("Failed to save note. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -99,19 +103,19 @@ export default function ListingNoteButton({
       await actor.deletePrivateNote(listingId);
       onNoteChange(listingId, null);
       setOpen(false);
-    } catch (err) {
-      setError('Failed to delete note. Please try again.');
+    } catch (_err) {
+      setError("Failed to delete note. Please try again.");
     } finally {
       setIsDeleting(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
       handleSave();
     }
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setOpen(false);
     }
   };
@@ -148,17 +152,17 @@ export default function ListingNoteButton({
                 type="button"
                 className={`p-1.5 rounded transition-colors ${
                   hasNote
-                    ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-surface'
+                    ? "text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-surface"
                 }`}
-                aria-label={hasNote ? 'Edit note' : 'Add note'}
+                aria-label={hasNote ? "Edit note" : "Add note"}
               >
                 <StickyNote className="w-3.5 h-3.5" />
               </button>
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p>{hasNote ? 'Edit note' : 'Add private note'}</p>
+            <p>{hasNote ? "Edit note" : "Add private note"}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -204,9 +208,9 @@ export default function ListingNoteButton({
               className={`text-xs ${
                 charsLeft < 50
                   ? charsLeft < 10
-                    ? 'text-red-400'
-                    : 'text-amber-400'
-                  : 'text-muted-foreground'
+                    ? "text-red-400"
+                    : "text-amber-400"
+                  : "text-muted-foreground"
               }`}
             >
               {text.length} / {MAX_CHARS}
@@ -236,7 +240,7 @@ export default function ListingNoteButton({
                 Saving…
               </>
             ) : (
-              'Save Note'
+              "Save Note"
             )}
           </Button>
 

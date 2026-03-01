@@ -1,19 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import { useActivityLog } from '../hooks/useQueries';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ClipboardList,
-  Search,
-  Edit3,
+  Activity,
   Archive,
-  Trash2,
+  ArchiveRestore,
+  ClipboardList,
+  Edit3,
   GitMerge,
   Layers,
-  ArchiveRestore,
-  Activity,
-} from 'lucide-react';
+  Search,
+  Trash2,
+} from "lucide-react";
+import type React from "react";
+import { useMemo, useState } from "react";
+import { useActivityLog } from "../hooks/useQueries";
 
 interface ActivityLogEntry {
   id: bigint;
@@ -36,7 +37,7 @@ function formatRelativeTime(timestampNs: bigint): string {
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
-  if (diffSec < 60) return 'just now';
+  if (diffSec < 60) return "just now";
   if (diffMin < 60) return `${diffMin}m ago`;
   if (diffHour < 24) return `${diffHour}h ago`;
   if (diffDay < 30) return `${diffDay}d ago`;
@@ -51,7 +52,7 @@ function formatFullDate(timestampNs: bigint): string {
 function abbreviatePrincipal(principal: { toString(): string }): string {
   const str = principal.toString();
   if (str.length <= 10) return str;
-  return str.slice(0, 5) + '...' + str.slice(-5);
+  return `${str.slice(0, 5)}...${str.slice(-5)}`;
 }
 
 interface ActionConfig {
@@ -63,54 +64,54 @@ interface ActionConfig {
 
 function getActionConfig(action: string): ActionConfig {
   switch (action) {
-    case 'edit':
+    case "edit":
       return {
-        label: 'Listing Edited',
+        label: "Listing Edited",
         icon: <Edit3 className="w-4 h-4" />,
-        color: 'text-amber-400',
-        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        color: "text-amber-400",
+        badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30",
       };
-    case 'archive':
+    case "archive":
       return {
-        label: 'Listing Archived',
+        label: "Listing Archived",
         icon: <Archive className="w-4 h-4" />,
-        color: 'text-zinc-400',
-        badgeClass: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30',
+        color: "text-zinc-400",
+        badgeClass: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
       };
-    case 'unarchive':
+    case "unarchive":
       return {
-        label: 'Listing Unarchived',
+        label: "Listing Unarchived",
         icon: <ArchiveRestore className="w-4 h-4" />,
-        color: 'text-emerald-400',
-        badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+        color: "text-emerald-400",
+        badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
       };
-    case 'delete':
+    case "delete":
       return {
-        label: 'Listings Deleted',
+        label: "Listings Deleted",
         icon: <Trash2 className="w-4 h-4" />,
-        color: 'text-red-400',
-        badgeClass: 'bg-red-500/20 text-red-300 border-red-500/30',
+        color: "text-red-400",
+        badgeClass: "bg-red-500/20 text-red-300 border-red-500/30",
       };
-    case 'merge':
+    case "merge":
       return {
-        label: 'Listings Merged',
+        label: "Listings Merged",
         icon: <GitMerge className="w-4 h-4" />,
-        color: 'text-purple-400',
-        badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+        color: "text-purple-400",
+        badgeClass: "bg-purple-500/20 text-purple-300 border-purple-500/30",
       };
-    case 'bulk_edit':
+    case "bulk_edit":
       return {
-        label: 'Bulk Field Updated',
+        label: "Bulk Field Updated",
         icon: <Layers className="w-4 h-4" />,
-        color: 'text-amber-400',
-        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        color: "text-amber-400",
+        badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30",
       };
     default:
       return {
         label: action.charAt(0).toUpperCase() + action.slice(1),
         icon: <Activity className="w-4 h-4" />,
-        color: 'text-muted-foreground',
-        badgeClass: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30',
+        color: "text-muted-foreground",
+        badgeClass: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
       };
   }
 }
@@ -118,8 +119,11 @@ function getActionConfig(action: string): ActionConfig {
 function ActivityLogSkeleton() {
   return (
     <div className="space-y-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex gap-4 p-4 rounded-lg bg-surface border border-steel-border">
+      {Array.from({ length: 6 }, (_, i) => `skeleton-${i}`).map((key) => (
+        <div
+          key={key}
+          className="flex gap-4 p-4 rounded-lg bg-surface border border-steel-border"
+        >
           <Skeleton className="w-8 h-8 rounded-full shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-32" />
@@ -143,10 +147,13 @@ function ActivityLogEntryCard({ entry }: { entry: ActivityLogEntry }) {
       ? entry.affectedIds
           .slice(0, 5)
           .map((id) => `#${id}`)
-          .join(', ') + (entry.affectedIds.length > 5 ? ` +${entry.affectedIds.length - 5} more` : '')
+          .join(", ") +
+        (entry.affectedIds.length > 5
+          ? ` +${entry.affectedIds.length - 5} more`
+          : "")
       : entry.listingId != null
-      ? `#${entry.listingId}`
-      : null;
+        ? `#${entry.listingId}`
+        : null;
 
   return (
     <div className="flex gap-4 p-4 rounded-lg bg-surface border border-steel-border hover:border-amber-400/40 transition-colors">
@@ -154,24 +161,34 @@ function ActivityLogEntryCard({ entry }: { entry: ActivityLogEntry }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1">
-          <span className={`text-xs font-medium px-2 py-0.5 rounded border ${config.badgeClass}`}>
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded border ${config.badgeClass}`}
+          >
             {config.label}
           </span>
           {affectedIdsDisplay && (
-            <span className="text-xs text-muted-foreground font-mono">{affectedIdsDisplay}</span>
+            <span className="text-xs text-muted-foreground font-mono">
+              {affectedIdsDisplay}
+            </span>
           )}
         </div>
 
         {entry.fieldChanged && (
           <div className="text-xs text-muted-foreground mt-1">
-            <span className="text-zinc-400 font-medium">{entry.fieldChanged}:</span>{' '}
+            <span className="text-zinc-400 font-medium">
+              {entry.fieldChanged}:
+            </span>{" "}
             {entry.oldValue && (
               <>
-                <span className="line-through text-red-400/70">{entry.oldValue}</span>
+                <span className="line-through text-red-400/70">
+                  {entry.oldValue}
+                </span>
                 <span className="mx-1 text-zinc-500">→</span>
               </>
             )}
-            {entry.newValue && <span className="text-emerald-400/80">{entry.newValue}</span>}
+            {entry.newValue && (
+              <span className="text-emerald-400/80">{entry.newValue}</span>
+            )}
           </div>
         )}
 
@@ -181,7 +198,10 @@ function ActivityLogEntryCard({ entry }: { entry: ActivityLogEntry }) {
       </div>
 
       <div className="shrink-0 text-right">
-        <span className="text-xs text-muted-foreground cursor-default" title={fullDate}>
+        <span
+          className="text-xs text-muted-foreground cursor-default"
+          title={fullDate}
+        >
           {relTime}
         </span>
       </div>
@@ -191,7 +211,7 @@ function ActivityLogEntryCard({ entry }: { entry: ActivityLogEntry }) {
 
 export default function ActivityLogPage() {
   const { data: entries, isLoading } = useActivityLog(100);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     if (!entries) return [];
@@ -245,17 +265,19 @@ export default function ActivityLogPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <ClipboardList className="w-12 h-12 text-muted-foreground mb-4 opacity-40" />
             <p className="text-lg font-medium text-foreground mb-1">
-              {search ? 'No matching entries' : 'No activity recorded yet'}
+              {search ? "No matching entries" : "No activity recorded yet"}
             </p>
             <p className="text-sm text-muted-foreground">
-              {search ? 'Try a different search term.' : 'Changes to listings will appear here.'}
+              {search
+                ? "Try a different search term."
+                : "Changes to listings will appear here."}
             </p>
           </div>
         ) : (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground mb-3">
-              {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'}
-              {search ? ' matching your filter' : ''}
+              {filtered.length} {filtered.length === 1 ? "entry" : "entries"}
+              {search ? " matching your filter" : ""}
             </p>
             {filtered.map((entry) => (
               <ActivityLogEntryCard key={Number(entry.id)} entry={entry} />

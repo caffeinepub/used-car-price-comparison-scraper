@@ -1,15 +1,24 @@
-import React, { useState, useRef } from 'react';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { SlidersHorizontal, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
-import { ColumnDef } from '@/hooks/useColumnPreferences';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import type { ColumnDef } from "@/hooks/useColumnPreferences";
+import {
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+  SlidersHorizontal,
+} from "lucide-react";
+import React, { useState, useRef } from "react";
 
 interface ColumnCustomizationPanelProps {
   columns: ColumnDef[];
   hiddenKeys: Set<string>;
   onToggle: (key: string) => void;
-  onMove: (key: string, direction: 'up' | 'down') => void;
+  onMove: (key: string, direction: "up" | "down") => void;
   onReorder: (fromKey: string, toKey: string) => void;
 }
 
@@ -67,10 +76,12 @@ export default function ColumnCustomizationPanel({
                 key={col.key}
                 draggable={!isRequired}
                 onDragStart={() => handleDragStart(col.key)}
-                onDragOver={e => e.preventDefault()}
+                onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(col.key)}
                 className={`flex items-center gap-2 px-3 py-1.5 hover:bg-white/5 transition-colors ${
-                  isRequired ? 'opacity-60' : 'cursor-grab active:cursor-grabbing'
+                  isRequired
+                    ? "opacity-60"
+                    : "cursor-grab active:cursor-grabbing"
                 }`}
               >
                 <GripVertical className="h-3.5 w-3.5 text-muted-text shrink-0" />
@@ -84,25 +95,31 @@ export default function ColumnCustomizationPanel({
                 <label
                   htmlFor={`col-${col.key}`}
                   className={`flex-1 text-sm select-none ${
-                    isRequired ? 'text-muted-text' : 'text-foreground cursor-pointer'
+                    isRequired
+                      ? "text-muted-text"
+                      : "text-foreground cursor-pointer"
                   }`}
                 >
                   {col.label}
                   {isRequired && (
-                    <span className="ml-1 text-xs text-muted-text">(required)</span>
+                    <span className="ml-1 text-xs text-muted-text">
+                      (required)
+                    </span>
                   )}
                 </label>
                 {!isRequired && (
                   <div className="flex flex-col gap-0.5">
                     <button
-                      onClick={() => onMove(col.key, 'up')}
+                      type="button"
+                      onClick={() => onMove(col.key, "up")}
                       disabled={idx === 0}
                       className="text-muted-text hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ChevronUp className="h-3 w-3" />
                     </button>
                     <button
-                      onClick={() => onMove(col.key, 'down')}
+                      type="button"
+                      onClick={() => onMove(col.key, "down")}
                       disabled={idx === columns.length - 1}
                       className="text-muted-text hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
@@ -116,7 +133,8 @@ export default function ColumnCustomizationPanel({
         </div>
         <div className="px-3 py-2 border-t border-steel-border">
           <p className="text-xs text-muted-text">
-            {columns.length - hiddenKeys.size} of {columns.length} columns visible
+            {columns.length - hiddenKeys.size} of {columns.length} columns
+            visible
           </p>
         </div>
       </PopoverContent>

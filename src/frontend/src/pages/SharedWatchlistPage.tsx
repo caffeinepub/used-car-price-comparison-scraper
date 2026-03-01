@@ -1,14 +1,17 @@
-import React from 'react';
-import { useParams } from '@tanstack/react-router';
-import { useSharedWatchlist } from '../hooks/useQueries';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, Car, AlertCircle, BookmarkX } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "@tanstack/react-router";
+import { AlertCircle, BookmarkX, Car, Eye } from "lucide-react";
+import React from "react";
+import { useSharedWatchlist } from "../hooks/useQueries";
 
 function SharedWatchlistSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="p-4 rounded-lg bg-surface border border-steel-border space-y-3">
+      {Array.from({ length: 6 }, (_, i) => `skeleton-${i}`).map((key) => (
+        <div
+          key={key}
+          className="p-4 rounded-lg bg-surface border border-steel-border space-y-3"
+        >
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-3 w-40" />
@@ -20,7 +23,7 @@ function SharedWatchlistSkeleton() {
 
 export default function SharedWatchlistPage() {
   const { token } = useParams({ strict: false }) as { token: string };
-  const { data, isLoading, isFetched } = useSharedWatchlist(token ?? '');
+  const { data, isLoading, isFetched } = useSharedWatchlist(token ?? "");
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,7 +37,9 @@ export default function SharedWatchlistPage() {
             <h1 className="text-2xl font-bold text-foreground font-rajdhani tracking-wide">
               Shared Watchlist
             </h1>
-            <p className="text-sm text-muted-text">Read-only view of a shared car watchlist</p>
+            <p className="text-sm text-muted-text">
+              Read-only view of a shared car watchlist
+            </p>
           </div>
         </div>
 
@@ -44,7 +49,9 @@ export default function SharedWatchlistPage() {
         ) : !token || (isFetched && data === null) ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="w-12 h-12 text-red-400 mb-4 opacity-60" />
-            <p className="text-lg font-semibold text-foreground mb-1">Watchlist not found</p>
+            <p className="text-lg font-semibold text-foreground mb-1">
+              Watchlist not found
+            </p>
             <p className="text-sm text-muted-text">
               This link may be invalid or the watchlist no longer exists.
             </p>
@@ -62,7 +69,8 @@ export default function SharedWatchlistPage() {
         ) : Array.isArray(data) ? (
           <>
             <p className="text-xs text-muted-text mb-4">
-              {data.length} {data.length === 1 ? 'car' : 'cars'} on this watchlist
+              {data.length} {data.length === 1 ? "car" : "cars"} on this
+              watchlist
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.map((entry) => (
@@ -79,7 +87,9 @@ export default function SharedWatchlistPage() {
                         {entry.make} {entry.model}
                       </p>
                       {entry.note && (
-                        <p className="text-xs text-muted-text mt-1 line-clamp-2">{entry.note}</p>
+                        <p className="text-xs text-muted-text mt-1 line-clamp-2">
+                          {entry.note}
+                        </p>
                       )}
                     </div>
                   </div>

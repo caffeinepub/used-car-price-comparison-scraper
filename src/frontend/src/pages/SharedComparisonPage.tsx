@@ -1,24 +1,24 @@
-import React, { useMemo } from 'react';
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import React, { useMemo } from "react";
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
+import NHTSARecallSection from "../components/NHTSARecallSection";
+import PriceStatisticsPanel from "../components/PriceStatisticsPanel";
 import {
   useGetAllListings,
-  useGetMileageAdjustedListings,
   useGetDealScores,
+  useGetMileageAdjustedListings,
   useGetPriceTrend,
-} from '../hooks/useQueries';
-import PriceStatisticsPanel from '../components/PriceStatisticsPanel';
-import NHTSARecallSection from '../components/NHTSARecallSection';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "../hooks/useQueries";
 
 // ─── ATP SVG Logo ──────────────────────────────────────────────────────────────
 
@@ -30,8 +30,10 @@ function ATPLogo({ size = 32 }: { size?: number }) {
       viewBox="0 0 36 36"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      role="img"
       aria-label="Auto Track Pro logo"
     >
+      <title>Auto Track Pro logo</title>
       <polygon
         points="18,2 33,10 33,26 18,34 3,26 3,10"
         fill="#1C1C2E"
@@ -66,65 +68,70 @@ interface ChartDataPoint {
 export default function SharedComparisonPage() {
   // Parse URL params on mount — no router dependency needed
   const params = new URLSearchParams(window.location.search);
-  const make = params.get('make') ?? '';
-  const model = params.get('model') ?? '';
+  const make = params.get("make") ?? "";
+  const model = params.get("model") ?? "";
 
-  const { data: allListings = [], isLoading: listingsLoading } = useGetAllListings();
-  const { data: mileageAdjusted = [] } = useGetMileageAdjustedListings(make, model);
+  const { data: allListings = [], isLoading: listingsLoading } =
+    useGetAllListings();
+  const { data: mileageAdjusted = [] } = useGetMileageAdjustedListings(
+    make,
+    model,
+  );
   const { data: priceTrend } = useGetPriceTrend(make, model);
 
   // Filter to selected make/model, non-archived
   const filteredListings = useMemo(
     () =>
       (allListings as any[]).filter(
-        (l) => l.make === make && l.model === model && !l.archived
+        (l) => l.make === make && l.model === model && !l.archived,
       ),
-    [allListings, make, model]
+    [allListings, make, model],
   );
 
   const listingIds = filteredListings.map((l: any) => l.id);
   const { data: dealScores = [] } = useGetDealScores(listingIds);
 
   const dealScoreMap: Record<string, string> = {};
-  (dealScores as any[]).forEach((d: any) => {
+  for (const d of dealScores as any[]) {
     dealScoreMap[d.listingId] = d.dealRating;
-  });
+  }
 
   // Build chart data
   const chartData: ChartDataPoint[] = useMemo(() => {
     const sorted = [...filteredListings].sort(
-      (a, b) => Number(a.timestamp) - Number(b.timestamp)
+      (a, b) => Number(a.timestamp) - Number(b.timestamp),
     );
     return sorted.map((l) => {
       const ts = Number(l.timestamp) / 1_000_000;
-      const date = new Date(ts).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: '2-digit',
+      const date = new Date(ts).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "2-digit",
       });
       return { date, timestamp: ts, price: Number(l.price) };
     });
   }, [filteredListings]);
 
-  const latestYear = filteredListings.length > 0
-    ? Math.max(...filteredListings.map((l: any) => Number(l.year)))
-    : undefined;
+  const latestYear =
+    filteredListings.length > 0
+      ? Math.max(...filteredListings.map((l: any) => Number(l.year)))
+      : undefined;
 
   const trendIcon =
-    priceTrend === 'up' ? (
+    priceTrend === "up" ? (
       <TrendingUp className="w-4 h-4 text-red-400" />
-    ) : priceTrend === 'down' ? (
+    ) : priceTrend === "down" ? (
       <TrendingDown className="w-4 h-4 text-emerald-400" />
     ) : (
       <Minus className="w-4 h-4 text-amber-400" />
     );
 
   const trendLabel =
-    priceTrend === 'up'
-      ? 'Trending Up'
-      : priceTrend === 'down'
-      ? 'Trending Down'
-      : 'Stable';
+    priceTrend === "up"
+      ? "Trending Up"
+      : priceTrend === "down"
+        ? "Trending Down"
+        : "Stable";
 
   const viewFullAppUrl = `/compare?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`;
 
@@ -149,9 +156,12 @@ export default function SharedComparisonPage() {
             <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-6">
               <AlertTriangle className="w-8 h-8 text-amber-400" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-3">Invalid Comparison Link</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-3">
+              Invalid Comparison Link
+            </h1>
             <p className="text-muted-foreground mb-6">
-              Please check the URL or visit Auto Track Pro to generate a new shareable report.
+              Please check the URL or visit Auto Track Pro to generate a new
+              shareable report.
             </p>
             <a
               href="/"
@@ -222,43 +232,49 @@ export default function SharedComparisonPage() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={chartData} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 16, right: 24, left: 8, bottom: 8 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.06)"
+                  />
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: '#94a3b8', fontSize: 11 }}
-                    axisLine={{ stroke: '#334155' }}
+                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    axisLine={{ stroke: "#334155" }}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fill: '#94a3b8', fontSize: 11 }}
-                    axisLine={{ stroke: '#334155' }}
+                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    axisLine={{ stroke: "#334155" }}
                     tickLine={false}
                     tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                   />
                   <Tooltip
                     contentStyle={{
-                      background: '#1e293b',
-                      border: '1px solid #334155',
+                      background: "#1e293b",
+                      border: "1px solid #334155",
                       borderRadius: 8,
-                      color: '#e2e8f0',
+                      color: "#e2e8f0",
                     }}
                     formatter={(value: number) =>
-                      new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
+                      new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
                         maximumFractionDigits: 0,
                       }).format(value)
                     }
                   />
-                  <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />
+                  <Legend wrapperStyle={{ color: "#94a3b8", fontSize: 12 }} />
                   <Line
                     type="monotone"
                     dataKey="price"
                     stroke="#f59e0b"
                     strokeWidth={2}
                     dot={false}
-                    activeDot={{ r: 5, fill: '#f59e0b' }}
+                    activeDot={{ r: 5, fill: "#f59e0b" }}
                     name="Price"
                   />
                 </LineChart>
@@ -300,16 +316,26 @@ export default function SharedComparisonPage() {
                         className="border-b border-steel-border/40 hover:bg-surface/50 transition-colors"
                       >
                         <td className="py-2 pr-4">{String(l.year)}</td>
-                        <td className="py-2 pr-4 text-muted-foreground">{l.trim || '—'}</td>
-                        <td className="py-2 pr-4">{Number(l.mileage).toLocaleString()}</td>
+                        <td className="py-2 pr-4 text-muted-foreground">
+                          {l.trim || "—"}
+                        </td>
+                        <td className="py-2 pr-4">
+                          {Number(l.mileage).toLocaleString()}
+                        </td>
                         <td className="py-2 pr-4 text-amber-400 font-medium">
                           ${Number(l.price).toLocaleString()}
                         </td>
                         <td className="py-2 pr-4 text-muted-foreground">
-                          {l.pricePerMile != null ? `$${Number(l.pricePerMile).toFixed(4)}` : '—'}
+                          {l.pricePerMile != null
+                            ? `$${Number(l.pricePerMile).toFixed(4)}`
+                            : "—"}
                         </td>
-                        <td className="py-2 pr-4 text-muted-foreground">{l.source || '—'}</td>
-                        <td className="py-2 text-muted-foreground">{l.dealerName || '—'}</td>
+                        <td className="py-2 pr-4 text-muted-foreground">
+                          {l.source || "—"}
+                        </td>
+                        <td className="py-2 text-muted-foreground">
+                          {l.dealerName || "—"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -319,7 +345,11 @@ export default function SharedComparisonPage() {
           )}
 
           {/* NHTSA Recalls & Safety */}
-          <NHTSARecallSection make={make} model={model} latestYear={latestYear} />
+          <NHTSARecallSection
+            make={make}
+            model={model}
+            latestYear={latestYear}
+          />
 
           {/* Footer CTA */}
           <div className="card-panel p-8 text-center space-y-4 border border-amber-500/20 bg-amber-500/5">
@@ -331,7 +361,8 @@ export default function SharedComparisonPage() {
                 Want to track your own listings?
               </h3>
               <p className="text-muted-foreground text-sm">
-                Try Auto Track Pro free — import your listings, track prices over time, and get deal alerts.
+                Try Auto Track Pro free — import your listings, track prices
+                over time, and get deal alerts.
               </p>
             </div>
             <a
@@ -349,9 +380,11 @@ export default function SharedComparisonPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <ATPLogo size={20} />
-            <span>© {new Date().getFullYear()} Auto Track Pro — Used Car Intelligence</span>
+            <span>
+              © {new Date().getFullYear()} Auto Track Pro — Used Car
+              Intelligence
+            </span>
           </div>
-
         </div>
       </footer>
     </div>

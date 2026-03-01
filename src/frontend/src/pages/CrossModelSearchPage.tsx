@@ -1,23 +1,35 @@
-import React, { useState, useMemo } from 'react';
-import { Search, SlidersHorizontal, Car, DollarSign, Gauge, Tag, MapPin, ExternalLink, Loader2, TrendingDown, Star } from 'lucide-react';
-import { useCrossModelSearch } from '../hooks/useQueries';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { CrossModelResult } from '../backend';
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Car,
+  DollarSign,
+  ExternalLink,
+  Gauge,
+  Loader2,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  Star,
+  Tag,
+  TrendingDown,
+} from "lucide-react";
+import type React from "react";
+import { useMemo, useState } from "react";
+import type { CrossModelResult } from "../backend";
+import { useCrossModelSearch } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmtCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     maximumFractionDigits: 0,
   }).format(n);
 
-const fmtMileage = (n: number) =>
-  new Intl.NumberFormat('en-US').format(n);
+const fmtMileage = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 const fmtPricePerMile = (ppm: number) => {
-  if (ppm <= 0) return '—';
+  if (ppm <= 0) return "—";
   return `$${ppm.toFixed(4)}`;
 };
 
@@ -25,18 +37,12 @@ const fmtPricePerMile = (ppm: number) => {
  * Normalise a raw dealScore string from the backend.
  * Missing or empty values are treated as 'Fair'.
  */
-function normaliseDealScore(score: string): 'Good Deal' | 'Fair' | 'Overpriced' {
-  if (score === 'Good Deal') return 'Good Deal';
-  if (score === 'Overpriced') return 'Overpriced';
-  return 'Fair';
-}
-
-/** Priority order for tier sorting: Good Deal < Fair < Overpriced */
-function dealScorePriority(score: string): number {
-  const normalised = normaliseDealScore(score);
-  if (normalised === 'Good Deal') return 0;
-  if (normalised === 'Fair') return 1;
-  return 2;
+function normaliseDealScore(
+  score: string,
+): "Good Deal" | "Fair" | "Overpriced" {
+  if (score === "Good Deal") return "Good Deal";
+  if (score === "Overpriced") return "Overpriced";
+  return "Fair";
 }
 
 // ─── Deal Score Badge ─────────────────────────────────────────────────────────
@@ -44,7 +50,7 @@ function dealScorePriority(score: string): number {
 function DealBadge({ score }: { score: string }) {
   const normalised = normaliseDealScore(score);
 
-  if (normalised === 'Good Deal') {
+  if (normalised === "Good Deal") {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
@@ -52,7 +58,7 @@ function DealBadge({ score }: { score: string }) {
       </span>
     );
   }
-  if (normalised === 'Overpriced') {
+  if (normalised === "Overpriced") {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/25">
         <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
@@ -80,11 +86,11 @@ function ResultCard({ listing }: { listing: CrossModelResult }) {
   return (
     <div
       className={`bg-surface border rounded-xl p-4 flex flex-col gap-3 transition-all hover:border-amber/30 hover:shadow-amber-glow/10 ${
-        normalised === 'Good Deal'
-          ? 'border-emerald-500/30 bg-emerald-500/5'
-          : normalised === 'Overpriced'
-          ? 'border-red-500/20'
-          : 'border-steel-border'
+        normalised === "Good Deal"
+          ? "border-emerald-500/30 bg-emerald-500/5"
+          : normalised === "Overpriced"
+            ? "border-red-500/20"
+            : "border-steel-border"
       }`}
     >
       {/* Header row */}
@@ -112,7 +118,7 @@ function ResultCard({ listing }: { listing: CrossModelResult }) {
       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
         <div className="flex items-center gap-1.5 text-muted-text">
           <Gauge className="w-3.5 h-3.5 shrink-0" />
-          <span>{mileage > 0 ? `${fmtMileage(mileage)} mi` : 'N/A'}</span>
+          <span>{mileage > 0 ? `${fmtMileage(mileage)} mi` : "N/A"}</span>
         </div>
         <div className="flex items-center gap-1.5 text-muted-text">
           <TrendingDown className="w-3.5 h-3.5 shrink-0" />
@@ -120,18 +126,21 @@ function ResultCard({ listing }: { listing: CrossModelResult }) {
         </div>
         <div className="flex items-center gap-1.5 text-muted-text">
           <Tag className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{listing.source || '—'}</span>
+          <span className="truncate">{listing.source || "—"}</span>
         </div>
         <div className="flex items-center gap-1.5 text-muted-text">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{listing.dealerName || '—'}</span>
+          <span className="truncate">{listing.dealerName || "—"}</span>
         </div>
       </div>
 
       {/* Condition */}
       {listing.condition && (
         <div className="text-xs text-muted-text">
-          Condition: <span className="text-foreground capitalize">{listing.condition}</span>
+          Condition:{" "}
+          <span className="text-foreground capitalize">
+            {listing.condition}
+          </span>
         </div>
       )}
 
@@ -156,8 +165,11 @@ function ResultCard({ listing }: { listing: CrossModelResult }) {
 function ResultsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {[...Array(8)].map((_, i) => (
-        <div key={i} className="bg-surface border border-steel-border rounded-xl p-4 space-y-3">
+      {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map((key) => (
+        <div
+          key={key}
+          className="bg-surface border border-steel-border rounded-xl p-4 space-y-3"
+        >
           <div className="flex justify-between items-start">
             <Skeleton className="h-5 w-36" />
             <Skeleton className="h-5 w-20 rounded-full" />
@@ -186,26 +198,32 @@ function SectionHeader({
 }: {
   label: string;
   count: number;
-  color: 'emerald' | 'amber' | 'red';
+  color: "emerald" | "amber" | "red";
   highlighted?: boolean;
 }) {
   const colorMap = {
-    emerald: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
-    amber: 'text-amber border-amber/30 bg-amber/10',
-    red: 'text-red-400 border-red-500/30 bg-red-500/10',
+    emerald: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+    amber: "text-amber border-amber/30 bg-amber/10",
+    red: "text-red-400 border-red-500/30 bg-red-500/10",
   };
   return (
     <div
       className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border ${colorMap[color]} mb-3 ${
-        highlighted ? 'shadow-sm' : ''
+        highlighted ? "shadow-sm" : ""
       }`}
     >
-      {highlighted && <Star className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
-      <span className={`text-sm font-bold font-rajdhani uppercase tracking-wider ${colorMap[color].split(' ')[0]}`}>
+      {highlighted && (
+        <Star className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+      )}
+      <span
+        className={`text-sm font-bold font-rajdhani uppercase tracking-wider ${colorMap[color].split(" ")[0]}`}
+      >
         {label}
       </span>
-      <span className={`text-xs px-2 py-0.5 rounded-full border ${colorMap[color]}`}>
-        {count} listing{count !== 1 ? 's' : ''}
+      <span
+        className={`text-xs px-2 py-0.5 rounded-full border ${colorMap[color]}`}
+      >
+        {count} listing{count !== 1 ? "s" : ""}
       </span>
     </div>
   );
@@ -220,18 +238,19 @@ function sortByPriceAsc(arr: CrossModelResult[]): CrossModelResult[] {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CrossModelSearchPage() {
-  const [budgetInput, setBudgetInput] = useState('');
-  const [mileageInput, setMileageInput] = useState('');
-  const [textFilter, setTextFilter] = useState('');
+  const [budgetInput, setBudgetInput] = useState("");
+  const [mileageInput, setMileageInput] = useState("");
+  const [textFilter, setTextFilter] = useState("");
   const [submittedBudget, setSubmittedBudget] = useState(0);
   const [submittedMileage, setSubmittedMileage] = useState(0);
 
   const hasSearched = submittedBudget > 0 && submittedMileage > 0;
 
-  const { data: results, isLoading, isFetching } = useCrossModelSearch(
-    submittedBudget,
-    submittedMileage
-  );
+  const {
+    data: results,
+    isLoading,
+    isFetching,
+  } = useCrossModelSearch(submittedBudget, submittedMileage);
 
   // Client-side text filter — preserves backend tier+price ordering
   const filteredResults = useMemo(() => {
@@ -240,8 +259,7 @@ export default function CrossModelSearchPage() {
     const q = textFilter.trim().toLowerCase();
     return results.filter(
       (r) =>
-        r.make.toLowerCase().includes(q) ||
-        r.model.toLowerCase().includes(q)
+        r.make.toLowerCase().includes(q) || r.model.toLowerCase().includes(q),
     );
   }, [results, textFilter]);
 
@@ -253,49 +271,65 @@ export default function CrossModelSearchPage() {
    * Within each tier, sort by price ascending (client-side guarantee).
    */
   const goodDeals = useMemo(
-    () => sortByPriceAsc(filteredResults.filter((r) => normaliseDealScore(r.dealScore) === 'Good Deal')),
-    [filteredResults]
+    () =>
+      sortByPriceAsc(
+        filteredResults.filter(
+          (r) => normaliseDealScore(r.dealScore) === "Good Deal",
+        ),
+      ),
+    [filteredResults],
   );
   const fairDeals = useMemo(
-    () => sortByPriceAsc(filteredResults.filter((r) => normaliseDealScore(r.dealScore) === 'Fair')),
-    [filteredResults]
+    () =>
+      sortByPriceAsc(
+        filteredResults.filter(
+          (r) => normaliseDealScore(r.dealScore) === "Fair",
+        ),
+      ),
+    [filteredResults],
   );
   const overpriced = useMemo(
-    () => sortByPriceAsc(filteredResults.filter((r) => normaliseDealScore(r.dealScore) === 'Overpriced')),
-    [filteredResults]
+    () =>
+      sortByPriceAsc(
+        filteredResults.filter(
+          (r) => normaliseDealScore(r.dealScore) === "Overpriced",
+        ),
+      ),
+    [filteredResults],
   );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const budget = parseFloat(budgetInput.replace(/[^0-9.]/g, ''));
-    const mileage = parseInt(mileageInput.replace(/[^0-9]/g, ''), 10);
+    const budget = Number.parseFloat(budgetInput.replace(/[^0-9.]/g, ""));
+    const mileage = Number.parseInt(mileageInput.replace(/[^0-9]/g, ""), 10);
     if (!budget || !mileage || budget <= 0 || mileage <= 0) return;
     setSubmittedBudget(budget);
     setSubmittedMileage(mileage);
   };
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, '');
-    if (raw === '') {
-      setBudgetInput('');
+    const raw = e.target.value.replace(/[^0-9]/g, "");
+    if (raw === "") {
+      setBudgetInput("");
       return;
     }
-    const num = parseInt(raw, 10);
-    setBudgetInput(new Intl.NumberFormat('en-US').format(num));
+    const num = Number.parseInt(raw, 10);
+    setBudgetInput(new Intl.NumberFormat("en-US").format(num));
   };
 
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, '');
-    if (raw === '') {
-      setMileageInput('');
+    const raw = e.target.value.replace(/[^0-9]/g, "");
+    if (raw === "") {
+      setMileageInput("");
       return;
     }
-    const num = parseInt(raw, 10);
-    setMileageInput(new Intl.NumberFormat('en-US').format(num));
+    const num = Number.parseInt(raw, 10);
+    setMileageInput(new Intl.NumberFormat("en-US").format(num));
   };
 
-  const budgetNum = parseFloat(budgetInput.replace(/[^0-9.]/g, '')) || 0;
-  const mileageNum = parseInt(mileageInput.replace(/[^0-9]/g, ''), 10) || 0;
+  const budgetNum = Number.parseFloat(budgetInput.replace(/[^0-9.]/g, "")) || 0;
+  const mileageNum =
+    Number.parseInt(mileageInput.replace(/[^0-9]/g, ""), 10) || 0;
   const canSearch = budgetNum > 0 && mileageNum > 0;
 
   return (
@@ -321,7 +355,10 @@ export default function CrossModelSearchPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Max Budget */}
             <div className="flex-1 space-y-1.5">
-              <label className="text-xs font-medium text-muted-text uppercase tracking-wider flex items-center gap-1.5">
+              <label
+                htmlFor="cross-budget"
+                className="text-xs font-medium text-muted-text uppercase tracking-wider flex items-center gap-1.5"
+              >
                 <DollarSign className="w-3.5 h-3.5" />
                 Max Budget
               </label>
@@ -330,6 +367,7 @@ export default function CrossModelSearchPage() {
                   $
                 </span>
                 <input
+                  id="cross-budget"
                   type="text"
                   inputMode="numeric"
                   value={budgetInput}
@@ -342,12 +380,16 @@ export default function CrossModelSearchPage() {
 
             {/* Max Mileage */}
             <div className="flex-1 space-y-1.5">
-              <label className="text-xs font-medium text-muted-text uppercase tracking-wider flex items-center gap-1.5">
+              <label
+                htmlFor="cross-mileage"
+                className="text-xs font-medium text-muted-text uppercase tracking-wider flex items-center gap-1.5"
+              >
                 <Gauge className="w-3.5 h-3.5" />
                 Max Mileage
               </label>
               <div className="relative">
                 <input
+                  id="cross-mileage"
                   type="text"
                   inputMode="numeric"
                   value={mileageInput}
@@ -381,7 +423,9 @@ export default function CrossModelSearchPage() {
           {/* Hint */}
           <p className="text-xs text-muted-text flex items-center gap-1.5">
             <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
-            Results are grouped by deal quality — Good Deals first, then Fair, then Overpriced. Within each tier, listings are sorted by price (lowest first). Listings with 0 mileage are always included.
+            Results are grouped by deal quality — Good Deals first, then Fair,
+            then Overpriced. Within each tier, listings are sorted by price
+            (lowest first). Listings with 0 mileage are always included.
           </p>
         </form>
       </div>
@@ -398,7 +442,8 @@ export default function CrossModelSearchPage() {
               Ready to Find Your Best Deal?
             </p>
             <p className="text-sm text-muted-text max-w-sm leading-relaxed">
-              Enter a budget and max mileage to find the best deals across all makes and models in your listings.
+              Enter a budget and max mileage to find the best deals across all
+              makes and models in your listings.
             </p>
           </div>
           {/* Deal score legend */}
@@ -418,11 +463,12 @@ export default function CrossModelSearchPage() {
           </div>
           <div className="flex flex-wrap justify-center gap-3 mt-2">
             {[
-              { label: 'Under $15k', budget: '15,000', mileage: '100,000' },
-              { label: 'Under $25k', budget: '25,000', mileage: '80,000' },
-              { label: 'Under $40k', budget: '40,000', mileage: '60,000' },
+              { label: "Under $15k", budget: "15,000", mileage: "100,000" },
+              { label: "Under $25k", budget: "25,000", mileage: "80,000" },
+              { label: "Under $40k", budget: "40,000", mileage: "60,000" },
             ].map((preset) => (
               <button
+                type="button"
                 key={preset.label}
                 onClick={() => {
                   setBudgetInput(preset.budget);
@@ -452,14 +498,18 @@ export default function CrossModelSearchPage() {
               />
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-text">
-              {isFetching && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber" />}
+              {isFetching && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber" />
+              )}
               <span>
-                {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''}
+                {filteredResults.length} result
+                {filteredResults.length !== 1 ? "s" : ""}
                 {textFilter && ` matching "${textFilter}"`}
               </span>
               <span className="text-steel-border">·</span>
               <span>
-                Budget: {fmtCurrency(submittedBudget)} · Max: {fmtMileage(submittedMileage)} mi
+                Budget: {fmtCurrency(submittedBudget)} · Max:{" "}
+                {fmtMileage(submittedMileage)} mi
               </span>
             </div>
           </div>
@@ -470,7 +520,8 @@ export default function CrossModelSearchPage() {
               {goodDeals.length > 0 && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                  {goodDeals.length} Good Deal{goodDeals.length !== 1 ? 's' : ''}
+                  {goodDeals.length} Good Deal
+                  {goodDeals.length !== 1 ? "s" : ""}
                 </span>
               )}
               {fairDeals.length > 0 && (
@@ -494,11 +545,13 @@ export default function CrossModelSearchPage() {
               <div className="p-3 rounded-full bg-amber/10 border border-amber/20">
                 <Search className="w-6 h-6 text-amber/60" />
               </div>
-              <p className="text-sm font-medium text-foreground">No listings found</p>
+              <p className="text-sm font-medium text-foreground">
+                No listings found
+              </p>
               <p className="text-xs text-muted-text max-w-xs leading-relaxed">
                 {textFilter
                   ? `No listings match "${textFilter}" within your criteria. Try adjusting the filter.`
-                  : 'No listings match your budget and mileage criteria. Try increasing your budget or max mileage.'}
+                  : "No listings match your budget and mileage criteria. Try increasing your budget or max mileage."}
               </p>
             </div>
           ) : (
@@ -506,7 +559,12 @@ export default function CrossModelSearchPage() {
               {/* Good Deals Section — highlighted */}
               {goodDeals.length > 0 && (
                 <section>
-                  <SectionHeader label="Good Deals" count={goodDeals.length} color="emerald" highlighted />
+                  <SectionHeader
+                    label="Good Deals"
+                    count={goodDeals.length}
+                    color="emerald"
+                    highlighted
+                  />
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {goodDeals.map((listing) => (
                       <ResultCard key={listing.id} listing={listing} />
@@ -518,7 +576,11 @@ export default function CrossModelSearchPage() {
               {/* Fair Deals Section */}
               {fairDeals.length > 0 && (
                 <section>
-                  <SectionHeader label="Fair Price" count={fairDeals.length} color="amber" />
+                  <SectionHeader
+                    label="Fair Price"
+                    count={fairDeals.length}
+                    color="amber"
+                  />
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {fairDeals.map((listing) => (
                       <ResultCard key={listing.id} listing={listing} />
@@ -530,7 +592,11 @@ export default function CrossModelSearchPage() {
               {/* Overpriced Section */}
               {overpriced.length > 0 && (
                 <section>
-                  <SectionHeader label="Overpriced" count={overpriced.length} color="red" />
+                  <SectionHeader
+                    label="Overpriced"
+                    count={overpriced.length}
+                    color="red"
+                  />
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {overpriced.map((listing) => (
                       <ResultCard key={listing.id} listing={listing} />

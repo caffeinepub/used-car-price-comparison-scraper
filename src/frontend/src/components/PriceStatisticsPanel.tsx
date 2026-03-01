@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface Props {
   listings: any[];
@@ -7,7 +7,12 @@ interface Props {
   dealScores?: Record<string, string>;
 }
 
-export default function PriceStatisticsPanel({ listings, make, model, dealScores }: Props) {
+export default function PriceStatisticsPanel({
+  listings,
+  make,
+  model,
+  dealScores,
+}: Props) {
   if (!listings || listings.length === 0) {
     return (
       <div className="card-panel p-6 text-center text-muted-foreground">
@@ -19,18 +24,25 @@ export default function PriceStatisticsPanel({ listings, make, model, dealScores
   const prices = listings.map((l) => Number(l.price)).filter((p) => p > 0);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+  const avgPrice =
+    prices.length > 0
+      ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
+      : 0;
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(n);
 
   // Find cheapest source
   const sourceMap: Record<string, number[]> = {};
-  listings.forEach((l) => {
-    const src = l.source || 'Unknown';
+  for (const l of listings) {
+    const src = l.source || "Unknown";
     if (!sourceMap[src]) sourceMap[src] = [];
     sourceMap[src].push(Number(l.price));
-  });
+  }
   const sourceAvgs = Object.entries(sourceMap).map(([src, ps]) => ({
     source: src,
     avg: Math.round(ps.reduce((a, b) => a + b, 0) / ps.length),
@@ -40,14 +52,16 @@ export default function PriceStatisticsPanel({ listings, make, model, dealScores
 
   // Deal score summary
   const dealEntries = dealScores ? Object.entries(dealScores) : [];
-  const goodDeals = dealEntries.filter(([, r]) => r === 'Good Deal');
-  const fairDeals = dealEntries.filter(([, r]) => r === 'Fair');
-  const overpriced = dealEntries.filter(([, r]) => r === 'Overpriced');
+  const goodDeals = dealEntries.filter(([, r]) => r === "Good Deal");
+  const fairDeals = dealEntries.filter(([, r]) => r === "Fair");
+  const overpriced = dealEntries.filter(([, r]) => r === "Overpriced");
 
   const dealBadge = (rating: string) => {
-    if (rating === 'Good Deal') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-    if (rating === 'Overpriced') return 'bg-red-500/20 text-red-400 border border-red-500/30';
-    return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+    if (rating === "Good Deal")
+      return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+    if (rating === "Overpriced")
+      return "bg-red-500/20 text-red-400 border border-red-500/30";
+    return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
   };
 
   return (
@@ -60,7 +74,9 @@ export default function PriceStatisticsPanel({ listings, make, model, dealScores
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-surface rounded-lg p-3">
           <div className="text-xs text-muted-foreground mb-1">Min Price</div>
-          <div className="text-lg font-bold text-emerald-400">{fmt(minPrice)}</div>
+          <div className="text-lg font-bold text-emerald-400">
+            {fmt(minPrice)}
+          </div>
         </div>
         <div className="bg-surface rounded-lg p-3">
           <div className="text-xs text-muted-foreground mb-1">Max Price</div>
@@ -68,21 +84,31 @@ export default function PriceStatisticsPanel({ listings, make, model, dealScores
         </div>
         <div className="bg-surface rounded-lg p-3">
           <div className="text-xs text-muted-foreground mb-1">Avg Price</div>
-          <div className="text-lg font-bold text-amber-400">{fmt(avgPrice)}</div>
+          <div className="text-lg font-bold text-amber-400">
+            {fmt(avgPrice)}
+          </div>
         </div>
         <div className="bg-surface rounded-lg p-3">
           <div className="text-xs text-muted-foreground mb-1">Listings</div>
-          <div className="text-lg font-bold text-foreground">{listings.length}</div>
+          <div className="text-lg font-bold text-foreground">
+            {listings.length}
+          </div>
         </div>
       </div>
 
       {/* Cheapest source */}
       {cheapestSource && (
         <div>
-          <div className="text-sm font-medium text-muted-foreground mb-2">Cheapest Source</div>
+          <div className="text-sm font-medium text-muted-foreground mb-2">
+            Cheapest Source
+          </div>
           <div className="flex items-center gap-3 bg-surface rounded-lg p-3">
-            <span className="text-foreground font-medium">{cheapestSource.source}</span>
-            <span className="text-emerald-400 font-bold">{fmt(cheapestSource.avg)} avg</span>
+            <span className="text-foreground font-medium">
+              {cheapestSource.source}
+            </span>
+            <span className="text-emerald-400 font-bold">
+              {fmt(cheapestSource.avg)} avg
+            </span>
           </div>
         </div>
       )}
@@ -90,10 +116,12 @@ export default function PriceStatisticsPanel({ listings, make, model, dealScores
       {/* Deal Scores */}
       {dealEntries.length > 0 && (
         <div>
-          <div className="text-sm font-medium text-muted-foreground mb-2">Deal Scores</div>
+          <div className="text-sm font-medium text-muted-foreground mb-2">
+            Deal Scores
+          </div>
           <div className="flex flex-wrap gap-2 mb-3">
             <span className="px-2 py-1 rounded-full text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              {goodDeals.length} Good Deal{goodDeals.length !== 1 ? 's' : ''}
+              {goodDeals.length} Good Deal{goodDeals.length !== 1 ? "s" : ""}
             </span>
             <span className="px-2 py-1 rounded-full text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30">
               {fairDeals.length} Fair
@@ -107,11 +135,19 @@ export default function PriceStatisticsPanel({ listings, make, model, dealScores
               const listing = listings.find((l) => l.id === listingId);
               if (!listing) return null;
               return (
-                <div key={listingId} className="flex items-center justify-between text-xs py-1 border-b border-steel-border/30">
+                <div
+                  key={listingId}
+                  className="flex items-center justify-between text-xs py-1 border-b border-steel-border/30"
+                >
                   <span className="text-muted-foreground">
-                    {listing.year} {listing.make} {listing.model} {listing.trim || ''}
+                    {listing.year} {listing.make} {listing.model}{" "}
+                    {listing.trim || ""}
                   </span>
-                  <span className={`px-2 py-0.5 rounded-full ${dealBadge(rating)}`}>{rating}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full ${dealBadge(rating)}`}
+                  >
+                    {rating}
+                  </span>
                 </div>
               );
             })}

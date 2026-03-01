@@ -1,52 +1,3 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from '@tanstack/react-router';
-import {
-  useGetAllListings,
-  useDeleteListing,
-  useUpdateListing,
-  useArchiveListing,
-  useGetDealScores,
-  useGetDashboardStats,
-  useGetStaleListings,
-  useBulkArchiveByAge,
-  useDashboardWidgets,
-  useAddDashboardWidget,
-  useRemoveDashboardWidget,
-  useGetDistinctMakes,
-  useGetDistinctModels,
-  useGetPriceTrend,
-} from '../hooks/useQueries';
-import type { DashboardWidget } from '../hooks/useQueries';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import ListingNoteButton from '../components/ListingNoteButton';
-import type { PrivateNote } from '../backend.d';
-import { useActor } from '../hooks/useActor';
-import PaginationControls from '../components/PaginationControls';
-import ColumnCustomizationPanel from '../components/ColumnCustomizationPanel';
-import ExportFilterPanel from '../components/ExportFilterPanel';
-import OnboardingEmptyState from '../components/OnboardingEmptyState';
-import StaleListingReminderPanel from '../components/StaleListingReminderPanel';
-import { useColumnPreferences } from '../hooks/useColumnPreferences';
-import {
-  Trash2,
-  Edit2,
-  Check,
-  X,
-  Archive,
-  ChevronUp,
-  ChevronDown,
-  Search,
-  Download,
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  LayoutDashboard,
-  Star,
-  AlertTriangle,
-  Calculator,
-} from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +7,57 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  Archive,
+  Calculator,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Edit2,
+  LayoutDashboard,
+  Minus,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { PrivateNote } from "../backend.d";
+import ColumnCustomizationPanel from "../components/ColumnCustomizationPanel";
+import ExportFilterPanel from "../components/ExportFilterPanel";
+import ListingNoteButton from "../components/ListingNoteButton";
+import OnboardingEmptyState from "../components/OnboardingEmptyState";
+import PaginationControls from "../components/PaginationControls";
+import StaleListingReminderPanel from "../components/StaleListingReminderPanel";
+import { useActor } from "../hooks/useActor";
+import { useColumnPreferences } from "../hooks/useColumnPreferences";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import {
+  useAddDashboardWidget,
+  useArchiveListing,
+  useBulkArchiveByAge,
+  useDashboardWidgets,
+  useDeleteListing,
+  useGetAllListings,
+  useGetDashboardStats,
+  useGetDealScores,
+  useGetDistinctMakes,
+  useGetDistinctModels,
+  useGetPriceTrend,
+  useGetStaleListings,
+  useRemoveDashboardWidget,
+  useUpdateListing,
+} from "../hooks/useQueries";
+import type { DashboardWidget } from "../hooks/useQueries";
 
 // ─── Widget Card ──────────────────────────────────────────────────────────────
 
@@ -67,14 +68,24 @@ interface WidgetCardProps {
   isRemoving: boolean;
 }
 
-function WidgetCard({ widget, listings, onRemove, isRemoving }: WidgetCardProps) {
+function WidgetCard({
+  widget,
+  listings,
+  onRemove,
+  isRemoving,
+}: WidgetCardProps) {
   const widgetListings = listings.filter(
-    (l) => l.make === widget.make && l.model === widget.model && !l.archived
+    (l) => l.make === widget.make && l.model === widget.model && !l.archived,
   );
 
   const avgPrice =
     widgetListings.length > 0
-      ? Math.round(widgetListings.reduce((sum: number, l: any) => sum + Number(l.price), 0) / widgetListings.length)
+      ? Math.round(
+          widgetListings.reduce(
+            (sum: number, l: any) => sum + Number(l.price),
+            0,
+          ) / widgetListings.length,
+        )
       : 0;
 
   const goodDeals = widgetListings.filter((l: any) => {
@@ -85,23 +96,32 @@ function WidgetCard({ widget, listings, onRemove, isRemoving }: WidgetCardProps)
   const { data: trend } = useGetPriceTrend(widget.make, widget.model);
 
   const trendIcon =
-    trend === 'up' ? (
+    trend === "up" ? (
       <TrendingUp className="w-3.5 h-3.5 text-red-400" />
-    ) : trend === 'down' ? (
+    ) : trend === "down" ? (
       <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
     ) : (
       <Minus className="w-3.5 h-3.5 text-amber-400" />
     );
 
   const trendLabel =
-    trend === 'up' ? 'Trending Up' : trend === 'down' ? 'Trending Down' : 'Stable';
+    trend === "up"
+      ? "Trending Up"
+      : trend === "down"
+        ? "Trending Down"
+        : "Stable";
 
   const trendColor =
-    trend === 'up' ? 'text-red-400' : trend === 'down' ? 'text-emerald-400' : 'text-amber-400';
+    trend === "up"
+      ? "text-red-400"
+      : trend === "down"
+        ? "text-emerald-400"
+        : "text-amber-400";
 
   return (
     <div className="card-panel p-4 relative group">
       <button
+        type="button"
         onClick={() => onRemove(widget.id)}
         disabled={isRemoving}
         className="absolute top-3 right-3 w-6 h-6 rounded-full bg-surface border border-steel-border text-muted-foreground hover:text-red-400 hover:border-red-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-xs disabled:opacity-50"
@@ -115,7 +135,9 @@ function WidgetCard({ widget, listings, onRemove, isRemoving }: WidgetCardProps)
           {widget.make} {widget.model}
         </div>
         {widget.customLabel && (
-          <div className="text-xs text-amber-400 mt-0.5">{widget.customLabel}</div>
+          <div className="text-xs text-amber-400 mt-0.5">
+            {widget.customLabel}
+          </div>
         )}
       </div>
 
@@ -123,12 +145,14 @@ function WidgetCard({ widget, listings, onRemove, isRemoving }: WidgetCardProps)
         <div className="bg-background/40 rounded-lg p-2">
           <div className="text-muted-foreground mb-0.5">Avg Price</div>
           <div className="font-semibold text-foreground">
-            {avgPrice > 0 ? `$${avgPrice.toLocaleString()}` : '—'}
+            {avgPrice > 0 ? `$${avgPrice.toLocaleString()}` : "—"}
           </div>
         </div>
         <div className="bg-background/40 rounded-lg p-2">
           <div className="text-muted-foreground mb-0.5">Listings</div>
-          <div className="font-semibold text-foreground">{widgetListings.length}</div>
+          <div className="font-semibold text-foreground">
+            {widgetListings.length}
+          </div>
         </div>
         <div className="bg-background/40 rounded-lg p-2">
           <div className="text-muted-foreground mb-0.5">Good Deals</div>
@@ -136,7 +160,9 @@ function WidgetCard({ widget, listings, onRemove, isRemoving }: WidgetCardProps)
         </div>
         <div className="bg-background/40 rounded-lg p-2">
           <div className="text-muted-foreground mb-0.5">Trend</div>
-          <div className={`font-semibold flex items-center gap-1 ${trendColor}`}>
+          <div
+            className={`font-semibold flex items-center gap-1 ${trendColor}`}
+          >
             {trendIcon}
             <span>{trendLabel}</span>
           </div>
@@ -155,9 +181,9 @@ interface AddWidgetFormProps {
 }
 
 function AddWidgetForm({ onAdd, isAdding, onCancel }: AddWidgetFormProps) {
-  const [make, setMake] = useState('');
-  const [model, setModel] = useState('');
-  const [label, setLabel] = useState('');
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [label, setLabel] = useState("");
 
   const { data: makes = [] } = useGetDistinctMakes();
   const { data: models = [] } = useGetDistinctModels(make);
@@ -169,24 +195,46 @@ function AddWidgetForm({ onAdd, isAdding, onCancel }: AddWidgetFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card-panel p-4 border-amber-500/30 border">
+    <form
+      onSubmit={handleSubmit}
+      className="card-panel p-4 border-amber-500/30 border"
+    >
       <h4 className="text-sm font-semibold text-amber-400 mb-3">Add Widget</h4>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Make *</label>
+          <label
+            htmlFor="widget-make"
+            className="block text-xs text-muted-foreground mb-1"
+          >
+            Make *
+          </label>
           <select
+            id="widget-make"
             value={make}
-            onChange={(e) => { setMake(e.target.value); setModel(''); }}
+            onChange={(e) => {
+              setMake(e.target.value);
+              setModel("");
+            }}
             required
             className="w-full bg-surface border border-steel-border rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:border-amber-500"
           >
             <option value="">Select make…</option>
-            {makes.map((m) => <option key={m} value={m}>{m}</option>)}
+            {makes.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Model *</label>
+          <label
+            htmlFor="widget-model"
+            className="block text-xs text-muted-foreground mb-1"
+          >
+            Model *
+          </label>
           <select
+            id="widget-model"
             value={model}
             onChange={(e) => setModel(e.target.value)}
             required
@@ -194,12 +242,22 @@ function AddWidgetForm({ onAdd, isAdding, onCancel }: AddWidgetFormProps) {
             className="w-full bg-surface border border-steel-border rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:border-amber-500 disabled:opacity-50"
           >
             <option value="">Select model…</option>
-            {models.map((m) => <option key={m} value={m}>{m}</option>)}
+            {models.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Label (optional)</label>
+          <label
+            htmlFor="widget-label"
+            className="block text-xs text-muted-foreground mb-1"
+          >
+            Label (optional)
+          </label>
           <input
+            id="widget-label"
             type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
@@ -214,7 +272,9 @@ function AddWidgetForm({ onAdd, isAdding, onCancel }: AddWidgetFormProps) {
           disabled={!make || !model || isAdding}
           className="px-4 py-1.5 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-colors flex items-center gap-2"
         >
-          {isAdding && <span className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" />}
+          {isAdding && (
+            <span className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+          )}
           Add Widget
         </button>
         <button
@@ -246,7 +306,11 @@ function MyWidgetsSection({ listings }: MyWidgetsSectionProps) {
 
   if (!identity) return null;
 
-  const handleAdd = async (make: string, model: string, customLabel?: string) => {
+  const handleAdd = async (
+    make: string,
+    model: string,
+    customLabel?: string,
+  ) => {
     const result = await addWidget.mutateAsync({ make, model, customLabel });
     if (result === BigInt(0)) {
       setLimitWarning(true);
@@ -274,6 +338,7 @@ function MyWidgetsSection({ listings }: MyWidgetsSectionProps) {
         </div>
         {!showAddForm && widgets.length < 8 && (
           <button
+            type="button"
             onClick={() => setShowAddForm(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm hover:bg-amber-500/20 transition-colors"
           >
@@ -334,8 +399,16 @@ function MyWidgetsSection({ listings }: MyWidgetsSectionProps) {
 
 // ─── Main Dashboard Page ──────────────────────────────────────────────────────
 
-type SortField = 'make' | 'model' | 'year' | 'price' | 'mileage' | 'timestamp' | 'source' | 'condition';
-type SortDirection = 'asc' | 'desc';
+type SortField =
+  | "make"
+  | "model"
+  | "year"
+  | "price"
+  | "mileage"
+  | "timestamp"
+  | "source"
+  | "condition";
+type SortDirection = "asc" | "desc";
 
 interface EditState {
   id: string;
@@ -348,7 +421,8 @@ export default function DashboardPage() {
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
 
-  const { data: allListings = [], isLoading: listingsLoading } = useGetAllListings();
+  const { data: allListings = [], isLoading: listingsLoading } =
+    useGetAllListings();
   const { data: stats } = useGetDashboardStats();
   const { data: staleListings = [] } = useGetStaleListings(30);
 
@@ -363,35 +437,52 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!identity || !actor) return;
     let cancelled = false;
-    actor.getAllPrivateNotes().then((notes) => {
-      if (cancelled) return;
-      setNotesMap(new Map(notes.map((n) => [n.id, n])));
-    }).catch(() => { /* silent — notes are non-critical */ });
-    return () => { cancelled = true; };
+    actor
+      .getAllPrivateNotes()
+      .then((notes) => {
+        if (cancelled) return;
+        setNotesMap(new Map(notes.map((n) => [n.id, n])));
+      })
+      .catch(() => {
+        /* silent — notes are non-critical */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [identity, actor]);
 
-  const handleNoteChange = useCallback((listingId: string, note: PrivateNote | null) => {
-    setNotesMap((prev) => {
-      const next = new Map(prev);
-      if (note === null) {
-        next.delete(listingId);
-      } else {
-        next.set(listingId, note);
-      }
-      return next;
-    });
-  }, []);
+  const handleNoteChange = useCallback(
+    (listingId: string, note: PrivateNote | null) => {
+      setNotesMap((prev) => {
+        const next = new Map(prev);
+        if (note === null) {
+          next.delete(listingId);
+        } else {
+          next.set(listingId, note);
+        }
+        return next;
+      });
+    },
+    [],
+  );
 
-  const { columns, hiddenKeys, visibleColumns, toggleColumn, moveColumn, reorderColumns } = useColumnPreferences();
+  const {
+    columns,
+    hiddenKeys,
+    visibleColumns,
+    toggleColumn,
+    moveColumn,
+    reorderColumns,
+  } = useColumnPreferences();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterMake, setFilterMake] = useState('');
-  const [filterModel, setFilterModel] = useState('');
-  const [filterCondition, setFilterCondition] = useState('');
-  const [filterSource, setFilterSource] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMake, setFilterMake] = useState("");
+  const [filterModel, setFilterModel] = useState("");
+  const [filterCondition, setFilterCondition] = useState("");
+  const [filterSource, setFilterSource] = useState("");
   const [showArchived, setShowArchived] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('timestamp');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<SortField>("timestamp");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -403,25 +494,35 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
         e.preventDefault();
-        document.getElementById('dashboard-search')?.focus();
+        document.getElementById("dashboard-search")?.focus();
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
   const activeListings = allListings.filter((l: any) => !l.archived);
   const archivedListings = allListings.filter((l: any) => l.archived);
   const displayListings = showArchived ? archivedListings : activeListings;
 
-  const makes = Array.from(new Set(allListings.map((l: any) => l.make))).sort() as string[];
-  const models = Array.from(
-    new Set(allListings.filter((l: any) => !filterMake || l.make === filterMake).map((l: any) => l.model))
+  const makes = Array.from(
+    new Set(allListings.map((l: any) => l.make)),
   ).sort() as string[];
-  const conditions = Array.from(new Set(allListings.map((l: any) => l.condition).filter(Boolean))).sort() as string[];
-  const sources = Array.from(new Set(allListings.map((l: any) => l.source).filter(Boolean))).sort() as string[];
+  const models = Array.from(
+    new Set(
+      allListings
+        .filter((l: any) => !filterMake || l.make === filterMake)
+        .map((l: any) => l.model),
+    ),
+  ).sort() as string[];
+  const conditions = Array.from(
+    new Set(allListings.map((l: any) => l.condition).filter(Boolean)),
+  ).sort() as string[];
+  const sources = Array.from(
+    new Set(allListings.map((l: any) => l.source).filter(Boolean)),
+  ).sort() as string[];
 
   const filtered = displayListings.filter((l: any) => {
     const q = searchQuery.toLowerCase();
@@ -434,37 +535,52 @@ export default function DashboardPage() {
       l.source?.toLowerCase().includes(q);
     const matchesMake = !filterMake || l.make === filterMake;
     const matchesModel = !filterModel || l.model === filterModel;
-    const matchesCondition = !filterCondition || l.condition === filterCondition;
+    const matchesCondition =
+      !filterCondition || l.condition === filterCondition;
     const matchesSource = !filterSource || l.source === filterSource;
-    return matchesSearch && matchesMake && matchesModel && matchesCondition && matchesSource;
+    return (
+      matchesSearch &&
+      matchesMake &&
+      matchesModel &&
+      matchesCondition &&
+      matchesSource
+    );
   });
 
   const sorted = [...filtered].sort((a: any, b: any) => {
     let aVal: any = a[sortField];
     let bVal: any = b[sortField];
-    if (sortField === 'timestamp') {
+    if (sortField === "timestamp") {
       aVal = Number(a.timestamp);
       bVal = Number(b.timestamp);
-    } else if (sortField === 'price' || sortField === 'mileage' || sortField === 'year') {
+    } else if (
+      sortField === "price" ||
+      sortField === "mileage" ||
+      sortField === "year"
+    ) {
       aVal = Number(aVal);
       bVal = Number(bVal);
     } else {
-      aVal = String(aVal ?? '').toLowerCase();
-      bVal = String(bVal ?? '').toLowerCase();
+      aVal = String(aVal ?? "").toLowerCase();
+      bVal = String(bVal ?? "").toLowerCase();
     }
-    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / rowsPerPage));
   const safePage = Math.min(currentPage, totalPages);
-  const paginated = sorted.slice((safePage - 1) * rowsPerPage, safePage * rowsPerPage);
+  const paginated = sorted.slice(
+    (safePage - 1) * rowsPerPage,
+    safePage * rowsPerPage,
+  );
 
   const pageIds = paginated.map((l: any) => l.id);
   const { data: dealScores = [] } = useGetDealScores(pageIds);
 
-  const getDealScore = (id: string) => (dealScores as any[]).find((d: any) => d.listingId === id);
+  const getDealScore = (id: string) =>
+    (dealScores as any[]).find((d: any) => d.listingId === id);
 
   // Build a set of visible column keys for fast lookup
   const visibleColumnKeys = new Set(visibleColumns.map((c) => c.key));
@@ -472,10 +588,10 @@ export default function DashboardPage() {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'));
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
     setCurrentPage(1);
   };
@@ -499,7 +615,11 @@ export default function DashboardPage() {
 
   const handleDelete = async (id: string) => {
     await deleteListing.mutateAsync(id);
-    setSelectedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    setSelectedIds((prev) => {
+      const n = new Set(prev);
+      n.delete(id);
+      return n;
+    });
   };
 
   const handleBulkDelete = async () => {
@@ -511,12 +631,16 @@ export default function DashboardPage() {
 
   const handleArchive = async (id: string) => {
     await archiveListing.mutateAsync(id);
-    setSelectedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    setSelectedIds((prev) => {
+      const n = new Set(prev);
+      n.delete(id);
+      return n;
+    });
   };
 
   const handleEditSave = async () => {
     if (!editState) return;
-    const numericFields = ['price', 'mileage', 'year'];
+    const numericFields = ["price", "mileage", "year"];
     await updateListing.mutateAsync({
       id: editState.id,
       updates: {
@@ -534,15 +658,22 @@ export default function DashboardPage() {
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ChevronUp className="w-3 h-3 opacity-30" />;
-    return sortDirection === 'asc'
-      ? <ChevronUp className="w-3 h-3 text-amber-400" />
-      : <ChevronDown className="w-3 h-3 text-amber-400" />;
+    if (sortField !== field)
+      return <ChevronUp className="w-3 h-3 opacity-30" />;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="w-3 h-3 text-amber-400" />
+    ) : (
+      <ChevronDown className="w-3 h-3 text-amber-400" />
+    );
   };
 
   const formatTimestamp = (ts: any) => {
     const ms = Number(ts) / 1_000_000;
-    return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(ms).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const getDealBadge = (id: string) => {
@@ -550,14 +681,18 @@ export default function DashboardPage() {
     if (!ds) return null;
     const rating = ds.dealRating as string;
     const colorMap: Record<string, string> = {
-      great: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      good: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-      fair: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      poor: 'bg-red-500/20 text-red-400 border-red-500/30',
+      great: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+      good: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+      fair: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+      poor: "bg-red-500/20 text-red-400 border-red-500/30",
     };
-    const cls = colorMap[rating.toLowerCase()] ?? 'bg-surface text-muted-foreground border-steel-border';
+    const cls =
+      colorMap[rating.toLowerCase()] ??
+      "bg-surface text-muted-foreground border-steel-border";
     return (
-      <span className={`text-xs px-1.5 py-0.5 rounded border font-medium capitalize ${cls}`}>
+      <span
+        className={`text-xs px-1.5 py-0.5 rounded border font-medium capitalize ${cls}`}
+      >
         {rating}
       </span>
     );
@@ -566,7 +701,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-screen-2xl mx-auto px-4 py-8 space-y-6">
-
         {/* Stale Listing Reminder */}
         {!staleReminderDismissed && (staleListings as any[]).length > 0 && (
           <StaleListingReminderPanel
@@ -582,19 +716,28 @@ export default function DashboardPage() {
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="card-panel p-5">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total Listings</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                Total Listings
+              </div>
               <div className="text-3xl font-bold text-foreground font-display">
                 {Number(stats.totalListings).toLocaleString()}
               </div>
             </div>
             <div className="card-panel p-5">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Average Price</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                Average Price
+              </div>
               <div className="text-3xl font-bold text-amber-400 font-display">
-                ${Number(stats.averagePrice).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                $
+                {Number(stats.averagePrice).toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                })}
               </div>
             </div>
             <div className="card-panel p-5">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Added This Week</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                Added This Week
+              </div>
               <div className="text-3xl font-bold text-foreground font-display">
                 {Number(stats.listingsThisWeek).toLocaleString()}
               </div>
@@ -611,7 +754,10 @@ export default function DashboardPage() {
               id="dashboard-search"
               type="text"
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search listings… (Ctrl+F)"
               className="w-full pl-9 pr-3 py-2 bg-surface border border-steel-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-amber-500"
             />
@@ -620,58 +766,92 @@ export default function DashboardPage() {
           {/* Make filter */}
           <select
             value={filterMake}
-            onChange={(e) => { setFilterMake(e.target.value); setFilterModel(''); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilterMake(e.target.value);
+              setFilterModel("");
+              setCurrentPage(1);
+            }}
             className="bg-surface border border-steel-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-amber-500"
           >
             <option value="">All Makes</option>
-            {makes.map((m) => <option key={m} value={m}>{m}</option>)}
+            {makes.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
 
           {/* Model filter */}
           <select
             value={filterModel}
-            onChange={(e) => { setFilterModel(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilterModel(e.target.value);
+              setCurrentPage(1);
+            }}
             disabled={!filterMake}
             className="bg-surface border border-steel-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-amber-500 disabled:opacity-50"
           >
             <option value="">All Models</option>
-            {models.map((m) => <option key={m} value={m}>{m}</option>)}
+            {models.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
 
           {/* Condition filter */}
           <select
             value={filterCondition}
-            onChange={(e) => { setFilterCondition(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilterCondition(e.target.value);
+              setCurrentPage(1);
+            }}
             className="bg-surface border border-steel-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-amber-500"
           >
             <option value="">All Conditions</option>
-            {conditions.map((c) => <option key={c} value={c}>{c}</option>)}
+            {conditions.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
 
           {/* Source filter */}
           <select
             value={filterSource}
-            onChange={(e) => { setFilterSource(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilterSource(e.target.value);
+              setCurrentPage(1);
+            }}
             className="bg-surface border border-steel-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-amber-500"
           >
             <option value="">All Sources</option>
-            {sources.map((s) => <option key={s} value={s}>{s}</option>)}
+            {sources.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
 
           {/* Archived toggle */}
           <button
-            onClick={() => { setShowArchived((v) => !v); setCurrentPage(1); }}
+            type="button"
+            onClick={() => {
+              setShowArchived((v) => !v);
+              setCurrentPage(1);
+            }}
             className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
               showArchived
-                ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
-                : 'bg-surface border-steel-border text-muted-foreground hover:text-foreground'
+                ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                : "bg-surface border-steel-border text-muted-foreground hover:text-foreground"
             }`}
           >
-            {showArchived ? 'Archived' : 'Active'}
+            {showArchived ? "Archived" : "Active"}
           </button>
 
           {/* Bulk archive by age */}
           <button
+            type="button"
             onClick={() => setShowBulkArchiveDialog(true)}
             className="px-3 py-2 rounded-lg border border-steel-border bg-surface text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
           >
@@ -681,6 +861,7 @@ export default function DashboardPage() {
 
           {/* Export */}
           <button
+            type="button"
             onClick={() => setShowExportPanel(true)}
             className="px-3 py-2 rounded-lg border border-steel-border bg-surface text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
           >
@@ -699,7 +880,8 @@ export default function DashboardPage() {
 
           {/* Add listing */}
           <button
-            onClick={() => navigate({ to: '/add' })}
+            type="button"
+            onClick={() => navigate({ to: "/add" })}
             className="px-3 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
@@ -714,6 +896,7 @@ export default function DashboardPage() {
               {selectedIds.size} selected
             </span>
             <button
+              type="button"
               onClick={handleBulkDelete}
               disabled={deleteListing.isPending}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
@@ -722,6 +905,7 @@ export default function DashboardPage() {
               Delete Selected
             </button>
             <button
+              type="button"
               onClick={() => setSelectedIds(new Set())}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -733,11 +917,17 @@ export default function DashboardPage() {
         {/* Table */}
         {listingsLoading ? (
           <div className="space-y-2">
-            {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map((key) => (
+              <Skeleton key={key} className="h-12 w-full" />
             ))}
           </div>
-        ) : sorted.length === 0 && !searchQuery && !filterMake && !filterModel && !filterCondition && !filterSource && !showArchived ? (
+        ) : sorted.length === 0 &&
+          !searchQuery &&
+          !filterMake &&
+          !filterModel &&
+          !filterCondition &&
+          !filterSource &&
+          !showArchived ? (
           <OnboardingEmptyState />
         ) : (
           <>
@@ -749,82 +939,133 @@ export default function DashboardPage() {
                       <th className="w-10 px-3 py-3">
                         <input
                           type="checkbox"
-                          checked={selectedIds.size === paginated.length && paginated.length > 0}
+                          checked={
+                            selectedIds.size === paginated.length &&
+                            paginated.length > 0
+                          }
                           onChange={handleSelectAll}
                           className="rounded border-steel-border"
                         />
                       </th>
-                      {isVisible('make') && (
+                      {isVisible("make") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('make')}
+                          onClick={() => handleSort("make")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("make")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Make <SortIcon field="make" /></span>
+                          <span className="flex items-center gap-1">
+                            Make <SortIcon field="make" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('model') && (
+                      {isVisible("model") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('model')}
+                          onClick={() => handleSort("model")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("model")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Model <SortIcon field="model" /></span>
+                          <span className="flex items-center gap-1">
+                            Model <SortIcon field="model" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('year') && (
+                      {isVisible("year") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('year')}
+                          onClick={() => handleSort("year")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("year")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Year <SortIcon field="year" /></span>
+                          <span className="flex items-center gap-1">
+                            Year <SortIcon field="year" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('price') && (
+                      {isVisible("price") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('price')}
+                          onClick={() => handleSort("price")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("price")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Price <SortIcon field="price" /></span>
+                          <span className="flex items-center gap-1">
+                            Price <SortIcon field="price" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('mileage') && (
+                      {isVisible("mileage") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('mileage')}
+                          onClick={() => handleSort("mileage")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("mileage")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Mileage <SortIcon field="mileage" /></span>
+                          <span className="flex items-center gap-1">
+                            Mileage <SortIcon field="mileage" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('trim') && (
+                      {isVisible("trim") && (
                         <th className="text-left px-3 py-3">Trim</th>
                       )}
-                      {isVisible('condition') && (
+                      {isVisible("condition") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('condition')}
+                          onClick={() => handleSort("condition")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("condition")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Condition <SortIcon field="condition" /></span>
+                          <span className="flex items-center gap-1">
+                            Condition <SortIcon field="condition" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('source') && (
+                      {isVisible("source") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('source')}
+                          onClick={() => handleSort("source")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("source")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Source <SortIcon field="source" /></span>
+                          <span className="flex items-center gap-1">
+                            Source <SortIcon field="source" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('dealerName') && (
+                      {isVisible("dealerName") && (
                         <th className="text-left px-3 py-3">Dealer</th>
                       )}
-                      {isVisible('timestamp') && (
+                      {isVisible("timestamp") && (
                         <th
                           className="text-left px-3 py-3 cursor-pointer hover:text-foreground transition-colors select-none"
-                          onClick={() => handleSort('timestamp')}
+                          onClick={() => handleSort("timestamp")}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSort("timestamp")
+                          }
+                          scope="col"
                         >
-                          <span className="flex items-center gap-1">Date <SortIcon field="timestamp" /></span>
+                          <span className="flex items-center gap-1">
+                            Date <SortIcon field="timestamp" />
+                          </span>
                         </th>
                       )}
-                      {isVisible('deal') && (
+                      {isVisible("deal") && (
                         <th className="text-left px-3 py-3">Deal</th>
                       )}
                       <th className="text-left px-3 py-3">Actions</th>
@@ -833,19 +1074,25 @@ export default function DashboardPage() {
                   <tbody>
                     {paginated.length === 0 ? (
                       <tr>
-                        <td colSpan={20} className="text-center py-12 text-muted-foreground">
+                        <td
+                          colSpan={20}
+                          className="text-center py-12 text-muted-foreground"
+                        >
                           No listings match your filters.
                         </td>
                       </tr>
                     ) : (
                       paginated.map((listing: any) => {
                         // Capture a non-null snapshot for use inside this row's handlers
-                        const currentEdit = editState?.id === listing.id ? editState : null;
+                        const currentEdit =
+                          editState?.id === listing.id ? editState : null;
                         return (
                           <tr
                             key={listing.id}
                             className={`border-b border-steel-border/40 hover:bg-surface/50 transition-colors ${
-                              selectedIds.has(listing.id) ? 'bg-amber-500/5' : ''
+                              selectedIds.has(listing.id)
+                                ? "bg-amber-500/5"
+                                : ""
                             }`}
                           >
                             <td className="px-3 py-3">
@@ -856,99 +1103,165 @@ export default function DashboardPage() {
                                 className="rounded border-steel-border"
                               />
                             </td>
-                            {isVisible('make') && (
+                            {isVisible("make") && (
                               <td className="px-3 py-3 font-medium text-foreground">
-                                {currentEdit?.field === 'make' ? (
+                                {currentEdit?.field === "make" ? (
                                   <input
-                                    autoFocus
                                     value={currentEdit.value}
-                                    onChange={(e) => setEditState({ id: listing.id, field: 'make', value: e.target.value })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleEditSave(); if (e.key === 'Escape') setEditState(null); }}
+                                    onChange={(e) =>
+                                      setEditState({
+                                        id: listing.id,
+                                        field: "make",
+                                        value: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleEditSave();
+                                      if (e.key === "Escape")
+                                        setEditState(null);
+                                    }}
                                     className="w-full bg-background border border-amber-500 rounded px-2 py-0.5 text-sm focus:outline-none"
                                   />
-                                ) : listing.make}
+                                ) : (
+                                  listing.make
+                                )}
                               </td>
                             )}
-                            {isVisible('model') && (
+                            {isVisible("model") && (
                               <td className="px-3 py-3 text-foreground">
-                                {currentEdit?.field === 'model' ? (
+                                {currentEdit?.field === "model" ? (
                                   <input
-                                    autoFocus
                                     value={currentEdit.value}
-                                    onChange={(e) => setEditState({ id: listing.id, field: 'model', value: e.target.value })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleEditSave(); if (e.key === 'Escape') setEditState(null); }}
+                                    onChange={(e) =>
+                                      setEditState({
+                                        id: listing.id,
+                                        field: "model",
+                                        value: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleEditSave();
+                                      if (e.key === "Escape")
+                                        setEditState(null);
+                                    }}
                                     className="w-full bg-background border border-amber-500 rounded px-2 py-0.5 text-sm focus:outline-none"
                                   />
-                                ) : listing.model}
+                                ) : (
+                                  listing.model
+                                )}
                               </td>
                             )}
-                            {isVisible('year') && (
+                            {isVisible("year") && (
                               <td className="px-3 py-3 text-muted-foreground">
-                                {currentEdit?.field === 'year' ? (
+                                {currentEdit?.field === "year" ? (
                                   <input
-                                    autoFocus
                                     type="number"
                                     value={currentEdit.value}
-                                    onChange={(e) => setEditState({ id: listing.id, field: 'year', value: e.target.value })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleEditSave(); if (e.key === 'Escape') setEditState(null); }}
+                                    onChange={(e) =>
+                                      setEditState({
+                                        id: listing.id,
+                                        field: "year",
+                                        value: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleEditSave();
+                                      if (e.key === "Escape")
+                                        setEditState(null);
+                                    }}
                                     className="w-20 bg-background border border-amber-500 rounded px-2 py-0.5 text-sm focus:outline-none"
                                   />
-                                ) : String(listing.year)}
+                                ) : (
+                                  String(listing.year)
+                                )}
                               </td>
                             )}
-                            {isVisible('price') && (
+                            {isVisible("price") && (
                               <td className="px-3 py-3 text-amber-400 font-semibold">
-                                {currentEdit?.field === 'price' ? (
+                                {currentEdit?.field === "price" ? (
                                   <input
-                                    autoFocus
                                     type="number"
                                     value={currentEdit.value}
-                                    onChange={(e) => setEditState({ id: listing.id, field: 'price', value: e.target.value })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleEditSave(); if (e.key === 'Escape') setEditState(null); }}
+                                    onChange={(e) =>
+                                      setEditState({
+                                        id: listing.id,
+                                        field: "price",
+                                        value: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleEditSave();
+                                      if (e.key === "Escape")
+                                        setEditState(null);
+                                    }}
                                     className="w-28 bg-background border border-amber-500 rounded px-2 py-0.5 text-sm focus:outline-none"
                                   />
-                                ) : `$${Number(listing.price).toLocaleString()}`}
+                                ) : (
+                                  `$${Number(listing.price).toLocaleString()}`
+                                )}
                               </td>
                             )}
-                            {isVisible('mileage') && (
+                            {isVisible("mileage") && (
                               <td className="px-3 py-3 text-muted-foreground">
-                                {currentEdit?.field === 'mileage' ? (
+                                {currentEdit?.field === "mileage" ? (
                                   <input
-                                    autoFocus
                                     type="number"
                                     value={currentEdit.value}
-                                    onChange={(e) => setEditState({ id: listing.id, field: 'mileage', value: e.target.value })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleEditSave(); if (e.key === 'Escape') setEditState(null); }}
+                                    onChange={(e) =>
+                                      setEditState({
+                                        id: listing.id,
+                                        field: "mileage",
+                                        value: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleEditSave();
+                                      if (e.key === "Escape")
+                                        setEditState(null);
+                                    }}
                                     className="w-28 bg-background border border-amber-500 rounded px-2 py-0.5 text-sm focus:outline-none"
                                   />
-                                ) : Number(listing.mileage).toLocaleString()}
+                                ) : (
+                                  Number(listing.mileage).toLocaleString()
+                                )}
                               </td>
                             )}
-                            {isVisible('trim') && (
-                              <td className="px-3 py-3 text-muted-foreground">{listing.trim || '—'}</td>
+                            {isVisible("trim") && (
+                              <td className="px-3 py-3 text-muted-foreground">
+                                {listing.trim || "—"}
+                              </td>
                             )}
-                            {isVisible('condition') && (
-                              <td className="px-3 py-3 text-muted-foreground capitalize">{listing.condition || '—'}</td>
+                            {isVisible("condition") && (
+                              <td className="px-3 py-3 text-muted-foreground capitalize">
+                                {listing.condition || "—"}
+                              </td>
                             )}
-                            {isVisible('source') && (
-                              <td className="px-3 py-3 text-muted-foreground">{listing.source || '—'}</td>
+                            {isVisible("source") && (
+                              <td className="px-3 py-3 text-muted-foreground">
+                                {listing.source || "—"}
+                              </td>
                             )}
-                            {isVisible('dealerName') && (
-                              <td className="px-3 py-3 text-muted-foreground">{listing.dealerName || '—'}</td>
+                            {isVisible("dealerName") && (
+                              <td className="px-3 py-3 text-muted-foreground">
+                                {listing.dealerName || "—"}
+                              </td>
                             )}
-                            {isVisible('timestamp') && (
+                            {isVisible("timestamp") && (
                               <td className="px-3 py-3 text-muted-foreground text-xs">
                                 {formatTimestamp(listing.timestamp)}
                               </td>
                             )}
-                            {isVisible('deal') && (
-                              <td className="px-3 py-3">{getDealBadge(listing.id)}</td>
+                            {isVisible("deal") && (
+                              <td className="px-3 py-3">
+                                {getDealBadge(listing.id)}
+                              </td>
                             )}
                             <td className="px-3 py-3">
                               <div className="flex items-center gap-1">
                                 {currentEdit ? (
                                   <>
                                     <button
+                                      type="button"
                                       onClick={handleEditSave}
                                       disabled={updateListing.isPending}
                                       className="p-1.5 rounded hover:bg-emerald-500/20 text-emerald-400 transition-colors disabled:opacity-50"
@@ -957,6 +1270,7 @@ export default function DashboardPage() {
                                       <Check className="w-3.5 h-3.5" />
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => setEditState(null)}
                                       className="p-1.5 rounded hover:bg-surface text-muted-foreground transition-colors"
                                       title="Cancel"
@@ -965,54 +1279,65 @@ export default function DashboardPage() {
                                     </button>
                                   </>
                                 ) : (
-                                   <>
-                                     <button
-                                       onClick={() => setEditState({ id: listing.id, field: 'price', value: String(listing.price) })}
-                                       className="p-1.5 rounded hover:bg-surface text-muted-foreground hover:text-foreground transition-colors"
-                                       title="Edit price"
-                                     >
-                                       <Edit2 className="w-3.5 h-3.5" />
-                                     </button>
-                                     {!listing.archived && (
-                                       <button
-                                         onClick={() => handleArchive(listing.id)}
-                                         disabled={archiveListing.isPending}
-                                         className="p-1.5 rounded hover:bg-amber-500/20 text-muted-foreground hover:text-amber-400 transition-colors disabled:opacity-50"
-                                         title="Archive"
-                                       >
-                                         <Archive className="w-3.5 h-3.5" />
-                                       </button>
-                                     )}
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setEditState({
+                                          id: listing.id,
+                                          field: "price",
+                                          value: String(listing.price),
+                                        })
+                                      }
+                                      className="p-1.5 rounded hover:bg-surface text-muted-foreground hover:text-foreground transition-colors"
+                                      title="Edit price"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    {!listing.archived && (
                                       <button
-                                       onClick={() => handleDelete(listing.id)}
-                                       disabled={deleteListing.isPending}
-                                       className="p-1.5 rounded hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-50"
-                                       title="Delete"
+                                        type="button"
+                                        onClick={() =>
+                                          handleArchive(listing.id)
+                                        }
+                                        disabled={archiveListing.isPending}
+                                        className="p-1.5 rounded hover:bg-amber-500/20 text-muted-foreground hover:text-amber-400 transition-colors disabled:opacity-50"
+                                        title="Archive"
                                       >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <Archive className="w-3.5 h-3.5" />
                                       </button>
-                                      <Link
-                                        to="/ownership-cost"
-                                        search={{
-                                          make: listing.make,
-                                          model: listing.model,
-                                          year: String(listing.year),
-                                          price: String(listing.price),
-                                          mileage: String(listing.mileage),
-                                        }}
-                                        className="p-1.5 rounded hover:bg-amber-500/20 text-muted-foreground hover:text-amber-400 transition-colors"
-                                        title="Calc ownership cost"
-                                      >
-                                        <Calculator className="w-3.5 h-3.5" />
-                                      </Link>
-                                      <ListingNoteButton
-                                        listingId={listing.id}
-                                        note={notesMap.get(listing.id) ?? null}
-                                        isAuthenticated={Boolean(identity)}
-                                        onNoteChange={handleNoteChange}
-                                      />
-                                    </>
-                                  )}
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDelete(listing.id)}
+                                      disabled={deleteListing.isPending}
+                                      className="p-1.5 rounded hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-50"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <Link
+                                      to="/ownership-cost"
+                                      search={{
+                                        make: listing.make,
+                                        model: listing.model,
+                                        year: String(listing.year),
+                                        price: String(listing.price),
+                                        mileage: String(listing.mileage),
+                                      }}
+                                      className="p-1.5 rounded hover:bg-amber-500/20 text-muted-foreground hover:text-amber-400 transition-colors"
+                                      title="Calc ownership cost"
+                                    >
+                                      <Calculator className="w-3.5 h-3.5" />
+                                    </Link>
+                                    <ListingNoteButton
+                                      listingId={listing.id}
+                                      note={notesMap.get(listing.id) ?? null}
+                                      isAuthenticated={Boolean(identity)}
+                                      onNoteChange={handleNoteChange}
+                                    />
+                                  </>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -1030,7 +1355,10 @@ export default function DashboardPage() {
               rowsPerPage={rowsPerPage}
               totalRows={sorted.length}
               onPageChange={setCurrentPage}
-              onRowsPerPageChange={(n) => { setRowsPerPage(n); setCurrentPage(1); }}
+              onRowsPerPageChange={(n) => {
+                setRowsPerPage(n);
+                setCurrentPage(1);
+              }}
             />
           </>
         )}
@@ -1038,23 +1366,31 @@ export default function DashboardPage() {
 
       {/* Export Panel */}
       {showExportPanel && (
-        <ExportFilterPanel
-          onClose={() => setShowExportPanel(false)}
-        />
+        <ExportFilterPanel onClose={() => setShowExportPanel(false)} />
       )}
 
       {/* Bulk Archive Dialog */}
-      <AlertDialog open={showBulkArchiveDialog} onOpenChange={setShowBulkArchiveDialog}>
+      <AlertDialog
+        open={showBulkArchiveDialog}
+        onOpenChange={setShowBulkArchiveDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Archive Old Listings</AlertDialogTitle>
             <AlertDialogDescription>
-              Archive all active listings older than the specified number of days.
+              Archive all active listings older than the specified number of
+              days.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-2">
-            <label className="block text-sm text-muted-foreground mb-2">Days old threshold</label>
+            <label
+              htmlFor="bulk-archive-days"
+              className="block text-sm text-muted-foreground mb-2"
+            >
+              Days old threshold
+            </label>
             <input
+              id="bulk-archive-days"
               type="number"
               min={1}
               value={bulkArchiveDays}
@@ -1069,7 +1405,7 @@ export default function DashboardPage() {
               disabled={bulkArchiveByAge.isPending}
               className="bg-amber-500 text-black hover:bg-amber-400"
             >
-              {bulkArchiveByAge.isPending ? 'Archiving…' : 'Archive'}
+              {bulkArchiveByAge.isPending ? "Archiving…" : "Archive"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

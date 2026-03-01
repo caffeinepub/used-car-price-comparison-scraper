@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from '../hooks/useActor';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  GitMerge,
+  AlertTriangle,
+  Car,
   CheckCircle2,
   Copy,
   ExternalLink,
-  Car,
-  AlertTriangle,
+  GitMerge,
   Trash2,
-} from 'lucide-react';
+} from "lucide-react";
+import React, { useState } from "react";
+import { toast } from "sonner";
+import { useActor } from "../hooks/useActor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,22 +43,22 @@ function useNearDuplicates() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<DuplicateCluster[]>({
-    queryKey: ['nearDuplicates'],
+    queryKey: ["nearDuplicates"],
     queryFn: async () => {
       if (!actor) return [];
       // Try the most likely method names
       const a = actor as any;
-      if (typeof a.getNearDuplicates === 'function') {
+      if (typeof a.getNearDuplicates === "function") {
         return a.getNearDuplicates();
       }
-      if (typeof a.getDuplicateClusters === 'function') {
+      if (typeof a.getDuplicateClusters === "function") {
         return a.getDuplicateClusters();
       }
-      if (typeof a.getNearDuplicateClusters === 'function') {
+      if (typeof a.getNearDuplicateClusters === "function") {
         return a.getNearDuplicateClusters();
       }
       // Fallback: compute client-side from all listings
-      if (typeof a.getAllListings === 'function') {
+      if (typeof a.getAllListings === "function") {
         const all: Listing[] = await a.getAllListings();
         return computeClientSideDuplicates(all.filter((l) => !l.archived));
       }
@@ -73,31 +73,34 @@ function useMergeListings() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ keepId, deleteIds }: { keepId: string; deleteIds: string[] }) => {
+    mutationFn: async ({
+      keepId,
+      deleteIds,
+    }: { keepId: string; deleteIds: string[] }) => {
       const a = actor as any;
-      if (typeof a.mergeListings === 'function') {
+      if (typeof a.mergeListings === "function") {
         return a.mergeListings(keepId, deleteIds);
       }
-      if (typeof a.mergeDuplicateListings === 'function') {
+      if (typeof a.mergeDuplicateListings === "function") {
         return a.mergeDuplicateListings(keepId, deleteIds);
       }
       // Fallback: delete the discards individually
-      if (typeof a.deleteListing === 'function') {
+      if (typeof a.deleteListing === "function") {
         for (const id of deleteIds) {
           await a.deleteListing(id);
         }
         return;
       }
-      throw new Error('No merge or delete method found on actor');
+      throw new Error("No merge or delete method found on actor");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nearDuplicates'] });
-      queryClient.invalidateQueries({ queryKey: ['listings'] });
-      queryClient.invalidateQueries({ queryKey: ['allListings'] });
-      toast.success('Listings merged successfully');
+      queryClient.invalidateQueries({ queryKey: ["nearDuplicates"] });
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+      queryClient.invalidateQueries({ queryKey: ["allListings"] });
+      toast.success("Listings merged successfully");
     },
     onError: (err: any) => {
-      toast.error(`Merge failed: ${err?.message ?? 'Unknown error'}`);
+      toast.error(`Merge failed: ${err?.message ?? "Unknown error"}`);
     },
   });
 }
@@ -145,12 +148,19 @@ function areSimilar(a: Listing, b: Listing): boolean {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmt(n: bigint | number, style: 'currency' | 'decimal' = 'decimal'): string {
+function fmt(
+  n: bigint | number,
+  style: "currency" | "decimal" = "decimal",
+): string {
   const num = Number(n);
-  if (style === 'currency') {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+  if (style === "currency") {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(num);
   }
-  return new Intl.NumberFormat('en-US').format(num);
+  return new Intl.NumberFormat("en-US").format(num);
 }
 
 function completenessScore(l: Listing): number {
@@ -175,12 +185,14 @@ function ListingCard({ listing, isKeep, onSelect }: ListingCardProps) {
   const score = completenessScore(listing);
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onSelect}
-      className={`relative flex flex-col gap-3 rounded-xl border p-4 cursor-pointer transition-all duration-200 select-none
-        ${isKeep
-          ? 'border-amber bg-amber/5 shadow-amber-glow ring-1 ring-amber/40'
-          : 'border-steel-border bg-surface hover:border-amber/40 hover:bg-amber/5'
+      className={`relative flex flex-col gap-3 rounded-xl border p-4 cursor-pointer transition-all duration-200 select-none w-full text-left
+        ${
+          isKeep
+            ? "border-amber bg-amber/5 shadow-amber-glow ring-1 ring-amber/40"
+            : "border-steel-border bg-surface hover:border-amber/40 hover:bg-amber/5"
         }`}
     >
       {/* Keep badge */}
@@ -203,7 +215,9 @@ function ListingCard({ listing, isKeep, onSelect }: ListingCardProps) {
             <p className="text-xs text-muted-text mt-0.5">{listing.trim}</p>
           )}
         </div>
-        <p className="text-lg font-bold text-amber shrink-0">{fmt(listing.price, 'currency')}</p>
+        <p className="text-lg font-bold text-amber shrink-0">
+          {fmt(listing.price, "currency")}
+        </p>
       </div>
 
       <Separator className="bg-steel-border/50" />
@@ -212,19 +226,25 @@ function ListingCard({ listing, isKeep, onSelect }: ListingCardProps) {
       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
         <div>
           <span className="text-muted-text">Mileage</span>
-          <p className="text-foreground font-medium">{fmt(listing.mileage)} mi</p>
+          <p className="text-foreground font-medium">
+            {fmt(listing.mileage)} mi
+          </p>
         </div>
         <div>
           <span className="text-muted-text">Condition</span>
-          <p className="text-foreground font-medium capitalize">{listing.condition || '—'}</p>
+          <p className="text-foreground font-medium capitalize">
+            {listing.condition || "—"}
+          </p>
         </div>
         <div>
           <span className="text-muted-text">Source</span>
-          <p className="text-foreground font-medium">{listing.source || '—'}</p>
+          <p className="text-foreground font-medium">{listing.source || "—"}</p>
         </div>
         <div>
           <span className="text-muted-text">Dealer</span>
-          <p className="text-foreground font-medium truncate">{listing.dealerName || '—'}</p>
+          <p className="text-foreground font-medium truncate">
+            {listing.dealerName || "—"}
+          </p>
         </div>
       </div>
 
@@ -245,10 +265,10 @@ function ListingCard({ listing, isKeep, onSelect }: ListingCardProps) {
       {/* Completeness */}
       <div className="flex items-center justify-between mt-1">
         <div className="flex gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 5 }, (_, i) => `bar-${i}`).map((key, i) => (
             <div
-              key={i}
-              className={`h-1.5 w-4 rounded-full ${i < score ? 'bg-amber' : 'bg-steel-border'}`}
+              key={key}
+              className={`h-1.5 w-4 rounded-full ${i < score ? "bg-amber" : "bg-steel-border"}`}
             />
           ))}
         </div>
@@ -256,12 +276,15 @@ function ListingCard({ listing, isKeep, onSelect }: ListingCardProps) {
       </div>
 
       {/* Select indicator */}
-      <div className={`absolute bottom-3 right-3 w-4 h-4 rounded-full border-2 transition-colors
-        ${isKeep ? 'border-amber bg-amber' : 'border-steel-border bg-transparent'}`}
+      <div
+        className={`absolute bottom-3 right-3 w-4 h-4 rounded-full border-2 transition-colors
+        ${isKeep ? "border-amber bg-amber" : "border-steel-border bg-transparent"}`}
       >
-        {isKeep && <div className="w-full h-full rounded-full bg-charcoal scale-50" />}
+        {isKeep && (
+          <div className="w-full h-full rounded-full bg-charcoal scale-50" />
+        )}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -276,7 +299,7 @@ interface ClusterCardProps {
 function ClusterCard({ cluster, index, onMerged }: ClusterCardProps) {
   // Default: keep the listing with highest completeness score
   const defaultKeep = cluster.reduce((best, l) =>
-    completenessScore(l) >= completenessScore(best) ? l : best
+    completenessScore(l) >= completenessScore(best) ? l : best,
   );
   const [keepId, setKeepId] = useState<string>(defaultKeep.id);
   const mergeMutation = useMergeListings();
@@ -290,7 +313,7 @@ function ClusterCard({ cluster, index, onMerged }: ClusterCardProps) {
         onSuccess: () => {
           onMerged(cluster.map((l) => l.id));
         },
-      }
+      },
     );
   };
 
@@ -306,7 +329,8 @@ function ClusterCard({ cluster, index, onMerged }: ClusterCardProps) {
             </div>
             <div>
               <CardTitle className="text-sm font-bold text-foreground">
-                Cluster #{index + 1} — {representative.year} {representative.make} {representative.model}
+                Cluster #{index + 1} — {representative.year}{" "}
+                {representative.make} {representative.model}
               </CardTitle>
               <p className="text-xs text-muted-text mt-0.5">
                 {cluster.length} near-duplicate listings detected
@@ -314,7 +338,10 @@ function ClusterCard({ cluster, index, onMerged }: ClusterCardProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-amber/30 text-amber text-xs">
+            <Badge
+              variant="outline"
+              className="border-amber/30 text-amber text-xs"
+            >
               {cluster.length} duplicates
             </Badge>
             <Button
@@ -342,7 +369,8 @@ function ClusterCard({ cluster, index, onMerged }: ClusterCardProps) {
       <CardContent className="pt-4">
         <p className="text-xs text-muted-text mb-3 flex items-center gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 text-amber/70" />
-          Click a card to select which listing to keep. All others will be removed.
+          Click a card to select which listing to keep. All others will be
+          removed.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {cluster.map((listing) => (
@@ -378,7 +406,10 @@ function LoadingSkeleton() {
           <CardContent className="pt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[1, 2].map((j) => (
-                <div key={j} className="rounded-xl border border-steel-border p-4 space-y-3">
+                <div
+                  key={j}
+                  className="rounded-xl border border-steel-border p-4 space-y-3"
+                >
                   <div className="flex justify-between">
                     <Skeleton className="h-5 w-36" />
                     <Skeleton className="h-5 w-20" />
@@ -408,10 +439,12 @@ function EmptyState() {
       <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
         <CheckCircle2 className="w-8 h-8 text-emerald-400" />
       </div>
-      <h3 className="text-xl font-bold text-foreground mb-2">No duplicate listings detected</h3>
+      <h3 className="text-xl font-bold text-foreground mb-2">
+        No duplicate listings detected
+      </h3>
       <p className="text-muted-text text-sm max-w-sm">
-        Your listings look clean! We scan for near-identical make, model, year, price, and mileage
-        combinations to surface potential duplicates.
+        Your listings look clean! We scan for near-identical make, model, year,
+        price, and mileage combinations to surface potential duplicates.
       </p>
     </div>
   );
@@ -424,13 +457,13 @@ export default function DuplicateMergePage() {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   const visibleClusters = clusters.filter(
-    (cluster) => !cluster.some((l) => dismissedIds.has(l.id))
+    (cluster) => !cluster.some((l) => dismissedIds.has(l.id)),
   );
 
   const handleMerged = (ids: string[]) => {
     setDismissedIds((prev) => {
       const next = new Set(prev);
-      ids.forEach((id) => next.add(id));
+      for (const id of ids) next.add(id);
       return next;
     });
   };
@@ -445,7 +478,9 @@ export default function DuplicateMergePage() {
               <GitMerge className="w-5 h-5 text-amber" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">Duplicate Merge</h1>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                Duplicate Merge
+              </h1>
               <p className="text-sm text-muted-text">
                 Review and merge near-duplicate listings to keep your data clean
               </p>
@@ -455,10 +490,12 @@ export default function DuplicateMergePage() {
           {!isLoading && !isError && visibleClusters.length > 0 && (
             <div className="mt-4 flex items-center gap-3 flex-wrap">
               <Badge className="bg-amber/10 text-amber border border-amber/20 text-xs px-3 py-1">
-                {visibleClusters.length} cluster{visibleClusters.length !== 1 ? 's' : ''} found
+                {visibleClusters.length} cluster
+                {visibleClusters.length !== 1 ? "s" : ""} found
               </Badge>
               <Badge className="bg-surface text-muted-text border border-steel-border text-xs px-3 py-1">
-                {visibleClusters.reduce((sum, c) => sum + c.length, 0)} total listings
+                {visibleClusters.reduce((sum, c) => sum + c.length, 0)} total
+                listings
               </Badge>
               <span className="text-xs text-muted-text">
                 Select which listing to keep in each cluster, then click Merge.
@@ -475,8 +512,12 @@ export default function DuplicateMergePage() {
             <div className="w-16 h-16 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-center justify-center mb-4">
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Failed to load duplicates</h3>
-            <p className="text-muted-text text-sm">Please refresh the page and try again.</p>
+            <h3 className="text-xl font-bold text-foreground mb-2">
+              Failed to load duplicates
+            </h3>
+            <p className="text-muted-text text-sm">
+              Please refresh the page and try again.
+            </p>
           </div>
         ) : visibleClusters.length === 0 ? (
           <EmptyState />
@@ -484,7 +525,7 @@ export default function DuplicateMergePage() {
           <div className="space-y-6">
             {visibleClusters.map((cluster, index) => (
               <ClusterCard
-                key={cluster.map((l) => l.id).join('-')}
+                key={cluster.map((l) => l.id).join("-")}
                 cluster={cluster}
                 index={index}
                 onMerged={handleMerged}
@@ -497,7 +538,8 @@ export default function DuplicateMergePage() {
         {dismissedIds.size > 0 && (
           <div className="mt-6 flex items-center gap-2 text-xs text-muted-text">
             <Trash2 className="w-3.5 h-3.5" />
-            {dismissedIds.size} listing{dismissedIds.size !== 1 ? 's' : ''} merged this session
+            {dismissedIds.size} listing{dismissedIds.size !== 1 ? "s" : ""}{" "}
+            merged this session
           </div>
         )}
       </div>

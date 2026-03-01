@@ -1,6 +1,6 @@
-import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import React from "react";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -27,16 +27,16 @@ export default function PaginationControls({
   const endRow = Math.min(currentPage * rowsPerPage, totalRows);
 
   // Build page number buttons: show up to 5 pages around current
-  const getPageNumbers = (): (number | 'ellipsis')[] => {
+  const getPageNumbers = (): (number | "ellipsis")[] => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    const pages: (number | 'ellipsis')[] = [1];
-    if (currentPage > 3) pages.push('ellipsis');
+    const pages: (number | "ellipsis")[] = [1];
+    if (currentPage > 3) pages.push("ellipsis");
     const start = Math.max(2, currentPage - 1);
     const end = Math.min(totalPages - 1, currentPage + 1);
     for (let i = start; i <= end; i++) pages.push(i);
-    if (currentPage < totalPages - 2) pages.push('ellipsis');
+    if (currentPage < totalPages - 2) pages.push("ellipsis");
     pages.push(totalPages);
     return pages;
   };
@@ -83,23 +83,27 @@ export default function PaginationControls({
         {/* Page numbers */}
         <div className="hidden sm:flex items-center gap-1">
           {pageNumbers.map((page, idx) =>
-            page === 'ellipsis' ? (
-              <span key={`ellipsis-${idx}`} className="px-1 text-xs text-muted-text/50">
+            page === "ellipsis" ? (
+              <span
+                key={`ellipsis-before-${pageNumbers[idx + 1] ?? idx}`}
+                className="px-1 text-xs text-muted-text/50"
+              >
                 …
               </span>
             ) : (
               <button
+                type="button"
                 key={page}
                 onClick={() => onPageChange(page as number)}
                 className={`h-7 min-w-[28px] px-2 rounded text-xs font-medium transition-colors ${
                   currentPage === page
-                    ? 'bg-amber-500 text-surface font-semibold'
-                    : 'text-muted-text hover:text-foreground hover:bg-surface'
+                    ? "bg-amber-500 text-surface font-semibold"
+                    : "text-muted-text hover:text-foreground hover:bg-surface"
                 }`}
               >
                 {page}
               </button>
-            )
+            ),
           )}
         </div>
 

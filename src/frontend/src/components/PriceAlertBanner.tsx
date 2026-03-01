@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useGetPriceAlerts } from '../hooks/useQueries';
-import { useGetAllListings } from '../hooks/useQueries';
-import { Bell, X } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from "@tanstack/react-router";
+import { Bell, X } from "lucide-react";
+import React, { useState } from "react";
+import { useGetPriceAlerts } from "../hooks/useQueries";
+import { useGetAllListings } from "../hooks/useQueries";
 
 export default function PriceAlertBanner() {
   const { data: alerts = [] } = useGetPriceAlerts();
@@ -10,18 +10,22 @@ export default function PriceAlertBanner() {
   const [dismissed, setDismissed] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
-  const activeAlerts = (alerts as any[]).filter((alert: any) => !dismissed.has(Number(alert.id)));
+  const activeAlerts = (alerts as any[]).filter(
+    (alert: any) => !dismissed.has(Number(alert.id)),
+  );
 
-  const alertsWithMatches = activeAlerts.map((alert: any) => {
-    const matches = (allListings as any[]).filter(
-      (l: any) =>
-        l.make === alert.make &&
-        l.model === alert.model &&
-        !l.archived &&
-        Number(l.price) <= Number(alert.targetPrice)
-    );
-    return { alert, matches };
-  }).filter(({ matches }) => matches.length > 0);
+  const alertsWithMatches = activeAlerts
+    .map((alert: any) => {
+      const matches = (allListings as any[]).filter(
+        (l: any) =>
+          l.make === alert.make &&
+          l.model === alert.model &&
+          !l.archived &&
+          Number(l.price) <= Number(alert.targetPrice),
+      );
+      return { alert, matches };
+    })
+    .filter(({ matches }) => matches.length > 0);
 
   if (alertsWithMatches.length === 0) return null;
 
@@ -30,22 +34,27 @@ export default function PriceAlertBanner() {
       {alertsWithMatches.map(({ alert, matches }) => (
         <div
           key={String(alert.id)}
-          className="flex items-center justify-between px-4 py-2 text-sm cursor-pointer hover:bg-amber-500/5 transition-colors"
-          onClick={() => navigate({ to: '/' })}
+          className="flex items-center justify-between px-4 py-2 text-sm hover:bg-amber-500/5 transition-colors"
         >
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="flex items-center gap-2 flex-1 text-left cursor-pointer"
+            onClick={() => navigate({ to: "/" })}
+          >
             <Bell className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="text-amber-300">
-              <span className="font-semibold">{alert.make} {alert.model}</span>
-              {' '}— {matches.length} listing{matches.length !== 1 ? 's' : ''} below{' '}
+              <span className="font-semibold">
+                {alert.make} {alert.model}
+              </span>{" "}
+              — {matches.length} listing{matches.length !== 1 ? "s" : ""} below{" "}
               ${Number(alert.targetPrice).toLocaleString()}
             </span>
-          </div>
+          </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDismissed((prev) => new Set([...prev, Number(alert.id)]));
-            }}
+            type="button"
+            onClick={() =>
+              setDismissed((prev) => new Set([...prev, Number(alert.id)]))
+            }
             className="text-muted-foreground hover:text-foreground transition-colors ml-4"
           >
             <X className="w-4 h-4" />

@@ -1,9 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { TrendingDown, Award, BarChart3, Search, ArrowDownRight } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -12,7 +9,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useGetMarketOverview, useGetPriceDropListings } from "../hooks/useQueries";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  ArrowDownRight,
+  Award,
+  BarChart3,
+  Search,
+  TrendingDown,
+} from "lucide-react";
+import React, { useState } from "react";
+import {
+  useGetMarketOverview,
+  useGetPriceDropListings,
+} from "../hooks/useQueries";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -33,8 +42,8 @@ function formatCurrencyBigint(value: bigint): string {
 function SectionSkeleton() {
   return (
     <div className="space-y-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-full rounded-md" />
+      {Array.from({ length: 5 }, (_, i) => `skeleton-${i}`).map((key) => (
+        <Skeleton key={key} className="h-10 w-full rounded-md" />
       ))}
     </div>
   );
@@ -43,7 +52,8 @@ function SectionSkeleton() {
 export default function MarketOverviewPage() {
   const navigate = useNavigate();
   const { data: marketData, isLoading: marketLoading } = useGetMarketOverview();
-  const { data: priceDrops, isLoading: dropsLoading } = useGetPriceDropListings();
+  const { data: priceDrops, isLoading: dropsLoading } =
+    useGetPriceDropListings();
   const [dropFilter, setDropFilter] = useState("");
 
   const filteredDrops = (priceDrops ?? []).filter((d) => {
@@ -113,7 +123,9 @@ export default function MarketOverviewPage() {
                     <TableCell className="font-medium text-foreground">
                       {item.make}
                     </TableCell>
-                    <TableCell className="text-foreground">{item.model}</TableCell>
+                    <TableCell className="text-foreground">
+                      {item.model}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Badge
                         variant="outline"
@@ -176,7 +188,9 @@ export default function MarketOverviewPage() {
                     <TableCell className="font-medium text-foreground">
                       {drop.make}
                     </TableCell>
-                    <TableCell className="text-foreground">{drop.model}</TableCell>
+                    <TableCell className="text-foreground">
+                      {drop.model}
+                    </TableCell>
                     <TableCell className="text-right text-muted-text">
                       {formatCurrency(drop.firstPrice)}
                     </TableCell>

@@ -1,11 +1,12 @@
-import React, { useMemo } from "react";
-import { Link } from "@tanstack/react-router";
-import { MapPin, Globe, Car, DollarSign, ChevronRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useActor } from "../hooks/useActor";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { Car, ChevronRight, DollarSign, Globe, MapPin } from "lucide-react";
+import type React from "react";
+import { useMemo } from "react";
 import type { RegionalBreakdown } from "../backend";
+import { useActor } from "../hooks/useActor";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -51,8 +52,12 @@ function StatCard({
         <Icon className="w-5 h-5 text-amber-400" />
       </div>
       <div>
-        <p className="text-xs text-muted-text uppercase tracking-wider font-medium">{label}</p>
-        <p className="text-2xl font-bold text-foreground font-display mt-0.5">{value}</p>
+        <p className="text-xs text-muted-text uppercase tracking-wider font-medium">
+          {label}
+        </p>
+        <p className="text-2xl font-bold text-foreground font-display mt-0.5">
+          {value}
+        </p>
         {subtext && <p className="text-xs text-muted-text mt-0.5">{subtext}</p>}
       </div>
     </div>
@@ -136,13 +141,19 @@ function RegionalBarChart({ data }: { data: RegionalBreakdown[] }) {
 function BarChartSkeleton() {
   return (
     <div className="space-y-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i}>
+      {Array.from({ length: 6 }, (_, i) => ({
+        key: `skeleton-${i}`,
+        pct: 80 - i * 10,
+      })).map(({ key, pct }) => (
+        <div key={key}>
           <div className="flex items-center justify-between mb-1">
             <Skeleton className="h-4 w-28 rounded" />
             <Skeleton className="h-3 w-16 rounded" />
           </div>
-          <Skeleton className="h-2 w-full rounded-full" style={{ width: `${80 - i * 10}%` }} />
+          <Skeleton
+            className="h-2 w-full rounded-full"
+            style={{ width: `${pct}%` }}
+          />
         </div>
       ))}
     </div>
@@ -180,7 +191,9 @@ function RegionTable({ data }: { data: RegionalBreakdown[] }) {
               key={item.region}
               className="border-b border-steel-border/50 hover:bg-amber-500/5 transition-colors"
             >
-              <td className="py-3 px-3 text-muted-text font-mono text-xs">{idx + 1}</td>
+              <td className="py-3 px-3 text-muted-text font-mono text-xs">
+                {idx + 1}
+              </td>
               <td className="py-3 px-3">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />
@@ -214,8 +227,8 @@ function RegionTable({ data }: { data: RegionalBreakdown[] }) {
 function TableSkeleton() {
   return (
     <div className="space-y-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full rounded-md" />
+      {Array.from({ length: 5 }, (_, i) => `skeleton-${i}`).map((key) => (
+        <Skeleton key={key} className="h-12 w-full rounded-md" />
       ))}
     </div>
   );
@@ -233,8 +246,10 @@ function EmptyState() {
         No Regional Data Yet
       </h3>
       <p className="text-muted-text text-sm max-w-sm mb-6">
-        Regional breakdown appears once your listings have a <span className="text-foreground font-medium">Region</span> field filled in
-        (e.g. "Texas", "CA", "Florida"). Add listings with region data to see a geographic breakdown.
+        Regional breakdown appears once your listings have a{" "}
+        <span className="text-foreground font-medium">Region</span> field filled
+        in (e.g. "Texas", "CA", "Florida"). Add listings with region data to see
+        a geographic breakdown.
       </p>
       <Link
         to="/add"
@@ -258,15 +273,19 @@ export default function RegionalBreakdownPage() {
       (data ?? [])
         .slice()
         .sort((a, b) => Number(b.listingCount) - Number(a.listingCount)),
-    [data]
+    [data],
   );
 
   const stats = useMemo(() => {
-    if (!sorted.length) return { totalRegions: 0, totalListings: 0, weightedAvgPrice: 0 };
-    const totalListings = sorted.reduce((s, r) => s + Number(r.listingCount), 0);
+    if (!sorted.length)
+      return { totalRegions: 0, totalListings: 0, weightedAvgPrice: 0 };
+    const totalListings = sorted.reduce(
+      (s, r) => s + Number(r.listingCount),
+      0,
+    );
     const weightedSum = sorted.reduce(
       (s, r) => s + r.avgPrice * Number(r.listingCount),
-      0
+      0,
     );
     return {
       totalRegions: sorted.length,
@@ -278,7 +297,6 @@ export default function RegionalBreakdownPage() {
   return (
     <div className="min-h-screen bg-surface px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
-
         {/* Page Header */}
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
@@ -373,7 +391,6 @@ export default function RegionalBreakdownPage() {
             <TableSkeleton />
           </section>
         )}
-
       </div>
     </div>
   );
