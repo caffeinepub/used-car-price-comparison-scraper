@@ -179,7 +179,7 @@ function ResultCard({ icon, label, value, sub, highlight }: ResultCardProps) {
         border: "border-steel-border",
         bg: "bg-surface",
         text: "text-foreground",
-        iconBg: "bg-background/40",
+        iconBg: "bg-muted",
       };
 
   return (
@@ -651,7 +651,7 @@ export default function OwnershipCostPage() {
           </section>
 
           {/* Assumptions reference */}
-          <div className="rounded-lg bg-background/60 border border-steel-border/50 px-4 py-3">
+          <div className="rounded-lg bg-muted border border-steel-border/50 px-4 py-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Assumptions Used
             </p>
@@ -784,7 +784,7 @@ export default function OwnershipCostPage() {
           purchasePrice={inputs.purchasePrice}
           results={results}
         />
-        <div className="px-5 py-3 border-t border-steel-border/50 bg-background/30">
+        <div className="px-5 py-3 border-t border-steel-border/50 bg-muted/50">
           <p className="text-xs text-muted-foreground italic">
             * Operating costs include fuel, maintenance, insurance, and loan
             payments. Depreciation and taxes are not included.
@@ -793,7 +793,7 @@ export default function OwnershipCostPage() {
       </section>
 
       {/* Disclaimer */}
-      <div className="flex items-start gap-2 rounded-lg bg-background/60 border border-steel-border/40 px-4 py-3">
+      <div className="flex items-start gap-2 rounded-lg bg-muted border border-steel-border/40 px-4 py-3">
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           <strong className="font-medium text-foreground">Disclaimer:</strong>{" "}

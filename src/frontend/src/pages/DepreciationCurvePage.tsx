@@ -350,20 +350,17 @@ export default function DepreciationCurvePage() {
                 data={chartData}
                 margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(255,255,255,0.06)"
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   dataKey="label"
-                  tick={{ fill: "#94a3b8", fontSize: 12 }}
-                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--border)" }}
                   tickLine={false}
                 />
                 <YAxis
                   tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-                  tick={{ fill: "#94a3b8", fontSize: 12 }}
-                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--border)" }}
                   tickLine={false}
                   width={52}
                   domain={yDomain}
@@ -478,7 +475,7 @@ export default function DepreciationCurvePage() {
                   return (
                     <tr
                       key={`${row.label}-${i}`}
-                      className="border-b border-steel-border/50 hover:bg-white/[0.02] transition-colors"
+                      className="border-b border-steel-border/50 hover:bg-surface/50 transition-colors"
                     >
                       <td className="px-5 py-3 text-foreground font-medium">
                         {row.label}

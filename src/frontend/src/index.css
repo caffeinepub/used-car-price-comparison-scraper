@@ -7,6 +7,7 @@
 /* ─── Dark theme (default) ─────────────────────────────────────────────────── */
 :root,
 .dark {
+  color-scheme: dark;
   --background: oklch(0.13 0.02 260);
   --foreground: oklch(0.93 0.01 260);
 
@@ -64,6 +65,7 @@
 
 /* ─── Light theme ──────────────────────────────────────────────────────────── */
 .light {
+  color-scheme: light;
   --background: oklch(0.97 0.006 80);
   --foreground: oklch(0.15 0.02 260);
 

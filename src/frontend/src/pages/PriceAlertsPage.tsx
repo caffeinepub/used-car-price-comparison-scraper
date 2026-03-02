@@ -32,7 +32,7 @@ function AlertCard({ alert, allListings, onDelete }: AlertCardProps) {
     <div className="card-panel">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 text-amber-400" />
+          <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" />
           <span className="font-semibold text-foreground">
             {alert.make} {alert.model}
           </span>
@@ -49,7 +49,7 @@ function AlertCard({ alert, allListings, onDelete }: AlertCardProps) {
 
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs text-muted-foreground">Target price:</span>
-        <span className="text-sm font-semibold text-amber-400">
+        <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
           ${Number(alert.targetPrice).toLocaleString()}
         </span>
       </div>
@@ -57,8 +57,8 @@ function AlertCard({ alert, allListings, onDelete }: AlertCardProps) {
       {listings.length > 0 ? (
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-xs text-emerald-400 font-medium">
+            <TrendingDown className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
               {listings.length} listing{listings.length !== 1 ? "s" : ""} below
               target
             </span>
@@ -72,7 +72,7 @@ function AlertCard({ alert, allListings, onDelete }: AlertCardProps) {
                 <span className="text-muted-foreground">
                   {l.dealerName || l.source}
                 </span>
-                <span className="font-semibold text-emerald-400">
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                   ${Number(l.price).toLocaleString()}
                 </span>
               </div>
@@ -160,7 +160,7 @@ export default function PriceAlertsPage() {
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Bell className="w-6 h-6 text-amber-400" />
+          <Bell className="w-6 h-6 text-amber-600 dark:text-amber-400" />
           <div>
             <h1 className="text-2xl font-bold text-foreground font-display tracking-wide">
               Price Alerts

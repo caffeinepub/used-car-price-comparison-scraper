@@ -117,7 +117,7 @@ export default function WatchlistPage() {
               {generateShareToken.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : linkCopied ? (
-                <LinkIcon className="w-4 h-4 text-emerald-400" />
+                <LinkIcon className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
               ) : (
                 <Share2 className="w-4 h-4" />
               )}
@@ -181,7 +181,7 @@ export default function WatchlistPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-4 py-2 rounded bg-zinc-700 text-zinc-200 text-sm hover:bg-zinc-600 transition-colors"
+                className="px-4 py-2 rounded bg-surface border border-steel-border text-muted-foreground text-sm hover:text-foreground transition-colors"
               >
                 Cancel
               </button>

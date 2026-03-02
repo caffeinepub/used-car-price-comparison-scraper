@@ -242,7 +242,7 @@ export default function AddListingPage() {
 
       <form onSubmit={handleSubmit} className="card-panel space-y-5">
         {/* VIN Auto-Fill Section */}
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+        <div className="rounded-lg border border-amber-500/30 bg-amber-50 dark:bg-amber-500/5 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Search className="w-4 h-4 text-amber-400 shrink-0" />
             <Label className="text-foreground font-semibold text-sm">
@@ -287,13 +287,13 @@ export default function AddListingPage() {
               </button>
             </div>
             {vinError && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-start gap-1">
+              <p className="text-red-700 dark:text-red-400 text-xs mt-1.5 flex items-start gap-1">
                 <span className="mt-0.5">⚠</span>
                 {vinError}
               </p>
             )}
             {vinFilled && !vinError && (
-              <p className="text-amber-400 text-xs mt-1.5 flex items-center gap-1">
+              <p className="text-amber-700 dark:text-amber-400 text-xs mt-1.5 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Form fields auto-populated from VIN
               </p>
@@ -314,7 +314,9 @@ export default function AddListingPage() {
               className={`bg-background border-steel-border ${errors.make ? "border-red-500" : ""} ${vinFilled && form.make ? vinFilledClass : ""}`}
             />
             {errors.make && (
-              <p className="text-red-400 text-xs mt-1">{errors.make}</p>
+              <p className="text-red-700 dark:text-red-400 text-xs mt-1">
+                {errors.make}
+              </p>
             )}
           </div>
           <div>
@@ -328,7 +330,9 @@ export default function AddListingPage() {
               className={`bg-background border-steel-border ${errors.model ? "border-red-500" : ""} ${vinFilled && form.model ? vinFilledClass : ""}`}
             />
             {errors.model && (
-              <p className="text-red-400 text-xs mt-1">{errors.model}</p>
+              <p className="text-red-700 dark:text-red-400 text-xs mt-1">
+                {errors.model}
+              </p>
             )}
           </div>
         </div>
@@ -346,7 +350,9 @@ export default function AddListingPage() {
               className={`bg-background border-steel-border ${errors.year ? "border-red-500" : ""} ${vinFilled && form.year ? vinFilledClass : ""}`}
             />
             {errors.year && (
-              <p className="text-red-400 text-xs mt-1">{errors.year}</p>
+              <p className="text-red-700 dark:text-red-400 text-xs mt-1">
+                {errors.year}
+              </p>
             )}
           </div>
           <div>
@@ -388,7 +394,9 @@ export default function AddListingPage() {
               className={`bg-background border-steel-border ${errors.price ? "border-red-500" : ""}`}
             />
             {errors.price && (
-              <p className="text-red-400 text-xs mt-1">{errors.price}</p>
+              <p className="text-red-700 dark:text-red-400 text-xs mt-1">
+                {errors.price}
+              </p>
             )}
           </div>
           <div>
@@ -402,7 +410,9 @@ export default function AddListingPage() {
               className={`bg-background border-steel-border ${errors.mileage ? "border-red-500" : ""}`}
             />
             {errors.mileage && (
-              <p className="text-red-400 text-xs mt-1">{errors.mileage}</p>
+              <p className="text-red-700 dark:text-red-400 text-xs mt-1">
+                {errors.mileage}
+              </p>
             )}
           </div>
         </div>

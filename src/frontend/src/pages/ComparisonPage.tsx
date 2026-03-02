@@ -73,7 +73,7 @@ function PriceDropAnnotationDot({
         y1={cy - 6}
         x2={cx}
         y2={cy + 30}
-        stroke="#10b981"
+        stroke="var(--amber)"
         strokeWidth={1.5}
         strokeDasharray="4 3"
         opacity={0.7}
@@ -81,7 +81,7 @@ function PriceDropAnnotationDot({
       {/* Downward triangle marker */}
       <polygon
         points={`${cx},${cy + 10} ${cx - 7},${cy - 4} ${cx + 7},${cy - 4}`}
-        fill="#10b981"
+        fill="var(--amber)"
         opacity={hovered ? 1 : 0.85}
         style={{ cursor: "pointer" }}
         onMouseEnter={() => setHovered(true)}
@@ -98,40 +98,47 @@ function PriceDropAnnotationDot({
         >
           <div
             style={{
-              background: "#1a1a2e",
-              border: "1px solid #10b981",
+              background: "var(--popover)",
+              border: "1px solid var(--border)",
               borderRadius: 8,
               padding: "10px 12px",
               fontSize: 12,
-              color: "#e2e8f0",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+              color: "var(--popover-foreground)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
               pointerEvents: "none",
               whiteSpace: "nowrap",
             }}
           >
-            <div style={{ color: "#10b981", fontWeight: 700, marginBottom: 4 }}>
+            <div
+              style={{
+                color: "var(--amber)",
+                fontWeight: 700,
+                marginBottom: 4,
+              }}
+            >
               📉 Price Drop
             </div>
             <div>
-              <span style={{ color: "#94a3b8" }}>Source:</span> {event.source}
+              <span style={{ color: "var(--muted-foreground)" }}>Source:</span>{" "}
+              {event.source}
             </div>
             <div>
-              <span style={{ color: "#94a3b8" }}>Year:</span>{" "}
+              <span style={{ color: "var(--muted-foreground)" }}>Year:</span>{" "}
               {String(event.year)}
             </div>
             <div>
-              <span style={{ color: "#94a3b8" }}>Trim:</span>{" "}
+              <span style={{ color: "var(--muted-foreground)" }}>Trim:</span>{" "}
               {event.trim || "—"}
             </div>
             <div>
-              <span style={{ color: "#94a3b8" }}>Was:</span>{" "}
+              <span style={{ color: "var(--muted-foreground)" }}>Was:</span>{" "}
               {fmt(event.previousPrice)}
             </div>
             <div>
-              <span style={{ color: "#94a3b8" }}>Now:</span>{" "}
+              <span style={{ color: "var(--muted-foreground)" }}>Now:</span>{" "}
               {fmt(event.newPrice)}
             </div>
-            <div style={{ color: "#10b981" }}>
+            <div style={{ color: "var(--amber)" }}>
               −{fmt(event.dropAmount)} (−{event.dropPercent.toFixed(1)}%)
             </div>
           </div>
@@ -278,7 +285,7 @@ export default function ComparisonPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold font-display text-amber-400">
+              <h1 className="text-3xl font-bold font-display text-amber-700 dark:text-amber-400">
                 Price Comparison
               </h1>
               <p className="text-muted-foreground mt-1">
@@ -378,7 +385,7 @@ export default function ComparisonPage() {
                   <span className="text-muted-foreground">{trendLabel}</span>
                 </div>
                 {priceDropEvents.length > 0 && !eventsLoading && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-400">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-700 dark:text-emerald-400">
                     <ArrowDownCircle className="w-4 h-4" />
                     {priceDropEvents.length} price drop
                     {priceDropEvents.length !== 1 ? "s" : ""} detected
@@ -393,7 +400,7 @@ export default function ComparisonPage() {
                     Price History — {selectedMake} {selectedModel}
                   </h2>
                   {priceDropEvents.length > 0 && (
-                    <div className="flex items-center gap-2 text-xs text-emerald-400">
+                    <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
                       <span className="inline-block w-3 h-3 bg-emerald-500 rounded-sm opacity-80" />
                       Price drop events
                     </div>
@@ -414,26 +421,26 @@ export default function ComparisonPage() {
                     >
                       <CartesianGrid
                         strokeDasharray="3 3"
-                        stroke="rgba(255,255,255,0.06)"
+                        stroke="var(--border)"
                       />
                       <XAxis
                         dataKey="date"
-                        tick={{ fill: "#94a3b8", fontSize: 11 }}
-                        axisLine={{ stroke: "#334155" }}
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                        axisLine={{ stroke: "var(--border)" }}
                         tickLine={false}
                       />
                       <YAxis
-                        tick={{ fill: "#94a3b8", fontSize: 11 }}
-                        axisLine={{ stroke: "#334155" }}
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                        axisLine={{ stroke: "var(--border)" }}
                         tickLine={false}
                         tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "#1e293b",
-                          border: "1px solid #334155",
+                          background: "var(--popover)",
+                          border: "1px solid var(--border)",
                           borderRadius: 8,
-                          color: "#e2e8f0",
+                          color: "var(--popover-foreground)",
                         }}
                         formatter={(value: number) =>
                           new Intl.NumberFormat("en-US", {
@@ -444,7 +451,10 @@ export default function ComparisonPage() {
                         }
                       />
                       <Legend
-                        wrapperStyle={{ color: "#94a3b8", fontSize: 12 }}
+                        wrapperStyle={{
+                          color: "var(--muted-foreground)",
+                          fontSize: 12,
+                        }}
                       />
 
                       {/* Main price line */}
@@ -480,7 +490,7 @@ export default function ComparisonPage() {
               {/* Price Drop Events Legend */}
               {priceDropEvents.length > 0 && !eventsLoading && (
                 <div className="card-panel p-4">
-                  <h3 className="text-sm font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
                     <ArrowDownCircle className="w-4 h-4" />
                     Price Drop Events
                   </h3>
@@ -501,13 +511,13 @@ export default function ComparisonPage() {
                       return (
                         <div
                           key={`${ev.timestamp}-${i}`}
-                          className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3 text-xs space-y-1"
+                          className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-lg p-3 text-xs space-y-1"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-emerald-400 font-semibold">
+                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                               {date}
                             </span>
-                            <span className="text-emerald-300 font-bold">
+                            <span className="text-emerald-700 dark:text-emerald-300 font-bold">
                               −{ev.dropPercent.toFixed(1)}%
                             </span>
                           </div>
@@ -518,7 +528,7 @@ export default function ComparisonPage() {
                             <span className="line-through text-muted-foreground">
                               {fmt(ev.previousPrice)}
                             </span>
-                            <span className="text-emerald-400 font-semibold">
+                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                               {fmt(ev.newPrice)}
                             </span>
                           </div>
@@ -569,7 +579,7 @@ export default function ComparisonPage() {
                             <td className="py-2 pr-4">
                               {Number(l.mileage).toLocaleString()}
                             </td>
-                            <td className="py-2 pr-4 text-amber-400 font-medium">
+                            <td className="py-2 pr-4 text-amber-600 dark:text-amber-400 font-medium">
                               ${Number(l.price).toLocaleString()}
                             </td>
                             <td className="py-2 pr-4 text-muted-foreground">

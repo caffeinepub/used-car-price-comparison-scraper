@@ -10,6 +10,16 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AlertCondition {
+  'field' : string,
+  'value' : string,
+  'operator' : string,
+}
+export interface AlertFormulaMatch {
+  'formulaName' : string,
+  'matchedListingIds' : Array<string>,
+  'formulaId' : string,
+}
 export interface CreateListingInput {
   'id' : string,
   'region' : string,
@@ -44,12 +54,29 @@ export interface CrossModelResult {
   'condition' : string,
   'images' : Array<ExternalBlob>,
 }
+export interface CustomAlertFormula {
+  'id' : string,
+  'name' : string,
+  'createdAt' : Time,
+  'conditions' : Array<AlertCondition>,
+}
+export interface DealExpiryPrediction {
+  'urgency' : string,
+  'listingId' : string,
+  'estimatedDaysRemaining' : bigint,
+}
 export interface DepreciationDataPoint {
   'avgPrice' : number,
   'monthsFromFirst' : bigint,
   'listingCount' : bigint,
 }
 export type ExternalBlob = Uint8Array;
+export interface NegotiationScore {
+  'listingId' : string,
+  'score' : bigint,
+  'factors' : Array<string>,
+  'scoreLabel' : string,
+}
 export interface PrivateNote {
   'id' : string,
   'text' : string,
@@ -112,7 +139,9 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'bulkCreateListings' : ActorMethod<[Array<CreateListingInput>], undefined>,
   'createListing' : ActorMethod<[CreateListingInput], undefined>,
+  'deleteCustomAlertFormula' : ActorMethod<[string], undefined>,
   'deletePrivateNote' : ActorMethod<[string], undefined>,
+  'evaluateCustomAlertFormulas' : ActorMethod<[], Array<AlertFormulaMatch>>,
   'getAllPrivateNotes' : ActorMethod<[], Array<PrivateNote>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -120,15 +149,22 @@ export interface _SERVICE {
     [number, bigint],
     Array<CrossModelResult>
   >,
+  'getCustomAlertFormulas' : ActorMethod<[], Array<CustomAlertFormula>>,
+  'getDealExpiryPrediction' : ActorMethod<
+    [string],
+    [] | [DealExpiryPrediction]
+  >,
   'getDepreciationCurve' : ActorMethod<
     [string, string],
     Array<DepreciationDataPoint>
   >,
+  'getNegotiationScore' : ActorMethod<[string], [] | [NegotiationScore]>,
   'getPrivateNote' : ActorMethod<[string], [] | [PrivateNote]>,
   'getRegionalBreakdown' : ActorMethod<[], Array<RegionalBreakdown>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveCustomAlertFormula' : ActorMethod<[CustomAlertFormula], undefined>,
   'savePrivateNote' : ActorMethod<[string, string], undefined>,
   'updateListing' : ActorMethod<[string, UpdateListingInput], undefined>,
 }

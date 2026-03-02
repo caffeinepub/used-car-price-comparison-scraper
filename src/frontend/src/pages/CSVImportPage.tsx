@@ -311,13 +311,16 @@ export default function CSVImportPage() {
         <div className="flex items-center gap-4 mb-4 flex-wrap">
           <Badge
             variant="outline"
-            className="border-emerald-500/40 text-emerald-400"
+            className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400"
           >
             <CheckCircle2 className="w-3 h-3 mr-1" />
             {validCount} valid
           </Badge>
           {errorCount > 0 && (
-            <Badge variant="outline" className="border-red-500/40 text-red-400">
+            <Badge
+              variant="outline"
+              className="border-red-500/40 text-red-700 dark:text-red-400"
+            >
               <AlertCircle className="w-3 h-3 mr-1" />
               {errorCount} errors
             </Badge>
@@ -325,7 +328,7 @@ export default function CSVImportPage() {
           {importedCount > 0 && (
             <Badge
               variant="outline"
-              className="border-amber-500/40 text-amber-400"
+              className="border-amber-500/40 text-amber-700 dark:text-amber-400"
             >
               {importedCount} imported
             </Badge>
@@ -405,7 +408,7 @@ export default function CSVImportPage() {
                       {row.status === "valid" && (
                         <Badge
                           variant="outline"
-                          className="border-emerald-500/40 text-emerald-400 text-xs"
+                          className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400 text-xs"
                         >
                           Valid
                         </Badge>
@@ -413,7 +416,7 @@ export default function CSVImportPage() {
                       {row.status === "error" && (
                         <Badge
                           variant="outline"
-                          className="border-red-500/40 text-red-400 text-xs"
+                          className="border-red-500/40 text-red-700 dark:text-red-400 text-xs"
                         >
                           Error
                         </Badge>
@@ -421,7 +424,7 @@ export default function CSVImportPage() {
                       {row.status === "imported" && (
                         <Badge
                           variant="outline"
-                          className="border-amber-500/40 text-amber-400 text-xs"
+                          className="border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs"
                         >
                           Imported
                         </Badge>
@@ -429,7 +432,7 @@ export default function CSVImportPage() {
                       {row.status === "skipped" && (
                         <Badge
                           variant="outline"
-                          className="border-zinc-500/40 text-zinc-400 text-xs"
+                          className="border-muted-foreground/40 text-muted-foreground text-xs"
                         >
                           Skipped
                         </Badge>
@@ -444,7 +447,7 @@ export default function CSVImportPage() {
                     <TableCell className="text-foreground text-sm">
                       {row.year || "—"}
                     </TableCell>
-                    <TableCell className="text-amber-400 text-sm font-medium">
+                    <TableCell className="text-amber-600 dark:text-amber-400 text-sm font-medium">
                       {row.price
                         ? `$${Number.parseInt(row.price).toLocaleString()}`
                         : "—"}
@@ -459,7 +462,7 @@ export default function CSVImportPage() {
                     </TableCell>
                     <TableCell>
                       {row.errors.length > 0 && (
-                        <div className="flex items-center gap-1 text-red-400 text-xs">
+                        <div className="flex items-center gap-1 text-red-700 dark:text-red-400 text-xs">
                           <AlertCircle className="w-3 h-3 shrink-0" />
                           <span>{row.errors.join("; ")}</span>
                         </div>

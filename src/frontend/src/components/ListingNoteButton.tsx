@@ -152,7 +152,7 @@ export default function ListingNoteButton({
                 type="button"
                 className={`p-1.5 rounded transition-colors ${
                   hasNote
-                    ? "text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                    ? "text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-500/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-surface"
                 }`}
                 aria-label={hasNote ? "Edit note" : "Add note"}
@@ -208,8 +208,8 @@ export default function ListingNoteButton({
               className={`text-xs ${
                 charsLeft < 50
                   ? charsLeft < 10
-                    ? "text-red-400"
-                    : "text-amber-400"
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-amber-600 dark:text-amber-400"
                   : "text-muted-foreground"
               }`}
             >
@@ -220,7 +220,7 @@ export default function ListingNoteButton({
 
           {/* Error */}
           {error && (
-            <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded px-2 py-1.5">
+            <p className="text-xs text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/10 border border-red-300 dark:border-red-500/20 rounded px-2 py-1.5">
               {error}
             </p>
           )}
@@ -250,7 +250,7 @@ export default function ListingNoteButton({
               disabled={isSaving || isDeleting}
               size="sm"
               variant="ghost"
-              className="text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 disabled:opacity-50 px-2.5"
+              className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/10 disabled:opacity-50 px-2.5"
             >
               {isDeleting ? (
                 <Loader2 className="w-3 h-3 animate-spin" />

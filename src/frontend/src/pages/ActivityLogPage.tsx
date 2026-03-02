@@ -68,50 +68,55 @@ function getActionConfig(action: string): ActionConfig {
       return {
         label: "Listing Edited",
         icon: <Edit3 className="w-4 h-4" />,
-        color: "text-amber-400",
-        badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+        color: "text-amber-600 dark:text-amber-400",
+        badgeClass:
+          "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30",
       };
     case "archive":
       return {
         label: "Listing Archived",
         icon: <Archive className="w-4 h-4" />,
-        color: "text-zinc-400",
-        badgeClass: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
+        color: "text-muted-foreground",
+        badgeClass: "bg-muted text-muted-foreground border-border",
       };
     case "unarchive":
       return {
         label: "Listing Unarchived",
         icon: <ArchiveRestore className="w-4 h-4" />,
-        color: "text-emerald-400",
-        badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        color: "text-emerald-700 dark:text-emerald-400",
+        badgeClass:
+          "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30",
       };
     case "delete":
       return {
         label: "Listings Deleted",
         icon: <Trash2 className="w-4 h-4" />,
-        color: "text-red-400",
-        badgeClass: "bg-red-500/20 text-red-300 border-red-500/30",
+        color: "text-red-700 dark:text-red-400",
+        badgeClass:
+          "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 border-red-300 dark:border-red-500/30",
       };
     case "merge":
       return {
         label: "Listings Merged",
         icon: <GitMerge className="w-4 h-4" />,
-        color: "text-purple-400",
-        badgeClass: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+        color: "text-purple-700 dark:text-purple-400",
+        badgeClass:
+          "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-500/30",
       };
     case "bulk_edit":
       return {
         label: "Bulk Field Updated",
         icon: <Layers className="w-4 h-4" />,
-        color: "text-amber-400",
-        badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+        color: "text-amber-600 dark:text-amber-400",
+        badgeClass:
+          "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30",
       };
     default:
       return {
         label: action.charAt(0).toUpperCase() + action.slice(1),
         icon: <Activity className="w-4 h-4" />,
         color: "text-muted-foreground",
-        badgeClass: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
+        badgeClass: "bg-muted text-muted-foreground border-border",
       };
   }
 }
@@ -175,19 +180,21 @@ function ActivityLogEntryCard({ entry }: { entry: ActivityLogEntry }) {
 
         {entry.fieldChanged && (
           <div className="text-xs text-muted-foreground mt-1">
-            <span className="text-zinc-400 font-medium">
+            <span className="text-foreground/70 font-medium">
               {entry.fieldChanged}:
             </span>{" "}
             {entry.oldValue && (
               <>
-                <span className="line-through text-red-400/70">
+                <span className="line-through text-red-600/70 dark:text-red-400/70">
                   {entry.oldValue}
                 </span>
-                <span className="mx-1 text-zinc-500">→</span>
+                <span className="mx-1 text-muted-foreground">→</span>
               </>
             )}
             {entry.newValue && (
-              <span className="text-emerald-400/80">{entry.newValue}</span>
+              <span className="text-emerald-700/80 dark:text-emerald-400/80">
+                {entry.newValue}
+              </span>
             )}
           </div>
         )}

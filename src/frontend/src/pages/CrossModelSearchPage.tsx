@@ -52,16 +52,16 @@ function DealBadge({ score }: { score: string }) {
 
   if (normalised === "Good Deal") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 inline-block" />
         Good Deal
       </span>
     );
   }
   if (normalised === "Overpriced") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/25">
-        <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/25">
+        <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400 inline-block" />
         Overpriced
       </span>
     );
@@ -202,9 +202,10 @@ function SectionHeader({
   highlighted?: boolean;
 }) {
   const colorMap = {
-    emerald: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+    emerald:
+      "text-emerald-700 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
     amber: "text-amber border-amber/30 bg-amber/10",
-    red: "text-red-400 border-red-500/30 bg-red-500/10",
+    red: "text-red-700 dark:text-red-400 border-red-500/30 bg-red-500/10",
   };
   return (
     <div
@@ -213,7 +214,7 @@ function SectionHeader({
       }`}
     >
       {highlighted && (
-        <Star className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        <Star className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" />
       )}
       <span
         className={`text-sm font-bold font-rajdhani uppercase tracking-wider ${colorMap[color].split(" ")[0]}`}
@@ -518,8 +519,8 @@ export default function CrossModelSearchPage() {
           {filteredResults.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {goodDeals.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 inline-block" />
                   {goodDeals.length} Good Deal
                   {goodDeals.length !== 1 ? "s" : ""}
                 </span>
@@ -531,8 +532,8 @@ export default function CrossModelSearchPage() {
                 </span>
               )}
               {overpriced.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400 inline-block" />
                   {overpriced.length} Overpriced
                 </span>
               )}

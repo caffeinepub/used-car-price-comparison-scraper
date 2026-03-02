@@ -129,7 +129,7 @@ export default function MarketOverviewPage() {
                     <TableCell className="text-right">
                       <Badge
                         variant="outline"
-                        className="border-amber-500/40 text-amber-400"
+                        className="border-amber-500/40 text-amber-700 dark:text-amber-400"
                       >
                         {Number(item.count)}
                       </Badge>
@@ -197,13 +197,13 @@ export default function MarketOverviewPage() {
                     <TableCell className="text-right text-foreground">
                       {formatCurrency(drop.latestPrice)}
                     </TableCell>
-                    <TableCell className="text-right text-emerald-400 font-medium">
+                    <TableCell className="text-right text-emerald-700 dark:text-emerald-400 font-medium">
                       -{formatCurrency(drop.dropAmount)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Badge
                         variant="outline"
-                        className="border-emerald-500/40 text-emerald-400"
+                        className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400"
                       >
                         -{drop.dropPercent.toFixed(1)}%
                       </Badge>
@@ -236,18 +236,18 @@ export default function MarketOverviewPage() {
                 .map((deal) => (
                   <div
                     key={deal.listingId}
-                    className="rounded-lg border border-steel-border bg-surface/60 p-4 hover:border-amber-500/50 transition-colors"
+                    className="rounded-lg border border-steel-border bg-surface p-4 hover:border-amber-500/50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-semibold text-foreground">
                           {deal.make} {deal.model}
                         </p>
-                        <p className="text-2xl font-bold text-amber-400 mt-1">
+                        <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
                           {formatCurrencyBigint(deal.price)}
                         </p>
                       </div>
-                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shrink-0">
+                      <Badge className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/40 shrink-0">
                         Good Deal
                       </Badge>
                     </div>
@@ -342,11 +342,11 @@ export default function MarketOverviewPage() {
                       <TableCell className="text-right text-foreground font-medium">
                         {formatCurrency(drop.latestPrice)}
                       </TableCell>
-                      <TableCell className="text-right text-emerald-400 font-medium">
+                      <TableCell className="text-right text-emerald-700 dark:text-emerald-400 font-medium">
                         -{formatCurrency(drop.dropAmount)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-emerald-400 font-semibold">
+                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                           -{drop.dropPercent.toFixed(1)}%
                         </span>
                       </TableCell>

@@ -35,12 +35,12 @@ export default function StaleListingReminderPanel({
   if (visible.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
+    <div className="rounded-xl border border-amber-500/40 bg-amber-50 dark:bg-amber-500/5 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-amber-500/10">
+      <div className="flex items-center justify-between px-4 py-3 bg-amber-100 dark:bg-amber-500/10">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-amber-400">
+          <Clock className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+          <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
             {visible.length} Stale Listing{visible.length !== 1 ? "s" : ""} (30+
             days old)
           </span>
@@ -69,7 +69,7 @@ export default function StaleListingReminderPanel({
 
       {/* Body */}
       {!collapsed && (
-        <div className="divide-y divide-amber-500/10 max-h-64 overflow-y-auto">
+        <div className="divide-y divide-amber-200 dark:divide-amber-500/10 max-h-64 overflow-y-auto">
           {visible.map((listing) => {
             const age = getAge(listing.timestamp);
             return (
@@ -88,7 +88,7 @@ export default function StaleListingReminderPanel({
                       </span>
                     )}
                   </div>
-                  <span className="text-amber-400 text-xs shrink-0">
+                  <span className="text-amber-700 dark:text-amber-400 text-xs shrink-0">
                     {age}d old
                   </span>
                   <span className="text-muted-foreground text-xs shrink-0">
@@ -107,7 +107,7 @@ export default function StaleListingReminderPanel({
                     type="button"
                     onClick={() => handleArchive(listing.id)}
                     disabled={archiveListing.isPending}
-                    className="text-xs px-2 py-1 rounded border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50 flex items-center gap-1"
+                    className="text-xs px-2 py-1 rounded border border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50 flex items-center gap-1"
                   >
                     <Archive className="w-3 h-3" />
                     Archive

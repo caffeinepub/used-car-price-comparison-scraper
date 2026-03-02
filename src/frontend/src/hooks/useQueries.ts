@@ -837,3 +837,86 @@ export function useGetBestTimeToBuy(make: string, model: string) {
     enabled: !!actor && !isFetching && !!make && !!model,
   });
 }
+
+// ─── Negotiation Score ────────────────────────────────────────────────────────
+
+export function useGetNegotiationScore(listingId: string, enabled = true) {
+  const { actor, isFetching } = useActor();
+  return useQuery<any | null>({
+    queryKey: ["negotiationScore", listingId],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getNegotiationScore(listingId);
+    },
+    enabled: !!actor && !isFetching && !!listingId && enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ─── Deal Expiry Prediction ───────────────────────────────────────────────────
+
+export function useGetDealExpiryPrediction(listingId: string, enabled = true) {
+  const { actor, isFetching } = useActor();
+  return useQuery<any | null>({
+    queryKey: ["dealExpiryPrediction", listingId],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getDealExpiryPrediction(listingId);
+    },
+    enabled: !!actor && !isFetching && !!listingId && enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ─── Custom Alert Formulas ────────────────────────────────────────────────────
+
+export function useGetCustomAlertFormulas() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  return useQuery<any[]>({
+    queryKey: ["customAlertFormulas"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getCustomAlertFormulas();
+    },
+    enabled: !!actor && !isFetching && !!identity,
+  });
+}
+
+export function useSaveCustomAlertFormula() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formula: any) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.saveCustomAlertFormula(formula);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customAlertFormulas"] });
+    },
+  });
+}
+
+export function useDeleteCustomAlertFormula() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteCustomAlertFormula(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customAlertFormulas"] });
+    },
+  });
+}
+
+export function useEvaluateCustomAlertFormulas() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.evaluateCustomAlertFormulas();
+    },
+  });
+}

@@ -30,6 +30,7 @@ import {
   TrendingDown,
   Upload,
   X,
+  Zap,
 } from "lucide-react";
 
 import type React from "react";
@@ -44,6 +45,7 @@ import AddListingPage from "./pages/AddListingPage";
 import CSVImportPage from "./pages/CSVImportPage";
 import ComparisonPage from "./pages/ComparisonPage";
 import CrossModelSearchPage from "./pages/CrossModelSearchPage";
+import CustomAlertFormulasPage from "./pages/CustomAlertFormulasPage";
 // Pages
 import DashboardPage from "./pages/DashboardPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
@@ -66,6 +68,41 @@ const queryClient = new QueryClient({
 // App icons – referenced here so the build pipeline preserves these files
 const _APP_ICON = "/assets/generated/atp-touch-icon.dim_180x180.png";
 const _APP_ICON_LG = "/assets/generated/atp-app-icon.dim_512x512.png";
+
+// ─── ATP Logo SVG (theme-aware) ───────────────────────────────────────────────
+
+function ATPLogo({ size = 36 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 36 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Auto Track Pro logo"
+    >
+      <title>Auto Track Pro logo</title>
+      <polygon
+        points="18,2 33,10 33,26 18,34 3,26 3,10"
+        className="fill-foreground"
+        stroke="#F59E0B"
+        strokeWidth="2"
+      />
+      <text
+        x="18"
+        y="23"
+        textAnchor="middle"
+        fontFamily="Rajdhani, sans-serif"
+        fontWeight="700"
+        fontSize="13"
+        fill="#F59E0B"
+      >
+        ATP
+      </text>
+    </svg>
+  );
+}
 
 // ─── Profile Setup Modal ──────────────────────────────────────────────────────
 
@@ -195,11 +232,13 @@ function NavLink({
   icon: Icon,
   label,
   onClick,
+  ocid,
 }: {
   to: string;
   icon: React.ElementType;
   label: string;
   onClick?: () => void;
+  ocid?: string;
 }) {
   const isActive =
     window.location.pathname === to || window.location.hash === `#${to}`;
@@ -207,6 +246,7 @@ function NavLink({
     <Link
       to={to}
       onClick={onClick}
+      data-ocid={ocid}
       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
         isActive
           ? "bg-amber/10 text-amber border border-amber/20"
@@ -232,6 +272,12 @@ const NAV_ITEMS = [
   { to: "/duplicates", icon: GitMerge, label: "Duplicates" },
   { to: "/watchlist", icon: Heart, label: "Watchlist" },
   { to: "/alerts", icon: Bell, label: "Alerts" },
+  {
+    to: "/custom-alerts",
+    icon: Zap,
+    label: "Alert Rules",
+    ocid: "nav.custom_alerts_link",
+  },
   { to: "/saved-searches", icon: BookmarkCheck, label: "Saved" },
   { to: "/activity", icon: Activity, label: "Activity" },
   { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
@@ -286,34 +332,7 @@ function Layout() {
           <div className="flex items-center justify-between h-14 gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0">
-              <svg
-                width="36"
-                height="36"
-                viewBox="0 0 36 36"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                role="img"
-                aria-label="Auto Track Pro logo"
-              >
-                <title>Auto Track Pro logo</title>
-                <polygon
-                  points="18,2 33,10 33,26 18,34 3,26 3,10"
-                  fill="#1C1C2E"
-                  stroke="#F59E0B"
-                  strokeWidth="2"
-                />
-                <text
-                  x="18"
-                  y="23"
-                  textAnchor="middle"
-                  fontFamily="Rajdhani, sans-serif"
-                  fontWeight="700"
-                  fontSize="13"
-                  fill="#F59E0B"
-                >
-                  ATP
-                </text>
-              </svg>
+              <ATPLogo size={36} />
               <span className="font-bold text-sm text-foreground hidden sm:block">
                 Auto Track <span className="text-amber">Pro</span>
               </span>
@@ -384,34 +403,7 @@ function Layout() {
       <footer className="border-t border-steel-border bg-surface mt-auto">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
           <div className="flex items-center gap-2">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 36 36"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              role="img"
-              aria-label="Auto Track Pro logo"
-            >
-              <title>Auto Track Pro logo</title>
-              <polygon
-                points="18,2 33,10 33,26 18,34 3,26 3,10"
-                fill="#1C1C2E"
-                stroke="#F59E0B"
-                strokeWidth="2"
-              />
-              <text
-                x="18"
-                y="23"
-                textAnchor="middle"
-                fontFamily="Rajdhani, sans-serif"
-                fontWeight="700"
-                fontSize="13"
-                fill="#F59E0B"
-              >
-                ATP
-              </text>
-            </svg>
+            <ATPLogo size={28} />
             <span>
               © {new Date().getFullYear()} Auto Track Pro — Used Car
               Intelligence
@@ -507,6 +499,11 @@ const regionalRoute = createRoute({
   path: "/regional",
   component: RegionalBreakdownPage,
 });
+const customAlertsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/custom-alerts",
+  component: CustomAlertFormulasPage,
+});
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -525,6 +522,7 @@ const routeTree = rootRoute.addChildren([
   ownershipCostRoute,
   sharedComparisonRoute,
   regionalRoute,
+  customAlertsRoute,
 ]);
 
 const router = createRouter({ routeTree });

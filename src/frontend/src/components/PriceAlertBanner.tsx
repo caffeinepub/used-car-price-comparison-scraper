@@ -30,19 +30,19 @@ export default function PriceAlertBanner() {
   if (alertsWithMatches.length === 0) return null;
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/30">
+    <div className="bg-amber-100 dark:bg-amber-500/10 border-b border-amber-400/50 dark:border-amber-500/30">
       {alertsWithMatches.map(({ alert, matches }) => (
         <div
           key={String(alert.id)}
-          className="flex items-center justify-between px-4 py-2 text-sm hover:bg-amber-500/5 transition-colors"
+          className="flex items-center justify-between px-4 py-2 text-sm hover:bg-amber-200/50 dark:hover:bg-amber-500/5 transition-colors"
         >
           <button
             type="button"
             className="flex items-center gap-2 flex-1 text-left cursor-pointer"
             onClick={() => navigate({ to: "/" })}
           >
-            <Bell className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-amber-300">
+            <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="text-amber-800 dark:text-amber-300">
               <span className="font-semibold">
                 {alert.make} {alert.model}
               </span>{" "}

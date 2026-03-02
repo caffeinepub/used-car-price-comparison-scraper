@@ -89,11 +89,82 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface _CaffeineStorageRefillResult {
-    success?: boolean;
-    topped_up_amount?: bigint;
+export interface UpdateListingInput {
+    region: string;
+    model: string;
+    mileage: bigint;
+    source: string;
+    make: string;
+    trim: string;
+    year: bigint;
+    listingUrl: string;
+    dealerName: string;
+    price: bigint;
+    archived: boolean;
+    condition: string;
+    images: Array<ExternalBlob>;
 }
 export type Time = bigint;
+export interface PrivateNote {
+    id: string;
+    text: string;
+    lastUpdated: Time;
+}
+export interface _CaffeineStorageRefillInformation {
+    proposed_top_up_amount?: bigint;
+}
+export interface RegionalBreakdown {
+    region: string;
+    avgPrice: number;
+    sources: Array<string>;
+    listingCount: bigint;
+}
+export interface CreateListingInput {
+    id: string;
+    region: string;
+    model: string;
+    mileage: bigint;
+    source: string;
+    make: string;
+    trim: string;
+    year: bigint;
+    listingUrl: string;
+    dealerName: string;
+    price: bigint;
+    condition: string;
+    images: Array<ExternalBlob>;
+}
+export interface _CaffeineStorageCreateCertificateResult {
+    method: string;
+    blob_hash: string;
+}
+export interface NegotiationScore {
+    listingId: string;
+    score: bigint;
+    factors: Array<string>;
+    scoreLabel: string;
+}
+export interface CustomAlertFormula {
+    id: string;
+    name: string;
+    createdAt: Time;
+    conditions: Array<AlertCondition>;
+}
+export interface DealExpiryPrediction {
+    urgency: string;
+    listingId: string;
+    estimatedDaysRemaining: bigint;
+}
+export interface AlertFormulaMatch {
+    formulaName: string;
+    matchedListingIds: Array<string>;
+    formulaId: string;
+}
+export interface AlertCondition {
+    field: string;
+    value: string;
+    operator: string;
+}
 export interface CrossModelResult {
     id: string;
     region: string;
@@ -113,61 +184,17 @@ export interface CrossModelResult {
     condition: string;
     images: Array<ExternalBlob>;
 }
-export interface PrivateNote {
-    id: string;
-    text: string;
-    lastUpdated: Time;
-}
-export interface _CaffeineStorageRefillInformation {
-    proposed_top_up_amount?: bigint;
-}
-export interface RegionalBreakdown {
-    region: string;
-    avgPrice: number;
-    sources: Array<string>;
-    listingCount: bigint;
-}
 export interface DepreciationDataPoint {
     avgPrice: number;
     monthsFromFirst: bigint;
     listingCount: bigint;
 }
-export interface _CaffeineStorageCreateCertificateResult {
-    method: string;
-    blob_hash: string;
-}
-export interface CreateListingInput {
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    condition: string;
-    images: Array<ExternalBlob>;
+export interface _CaffeineStorageRefillResult {
+    success?: boolean;
+    topped_up_amount?: bigint;
 }
 export interface UserProfile {
     name: string;
-}
-export interface UpdateListingInput {
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    archived: boolean;
-    condition: string;
-    images: Array<ExternalBlob>;
 }
 export enum UserRole {
     admin = "admin",
@@ -185,21 +212,27 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     bulkCreateListings(inputs: Array<CreateListingInput>): Promise<void>;
     createListing(input: CreateListingInput): Promise<void>;
+    deleteCustomAlertFormula(id: string): Promise<void>;
     deletePrivateNote(listingId: string): Promise<void>;
+    evaluateCustomAlertFormulas(): Promise<Array<AlertFormulaMatch>>;
     getAllPrivateNotes(): Promise<Array<PrivateNote>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCrossModelSearch(maxPrice: number, maxMileage: bigint): Promise<Array<CrossModelResult>>;
+    getCustomAlertFormulas(): Promise<Array<CustomAlertFormula>>;
+    getDealExpiryPrediction(listingId: string): Promise<DealExpiryPrediction | null>;
     getDepreciationCurve(make: string, model: string): Promise<Array<DepreciationDataPoint>>;
+    getNegotiationScore(listingId: string): Promise<NegotiationScore | null>;
     getPrivateNote(listingId: string): Promise<PrivateNote | null>;
     getRegionalBreakdown(): Promise<Array<RegionalBreakdown>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveCustomAlertFormula(formula: CustomAlertFormula): Promise<void>;
     savePrivateNote(listingId: string, note: string): Promise<void>;
     updateListing(id: string, input: UpdateListingInput): Promise<void>;
 }
-import type { CreateListingInput as _CreateListingInput, CrossModelResult as _CrossModelResult, ExternalBlob as _ExternalBlob, PrivateNote as _PrivateNote, Time as _Time, UpdateListingInput as _UpdateListingInput, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { CreateListingInput as _CreateListingInput, CrossModelResult as _CrossModelResult, DealExpiryPrediction as _DealExpiryPrediction, ExternalBlob as _ExternalBlob, NegotiationScore as _NegotiationScore, PrivateNote as _PrivateNote, Time as _Time, UpdateListingInput as _UpdateListingInput, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -342,6 +375,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteCustomAlertFormula(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteCustomAlertFormula(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteCustomAlertFormula(arg0);
+            return result;
+        }
+    }
     async deletePrivateNote(arg0: string): Promise<void> {
         if (this.processError) {
             try {
@@ -353,6 +400,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deletePrivateNote(arg0);
+            return result;
+        }
+    }
+    async evaluateCustomAlertFormulas(): Promise<Array<AlertFormulaMatch>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.evaluateCustomAlertFormulas();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.evaluateCustomAlertFormulas();
             return result;
         }
     }
@@ -412,6 +473,34 @@ export class Backend implements backendInterface {
             return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getCustomAlertFormulas(): Promise<Array<CustomAlertFormula>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCustomAlertFormulas();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCustomAlertFormulas();
+            return result;
+        }
+    }
+    async getDealExpiryPrediction(arg0: string): Promise<DealExpiryPrediction | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getDealExpiryPrediction(arg0);
+                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getDealExpiryPrediction(arg0);
+            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getDepreciationCurve(arg0: string, arg1: string): Promise<Array<DepreciationDataPoint>> {
         if (this.processError) {
             try {
@@ -426,18 +515,32 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getNegotiationScore(arg0: string): Promise<NegotiationScore | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getNegotiationScore(arg0);
+                return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getNegotiationScore(arg0);
+            return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getPrivateNote(arg0: string): Promise<PrivateNote | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getPrivateNote(arg0);
-                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n25(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getPrivateNote(arg0);
-            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n25(this._uploadFile, this._downloadFile, result);
         }
     }
     async getRegionalBreakdown(): Promise<Array<RegionalBreakdown>> {
@@ -496,6 +599,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async saveCustomAlertFormula(arg0: CustomAlertFormula): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveCustomAlertFormula(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveCustomAlertFormula(arg0);
+            return result;
+        }
+    }
     async savePrivateNote(arg0: string, arg1: string): Promise<void> {
         if (this.processError) {
             try {
@@ -513,14 +630,14 @@ export class Backend implements backendInterface {
     async updateListing(arg0: string, arg1: UpdateListingInput): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateListing(arg0, await to_candid_UpdateListingInput_n24(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateListing(arg0, await to_candid_UpdateListingInput_n26(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateListing(arg0, await to_candid_UpdateListingInput_n24(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateListing(arg0, await to_candid_UpdateListingInput_n26(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -540,7 +657,13 @@ function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: Externa
 function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PrivateNote]): PrivateNote | null {
+function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_DealExpiryPrediction]): DealExpiryPrediction | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_NegotiationScore]): NegotiationScore | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PrivateNote]): PrivateNote | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -639,8 +762,8 @@ async function to_candid_CreateListingInput_n11(_uploadFile: (file: ExternalBlob
 async function to_candid_ExternalBlob_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
 }
-async function to_candid_UpdateListingInput_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UpdateListingInput): Promise<_UpdateListingInput> {
-    return await to_candid_record_n25(_uploadFile, _downloadFile, value);
+async function to_candid_UpdateListingInput_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UpdateListingInput): Promise<_UpdateListingInput> {
+    return await to_candid_record_n27(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
@@ -696,7 +819,7 @@ async function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise
         images: await to_candid_vec_n13(_uploadFile, _downloadFile, value.images)
     };
 }
-async function to_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function to_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     region: string;
     model: string;
     mileage: bigint;

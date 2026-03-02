@@ -75,7 +75,7 @@ function SearchCard({
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 text-amber-400 shrink-0"
+              className="h-7 w-7 text-amber-600 dark:text-amber-400 shrink-0"
               onClick={handleRename}
             >
               <Check className="w-3.5 h-3.5" />
@@ -91,7 +91,7 @@ function SearchCard({
           </div>
         ) : (
           <div className="flex items-center gap-2 flex-1">
-            <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+            <BookOpen className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <span className="font-semibold text-foreground truncate">
               {search.name}
             </span>
@@ -201,7 +201,7 @@ export default function SavedSearchesPage() {
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <Search className="w-6 h-6 text-amber-400" />
+          <Search className="w-6 h-6 text-amber-600 dark:text-amber-400" />
           <h1 className="text-2xl font-bold text-foreground font-display tracking-wide">
             Saved Searches
           </h1>

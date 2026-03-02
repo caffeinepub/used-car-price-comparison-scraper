@@ -40,6 +40,11 @@ export const CreateListingInput = IDL.Record({
   'condition' : IDL.Text,
   'images' : IDL.Vec(ExternalBlob),
 });
+export const AlertFormulaMatch = IDL.Record({
+  'formulaName' : IDL.Text,
+  'matchedListingIds' : IDL.Vec(IDL.Text),
+  'formulaId' : IDL.Text,
+});
 export const Time = IDL.Int;
 export const PrivateNote = IDL.Record({
   'id' : IDL.Text,
@@ -66,10 +71,32 @@ export const CrossModelResult = IDL.Record({
   'condition' : IDL.Text,
   'images' : IDL.Vec(ExternalBlob),
 });
+export const AlertCondition = IDL.Record({
+  'field' : IDL.Text,
+  'value' : IDL.Text,
+  'operator' : IDL.Text,
+});
+export const CustomAlertFormula = IDL.Record({
+  'id' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'conditions' : IDL.Vec(AlertCondition),
+});
+export const DealExpiryPrediction = IDL.Record({
+  'urgency' : IDL.Text,
+  'listingId' : IDL.Text,
+  'estimatedDaysRemaining' : IDL.Nat,
+});
 export const DepreciationDataPoint = IDL.Record({
   'avgPrice' : IDL.Float64,
   'monthsFromFirst' : IDL.Nat,
   'listingCount' : IDL.Nat,
+});
+export const NegotiationScore = IDL.Record({
+  'listingId' : IDL.Text,
+  'score' : IDL.Nat,
+  'factors' : IDL.Vec(IDL.Text),
+  'scoreLabel' : IDL.Text,
 });
 export const RegionalBreakdown = IDL.Record({
   'region' : IDL.Text,
@@ -124,7 +151,13 @@ export const idlService = IDL.Service({
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'bulkCreateListings' : IDL.Func([IDL.Vec(CreateListingInput)], [], []),
   'createListing' : IDL.Func([CreateListingInput], [], []),
+  'deleteCustomAlertFormula' : IDL.Func([IDL.Text], [], []),
   'deletePrivateNote' : IDL.Func([IDL.Text], [], []),
+  'evaluateCustomAlertFormulas' : IDL.Func(
+      [],
+      [IDL.Vec(AlertFormulaMatch)],
+      [],
+    ),
   'getAllPrivateNotes' : IDL.Func([], [IDL.Vec(PrivateNote)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -133,9 +166,24 @@ export const idlService = IDL.Service({
       [IDL.Vec(CrossModelResult)],
       ['query'],
     ),
+  'getCustomAlertFormulas' : IDL.Func(
+      [],
+      [IDL.Vec(CustomAlertFormula)],
+      ['query'],
+    ),
+  'getDealExpiryPrediction' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(DealExpiryPrediction)],
+      ['query'],
+    ),
   'getDepreciationCurve' : IDL.Func(
       [IDL.Text, IDL.Text],
       [IDL.Vec(DepreciationDataPoint)],
+      ['query'],
+    ),
+  'getNegotiationScore' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(NegotiationScore)],
       ['query'],
     ),
   'getPrivateNote' : IDL.Func([IDL.Text], [IDL.Opt(PrivateNote)], ['query']),
@@ -151,6 +199,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'saveCustomAlertFormula' : IDL.Func([CustomAlertFormula], [], []),
   'savePrivateNote' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'updateListing' : IDL.Func([IDL.Text, UpdateListingInput], [], []),
 });
@@ -190,6 +239,11 @@ export const idlFactory = ({ IDL }) => {
     'condition' : IDL.Text,
     'images' : IDL.Vec(ExternalBlob),
   });
+  const AlertFormulaMatch = IDL.Record({
+    'formulaName' : IDL.Text,
+    'matchedListingIds' : IDL.Vec(IDL.Text),
+    'formulaId' : IDL.Text,
+  });
   const Time = IDL.Int;
   const PrivateNote = IDL.Record({
     'id' : IDL.Text,
@@ -216,10 +270,32 @@ export const idlFactory = ({ IDL }) => {
     'condition' : IDL.Text,
     'images' : IDL.Vec(ExternalBlob),
   });
+  const AlertCondition = IDL.Record({
+    'field' : IDL.Text,
+    'value' : IDL.Text,
+    'operator' : IDL.Text,
+  });
+  const CustomAlertFormula = IDL.Record({
+    'id' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'conditions' : IDL.Vec(AlertCondition),
+  });
+  const DealExpiryPrediction = IDL.Record({
+    'urgency' : IDL.Text,
+    'listingId' : IDL.Text,
+    'estimatedDaysRemaining' : IDL.Nat,
+  });
   const DepreciationDataPoint = IDL.Record({
     'avgPrice' : IDL.Float64,
     'monthsFromFirst' : IDL.Nat,
     'listingCount' : IDL.Nat,
+  });
+  const NegotiationScore = IDL.Record({
+    'listingId' : IDL.Text,
+    'score' : IDL.Nat,
+    'factors' : IDL.Vec(IDL.Text),
+    'scoreLabel' : IDL.Text,
   });
   const RegionalBreakdown = IDL.Record({
     'region' : IDL.Text,
@@ -274,7 +350,13 @@ export const idlFactory = ({ IDL }) => {
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'bulkCreateListings' : IDL.Func([IDL.Vec(CreateListingInput)], [], []),
     'createListing' : IDL.Func([CreateListingInput], [], []),
+    'deleteCustomAlertFormula' : IDL.Func([IDL.Text], [], []),
     'deletePrivateNote' : IDL.Func([IDL.Text], [], []),
+    'evaluateCustomAlertFormulas' : IDL.Func(
+        [],
+        [IDL.Vec(AlertFormulaMatch)],
+        [],
+      ),
     'getAllPrivateNotes' : IDL.Func([], [IDL.Vec(PrivateNote)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -283,9 +365,24 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(CrossModelResult)],
         ['query'],
       ),
+    'getCustomAlertFormulas' : IDL.Func(
+        [],
+        [IDL.Vec(CustomAlertFormula)],
+        ['query'],
+      ),
+    'getDealExpiryPrediction' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(DealExpiryPrediction)],
+        ['query'],
+      ),
     'getDepreciationCurve' : IDL.Func(
         [IDL.Text, IDL.Text],
         [IDL.Vec(DepreciationDataPoint)],
+        ['query'],
+      ),
+    'getNegotiationScore' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(NegotiationScore)],
         ['query'],
       ),
     'getPrivateNote' : IDL.Func([IDL.Text], [IDL.Opt(PrivateNote)], ['query']),
@@ -301,6 +398,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'saveCustomAlertFormula' : IDL.Func([CustomAlertFormula], [], []),
     'savePrivateNote' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'updateListing' : IDL.Func([IDL.Text, UpdateListingInput], [], []),
   });

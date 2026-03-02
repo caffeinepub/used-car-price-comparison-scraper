@@ -33,8 +33,10 @@ import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import type { PrivateNote } from "../backend.d";
 import ColumnCustomizationPanel from "../components/ColumnCustomizationPanel";
+import DealExpiryBadge from "../components/DealExpiryBadge";
 import ExportFilterPanel from "../components/ExportFilterPanel";
 import ListingNoteButton from "../components/ListingNoteButton";
+import NegotiationScoreBadge from "../components/NegotiationScoreBadge";
 import OnboardingEmptyState from "../components/OnboardingEmptyState";
 import PaginationControls from "../components/PaginationControls";
 import StaleListingReminderPanel from "../components/StaleListingReminderPanel";
@@ -113,10 +115,10 @@ function WidgetCard({
 
   const trendColor =
     trend === "up"
-      ? "text-red-400"
+      ? "text-red-700 dark:text-red-400"
       : trend === "down"
-        ? "text-emerald-400"
-        : "text-amber-400";
+        ? "text-emerald-700 dark:text-emerald-400"
+        : "text-amber-700 dark:text-amber-400";
 
   return (
     <div className="card-panel p-4 relative group">
@@ -135,30 +137,32 @@ function WidgetCard({
           {widget.make} {widget.model}
         </div>
         {widget.customLabel && (
-          <div className="text-xs text-amber-400 mt-0.5">
+          <div className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
             {widget.customLabel}
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="bg-background/40 rounded-lg p-2">
+        <div className="bg-background rounded-lg p-2 border border-steel-border/50">
           <div className="text-muted-foreground mb-0.5">Avg Price</div>
           <div className="font-semibold text-foreground">
             {avgPrice > 0 ? `$${avgPrice.toLocaleString()}` : "—"}
           </div>
         </div>
-        <div className="bg-background/40 rounded-lg p-2">
+        <div className="bg-background rounded-lg p-2 border border-steel-border/50">
           <div className="text-muted-foreground mb-0.5">Listings</div>
           <div className="font-semibold text-foreground">
             {widgetListings.length}
           </div>
         </div>
-        <div className="bg-background/40 rounded-lg p-2">
+        <div className="bg-background rounded-lg p-2 border border-steel-border/50">
           <div className="text-muted-foreground mb-0.5">Good Deals</div>
-          <div className="font-semibold text-emerald-400">{goodDeals}</div>
+          <div className="font-semibold text-emerald-700 dark:text-emerald-400">
+            {goodDeals}
+          </div>
         </div>
-        <div className="bg-background/40 rounded-lg p-2">
+        <div className="bg-background rounded-lg p-2 border border-steel-border/50">
           <div className="text-muted-foreground mb-0.5">Trend</div>
           <div
             className={`font-semibold flex items-center gap-1 ${trendColor}`}
@@ -199,7 +203,9 @@ function AddWidgetForm({ onAdd, isAdding, onCancel }: AddWidgetFormProps) {
       onSubmit={handleSubmit}
       className="card-panel p-4 border-amber-500/30 border"
     >
-      <h4 className="text-sm font-semibold text-amber-400 mb-3">Add Widget</h4>
+      <h4 className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-3">
+        Add Widget
+      </h4>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <div>
           <label
@@ -340,7 +346,7 @@ function MyWidgetsSection({ listings }: MyWidgetsSectionProps) {
           <button
             type="button"
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm hover:bg-amber-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-sm hover:bg-amber-500/20 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Widget
@@ -349,7 +355,7 @@ function MyWidgetsSection({ listings }: MyWidgetsSectionProps) {
       </div>
 
       {limitWarning && (
-        <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm">
+        <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-sm">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           Widget limit reached — remove an existing widget to add a new one.
         </div>
@@ -681,10 +687,11 @@ export default function DashboardPage() {
     if (!ds) return null;
     const rating = ds.dealRating as string;
     const colorMap: Record<string, string> = {
-      great: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-      good: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-      fair: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-      poor: "bg-red-500/20 text-red-400 border-red-500/30",
+      great:
+        "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+      good: "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/30",
+      fair: "bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-500/30",
+      poor: "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-300 dark:border-red-500/30",
     };
     const cls =
       colorMap[rating.toLowerCase()] ??
@@ -727,7 +734,7 @@ export default function DashboardPage() {
               <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                 Average Price
               </div>
-              <div className="text-3xl font-bold text-amber-400 font-display">
+              <div className="text-3xl font-bold text-amber-700 dark:text-amber-400 font-display">
                 $
                 {Number(stats.averagePrice).toLocaleString(undefined, {
                   maximumFractionDigits: 0,
@@ -842,7 +849,7 @@ export default function DashboardPage() {
             }}
             className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
               showArchived
-                ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                ? "bg-amber-100 dark:bg-amber-500/20 border-amber-400 dark:border-amber-500/50 text-amber-700 dark:text-amber-400"
                 : "bg-surface border-steel-border text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -891,15 +898,15 @@ export default function DashboardPage() {
 
         {/* Bulk actions */}
         {selectedIds.size > 0 && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-            <span className="text-sm text-amber-400 font-medium">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30">
+            <span className="text-sm text-amber-700 dark:text-amber-400 font-medium">
               {selectedIds.size} selected
             </span>
             <button
               type="button"
               onClick={handleBulkDelete}
               disabled={deleteListing.isPending}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-500/30 text-red-700 dark:text-red-400 text-sm hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Delete Selected
@@ -1068,6 +1075,12 @@ export default function DashboardPage() {
                       {isVisible("deal") && (
                         <th className="text-left px-3 py-3">Deal</th>
                       )}
+                      {isVisible("negotiation") && (
+                        <th className="text-left px-3 py-3">Negotiation</th>
+                      )}
+                      {isVisible("expiry") && (
+                        <th className="text-left px-3 py-3">Expiry</th>
+                      )}
                       <th className="text-left px-3 py-3">Actions</th>
                     </tr>
                   </thead>
@@ -1177,7 +1190,7 @@ export default function DashboardPage() {
                               </td>
                             )}
                             {isVisible("price") && (
-                              <td className="px-3 py-3 text-amber-400 font-semibold">
+                              <td className="px-3 py-3 text-amber-600 dark:text-amber-400 font-semibold">
                                 {currentEdit?.field === "price" ? (
                                   <input
                                     type="number"
@@ -1254,6 +1267,22 @@ export default function DashboardPage() {
                             {isVisible("deal") && (
                               <td className="px-3 py-3">
                                 {getDealBadge(listing.id)}
+                              </td>
+                            )}
+                            {isVisible("negotiation") && (
+                              <td
+                                className="px-3 py-3"
+                                data-ocid={`dashboard.negotiation_score_cell.${paginated.indexOf(listing) + 1}`}
+                              >
+                                <NegotiationScoreBadge listingId={listing.id} />
+                              </td>
+                            )}
+                            {isVisible("expiry") && (
+                              <td
+                                className="px-3 py-3"
+                                data-ocid={`dashboard.expiry_prediction_cell.${paginated.indexOf(listing) + 1}`}
+                              >
+                                <DealExpiryBadge listingId={listing.id} />
                               </td>
                             )}
                             <td className="px-3 py-3">

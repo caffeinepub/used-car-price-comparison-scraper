@@ -83,7 +83,7 @@ export default function ExportFilterPanel({ onClose }: ExportFilterPanelProps) {
                 {(presets as any[]).map((preset: any) => (
                   <div
                     key={String(preset.id)}
-                    className="flex items-center justify-between bg-background/40 rounded-lg px-3 py-2"
+                    className="flex items-center justify-between bg-muted rounded-lg px-3 py-2"
                   >
                     {renamingId === preset.id ? (
                       <div className="flex items-center gap-2 flex-1">
@@ -96,7 +96,7 @@ export default function ExportFilterPanel({ onClose }: ExportFilterPanelProps) {
                         <button
                           type="button"
                           onClick={() => handleRenamePreset(preset.id)}
-                          className="text-emerald-400 hover:text-emerald-300"
+                          className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
@@ -155,13 +155,15 @@ export default function ExportFilterPanel({ onClose }: ExportFilterPanelProps) {
                 type="button"
                 onClick={handleSavePreset}
                 disabled={!presetName.trim() || savePreset.isPending}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-400 text-sm hover:bg-amber-500/30 transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-sm hover:bg-amber-500/30 transition-colors disabled:opacity-50"
               >
                 Save
               </button>
             </div>
             {savedMsg && (
-              <p className="text-xs text-emerald-400 mt-1">{savedMsg}</p>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">
+                {savedMsg}
+              </p>
             )}
           </div>
 

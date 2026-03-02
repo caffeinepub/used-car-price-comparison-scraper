@@ -49,7 +49,7 @@ function StatCard({
   return (
     <div className="card-panel flex items-start gap-4">
       <div className="w-10 h-10 rounded-xl bg-amber/10 border border-amber/20 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="w-5 h-5 text-amber-400" />
+        <Icon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
       </div>
       <div>
         <p className="text-xs text-muted-text uppercase tracking-wider font-medium">
@@ -86,7 +86,7 @@ function SourceChips({ sources }: { sources: string[] }) {
       {visible.map((src) => (
         <span
           key={src}
-          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber/10 text-amber-400 border border-amber/20"
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber/10 text-amber-700 dark:text-amber-400 border border-amber/20"
         >
           {src}
         </span>
@@ -127,7 +127,7 @@ function RegionalBarChart({ data }: { data: RegionalBreakdown[] }) {
             </div>
             <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-steel-border">
               <div
-                className="h-full rounded-full bg-amber-400 transition-all duration-500 ease-out group-hover:bg-amber-300"
+                className="h-full rounded-full bg-amber-500 dark:bg-amber-400 transition-all duration-500 ease-out group-hover:bg-amber-600 dark:group-hover:bg-amber-300"
                 style={{ width: `${widthPct}%` }}
               />
             </div>
@@ -196,7 +196,7 @@ function RegionTable({ data }: { data: RegionalBreakdown[] }) {
               </td>
               <td className="py-3 px-3">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-amber-500/60 dark:text-amber-400/60 shrink-0" />
                   <span className="font-medium text-foreground">
                     {item.region || "Unknown"}
                   </span>
@@ -205,7 +205,7 @@ function RegionTable({ data }: { data: RegionalBreakdown[] }) {
               <td className="py-3 px-3 text-right">
                 <Badge
                   variant="outline"
-                  className="border-amber-500/40 text-amber-400 font-mono"
+                  className="border-amber-500/40 text-amber-700 dark:text-amber-400 font-mono"
                 >
                   {Number(item.listingCount)}
                 </Badge>
@@ -240,7 +240,7 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center px-4">
       <div className="w-16 h-16 rounded-2xl bg-amber/10 border border-amber/20 flex items-center justify-center mb-5">
-        <Globe className="w-8 h-8 text-amber-400/60" />
+        <Globe className="w-8 h-8 text-amber-500/60 dark:text-amber-400/60" />
       </div>
       <h3 className="font-display text-xl font-bold text-foreground mb-2">
         No Regional Data Yet
@@ -253,7 +253,7 @@ function EmptyState() {
       </p>
       <Link
         to="/add"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber/10 border border-amber/30 text-amber-400 text-sm font-semibold hover:bg-amber/20 transition-colors"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber/10 border border-amber/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber/20 transition-colors"
       >
         <Car className="w-4 h-4" />
         Add a Listing
@@ -301,8 +301,8 @@ export default function RegionalBreakdownPage() {
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <MapPin className="w-5 h-5 text-amber-400" />
-              <h1 className="font-display text-3xl font-bold text-amber-400 tracking-wide">
+              <MapPin className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <h1 className="font-display text-3xl font-bold text-amber-600 dark:text-amber-400 tracking-wide">
                 Regional Breakdown
               </h1>
             </div>
@@ -351,7 +351,7 @@ export default function RegionalBreakdownPage() {
         {/* Bar Chart */}
         <section className="card-panel">
           <div className="flex items-center gap-2 mb-6">
-            <Globe className="h-5 w-5 text-amber-400" />
+            <Globe className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             <h2 className="font-display text-xl font-semibold text-foreground">
               Listings by Region
             </h2>
@@ -369,7 +369,7 @@ export default function RegionalBreakdownPage() {
         {!isLoading && sorted.length > 0 && (
           <section className="card-panel">
             <div className="flex items-center gap-2 mb-5">
-              <MapPin className="h-5 w-5 text-amber-400" />
+              <MapPin className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <h2 className="font-display text-xl font-semibold text-foreground">
                 Region Rankings
               </h2>

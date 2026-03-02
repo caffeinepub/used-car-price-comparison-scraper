@@ -49,6 +49,7 @@ export default function ColumnCustomizationPanel({
         <Button
           variant="outline"
           size="sm"
+          data-ocid="columns.open_modal_button"
           className="border-steel-border text-muted-text hover:text-amber-400 hover:border-amber-400 gap-1.5"
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
@@ -56,18 +57,33 @@ export default function ColumnCustomizationPanel({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-64 p-0 bg-surface border-steel-border shadow-card"
+        className={[
+          "w-72 p-0 z-50",
+          // Background: white in light, dark card in dark
+          "bg-white dark:bg-[oklch(0.17_0.02_260)]",
+          // Border: visible in both modes
+          "border border-gray-200 dark:border-[oklch(0.28_0.02_260)]",
+          // Shadow: crisp elevated panel in light, deeper in dark
+          "shadow-panel dark:shadow-card",
+          // Rounded corners
+          "rounded-xl",
+          // Text baseline
+          "text-gray-900 dark:text-[oklch(0.93_0.01_260)]",
+        ].join(" ")}
         align="end"
       >
-        <div className="px-3 py-2 border-b border-steel-border">
-          <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
+        {/* Panel header */}
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-[oklch(0.28_0.02_260)] bg-gray-50 dark:bg-[oklch(0.14_0.02_260)] rounded-t-xl">
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
             Customize Columns
           </p>
-          <p className="text-xs text-muted-text mt-0.5">
+          <p className="text-xs mt-0.5 text-gray-500 dark:text-[oklch(0.58_0.02_260)]">
             Toggle visibility or drag to reorder
           </p>
         </div>
-        <div className="max-h-80 overflow-y-auto py-1">
+
+        {/* Scrollable column list */}
+        <div className="max-h-80 overflow-y-auto py-1 bg-white dark:bg-[oklch(0.17_0.02_260)]">
           {columns.map((col, idx) => {
             const isHidden = hiddenKeys.has(col.key);
             const isRequired = col.required;
@@ -78,42 +94,63 @@ export default function ColumnCustomizationPanel({
                 onDragStart={() => handleDragStart(col.key)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(col.key)}
-                className={`flex items-center gap-2 px-3 py-1.5 hover:bg-muted/60 transition-colors ${
+                className={[
+                  "flex items-center gap-2.5 px-4 py-2 transition-colors",
+                  "hover:bg-gray-50 dark:hover:bg-[oklch(0.22_0.02_260)]",
                   isRequired
                     ? "opacity-60"
-                    : "cursor-grab active:cursor-grabbing"
-                }`}
+                    : "cursor-grab active:cursor-grabbing",
+                ].join(" ")}
               >
-                <GripVertical className="h-3.5 w-3.5 text-muted-text shrink-0" />
+                {/* Drag handle */}
+                <GripVertical
+                  className={[
+                    "h-3.5 w-3.5 shrink-0",
+                    isRequired
+                      ? "text-gray-300 dark:text-[oklch(0.38_0.02_260)]"
+                      : "text-gray-400 dark:text-[oklch(0.5_0.02_260)]",
+                  ].join(" ")}
+                />
+
+                {/* Checkbox */}
                 <Checkbox
                   id={`col-${col.key}`}
                   checked={!isHidden}
                   disabled={isRequired}
                   onCheckedChange={() => onToggle(col.key)}
-                  className="border-steel-border data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                  className={[
+                    "border-gray-300 dark:border-[oklch(0.38_0.02_260)]",
+                    "data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500",
+                    "dark:data-[state=checked]:bg-amber-500 dark:data-[state=checked]:border-amber-500",
+                  ].join(" ")}
                 />
+
+                {/* Label */}
                 <label
                   htmlFor={`col-${col.key}`}
-                  className={`flex-1 text-sm select-none ${
+                  className={[
+                    "flex-1 text-sm select-none leading-snug",
                     isRequired
-                      ? "text-muted-text"
-                      : "text-foreground cursor-pointer"
-                  }`}
+                      ? "text-gray-400 dark:text-[oklch(0.5_0.02_260)] cursor-default"
+                      : "text-gray-800 dark:text-[oklch(0.88_0.01_260)] cursor-pointer",
+                  ].join(" ")}
                 >
                   {col.label}
                   {isRequired && (
-                    <span className="ml-1 text-xs text-muted-text">
+                    <span className="ml-1 text-xs text-gray-400 dark:text-[oklch(0.45_0.02_260)]">
                       (required)
                     </span>
                   )}
                 </label>
+
+                {/* Up/down reorder buttons */}
                 {!isRequired && (
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-0.5 shrink-0">
                     <button
                       type="button"
                       onClick={() => onMove(col.key, "up")}
                       disabled={idx === 0}
-                      className="text-muted-text hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="text-gray-400 dark:text-[oklch(0.5_0.02_260)] hover:text-amber-600 dark:hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronUp className="h-3 w-3" />
                     </button>
@@ -121,7 +158,7 @@ export default function ColumnCustomizationPanel({
                       type="button"
                       onClick={() => onMove(col.key, "down")}
                       disabled={idx === columns.length - 1}
-                      className="text-muted-text hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="text-gray-400 dark:text-[oklch(0.5_0.02_260)] hover:text-amber-600 dark:hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronDown className="h-3 w-3" />
                     </button>
@@ -131,10 +168,18 @@ export default function ColumnCustomizationPanel({
             );
           })}
         </div>
-        <div className="px-3 py-2 border-t border-steel-border">
-          <p className="text-xs text-muted-text">
-            {columns.length - hiddenKeys.size} of {columns.length} columns
-            visible
+
+        {/* Footer */}
+        <div className="px-4 py-2.5 border-t border-gray-200 dark:border-[oklch(0.28_0.02_260)] bg-gray-50 dark:bg-[oklch(0.14_0.02_260)] rounded-b-xl">
+          <p className="text-xs font-medium text-gray-500 dark:text-[oklch(0.55_0.02_260)]">
+            <span className="text-gray-700 dark:text-[oklch(0.75_0.02_260)] font-semibold">
+              {columns.length - hiddenKeys.size}
+            </span>{" "}
+            of{" "}
+            <span className="text-gray-700 dark:text-[oklch(0.75_0.02_260)] font-semibold">
+              {columns.length}
+            </span>{" "}
+            columns visible
           </p>
         </div>
       </PopoverContent>

@@ -36,7 +36,7 @@ function ATPLogo({ size = 32 }: { size?: number }) {
       <title>Auto Track Pro logo</title>
       <polygon
         points="18,2 33,10 33,26 18,34 3,26 3,10"
-        fill="#1C1C2E"
+        className="fill-foreground"
         stroke="#F59E0B"
         strokeWidth="2"
       />
@@ -202,7 +202,7 @@ export default function SharedComparisonPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
           {/* Page title */}
           <div>
-            <h1 className="text-3xl font-bold font-display text-amber-400">
+            <h1 className="text-3xl font-bold font-display text-amber-700 dark:text-amber-400">
               {make} {model} — Price Comparison Report
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
@@ -236,28 +236,25 @@ export default function SharedComparisonPage() {
                   data={chartData}
                   margin={{ top: 16, right: 24, left: 8, bottom: 8 }}
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.06)"
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: "#94a3b8", fontSize: 11 }}
-                    axisLine={{ stroke: "#334155" }}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    axisLine={{ stroke: "var(--border)" }}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fill: "#94a3b8", fontSize: 11 }}
-                    axisLine={{ stroke: "#334155" }}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    axisLine={{ stroke: "var(--border)" }}
                     tickLine={false}
                     tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "#1e293b",
-                      border: "1px solid #334155",
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
                       borderRadius: 8,
-                      color: "#e2e8f0",
+                      color: "var(--popover-foreground)",
                     }}
                     formatter={(value: number) =>
                       new Intl.NumberFormat("en-US", {
@@ -267,7 +264,12 @@ export default function SharedComparisonPage() {
                       }).format(value)
                     }
                   />
-                  <Legend wrapperStyle={{ color: "#94a3b8", fontSize: 12 }} />
+                  <Legend
+                    wrapperStyle={{
+                      color: "var(--muted-foreground)",
+                      fontSize: 12,
+                    }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="price"
@@ -322,7 +324,7 @@ export default function SharedComparisonPage() {
                         <td className="py-2 pr-4">
                           {Number(l.mileage).toLocaleString()}
                         </td>
-                        <td className="py-2 pr-4 text-amber-400 font-medium">
+                        <td className="py-2 pr-4 text-amber-600 dark:text-amber-400 font-medium">
                           ${Number(l.price).toLocaleString()}
                         </td>
                         <td className="py-2 pr-4 text-muted-foreground">
@@ -352,7 +354,7 @@ export default function SharedComparisonPage() {
           />
 
           {/* Footer CTA */}
-          <div className="card-panel p-8 text-center space-y-4 border border-amber-500/20 bg-amber-500/5">
+          <div className="card-panel p-8 text-center space-y-4 border border-amber-500/20 bg-amber-50 dark:bg-amber-500/5">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto">
               <ATPLogo size={28} />
             </div>

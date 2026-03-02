@@ -1,20 +1,19 @@
 import Map "mo:core/Map";
 import List "mo:core/List";
 import Iter "mo:core/Iter";
-import Time "mo:core/Time";
 import Set "mo:core/Set";
-
-import Runtime "mo:core/Runtime";
+import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
 import Float "mo:core/Float";
 import Text "mo:core/Text";
 import Array "mo:core/Array";
+import Runtime "mo:core/Runtime";
+
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-
 
 actor {
   include MixinStorage();
@@ -132,11 +131,45 @@ actor {
     lastUpdated : Time.Time;
   };
 
+  // Custom Types for New Features
+  public type NegotiationScore = {
+    listingId : Text;
+    score : Nat;
+    scoreLabel : Text;
+    factors : [Text];
+  };
+
+  public type DealExpiryPrediction = {
+    listingId : Text;
+    estimatedDaysRemaining : Nat;
+    urgency : Text;
+  };
+
+  public type AlertCondition = {
+    field : Text;
+    operator : Text;
+    value : Text;
+  };
+
+  public type CustomAlertFormula = {
+    id : Text;
+    name : Text;
+    conditions : [AlertCondition];
+    createdAt : Time.Time;
+  };
+
+  public type AlertFormulaMatch = {
+    formulaId : Text;
+    formulaName : Text;
+    matchedListingIds : [Text];
+  };
+
   let listings = Map.empty<Text, ListingData>();
   let userProfiles = Map.empty<Principal, UserProfile>();
   let userNotes = Map.empty<Principal, Map.Map<Text, PrivateNote>>();
+  let userAlertFormulas = Map.empty<Principal, Map.Map<Text, CustomAlertFormula>>();
 
-  // ── Listings: write operations require #user ──────────────────────────────
+  // ── Listings: write requires user role ──────────────────────────
 
   public shared ({ caller }) func createListing(input : CreateListingInput) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -219,7 +252,7 @@ actor {
     };
   };
 
-  // ── Private Notes for Listings ────────────────────────────────────────────
+  // ── Private Notes for Listings ───────────────────────────────────────────
 
   public shared ({ caller }) func savePrivateNote(listingId : Text, note : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -282,7 +315,7 @@ actor {
     };
   };
 
-  // ── Regional breakdown: public, no auth required ──────────────────────────
+  // ── Regional breakdown (public) ──────────────────────────────────────────
 
   public query func getRegionalBreakdown() : async [RegionalBreakdown] {
     let regionMap = Map.empty<Text, List.List<ListingData>>();
@@ -331,7 +364,7 @@ actor {
     finalResult;
   };
 
-  // ── Depreciation curve: public read, no auth required ────────────────────
+  // ── Depreciation curve (public) ─────────────────────────────────────────
 
   public query func getDepreciationCurve(make : Text, model : Text) : async [DepreciationDataPoint] {
     let filteredListings = List.empty<ListingData>();
@@ -416,7 +449,7 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // ── Cross-model search: public read, no auth required ────────────────────
+  // ── Cross-model search (public, prefers active listings) ─────────────────
 
   func calculateCrossModelDealScore(price : Nat, make : Text, model : Text) : Text {
     let validListings = listings.values().filter(
@@ -500,5 +533,266 @@ actor {
     );
 
     sortedArray;
+  };
+
+  // ────────────────────────────────────────────────────
+  // CUSTOM FEATURES: NEGOTIATION SCORE, DEAL EXPIRY, ALERT FORMULAS
+  // ────────────────────────────────────────────────────
+
+  public query func getNegotiationScore(listingId : Text) : async ?NegotiationScore {
+    switch (listings.get(listingId)) {
+      case (null) { null };
+      case (?listing) {
+        let now = Time.now();
+        let daysListed = (now.toNat() - listing.timestamp.toNat()) / (24 * 3600 * 1000000000);
+        let priceFloat = listing.price.toFloat();
+
+        let validListings = listings.values().filter(
+          func(l) { not l.archived and l.make == listing.make and l.model == listing.model }
+        );
+        let total = validListings.foldLeft(0.0, func(acc, l) { acc + l.price.toFloat() });
+        let count = validListings.foldLeft(0, func(acc, _) { acc + 1 : Nat });
+        let avgPrice = if (count == 0) { priceFloat } else { total / count.toFloat() };
+
+        var baseScore : Float = 50.0;
+        var _condition = listing.condition;
+        var filteredPriceDropListings = List.empty<ListingData>();
+
+        // check if we should factor in price drops
+        let priceDrops = filteredPriceDropListings.size();
+
+        if (daysListed > 7) {
+          baseScore += 10.0;
+        };
+        if (daysListed > 30) {
+          baseScore += 15.0;
+        };
+
+        // factor in price drop count
+        baseScore += priceDrops.toFloat() * 5.0;
+
+        let priceDiffPercent = (priceFloat - avgPrice) / avgPrice * 100.0;
+        if (priceDiffPercent < -5.0) {
+          baseScore += 10.0;
+        } else if (priceDiffPercent > 5.0) {
+          baseScore -= 10.0;
+        };
+
+        if (Text.compare(listing.condition, "Fair") == #equal) {
+          baseScore += 5.0;
+        } else if (Text.compare(listing.condition, "Good") == #equal) {
+          baseScore += 2.0;
+        };
+
+        if (baseScore < 0.0) { baseScore := 0.0 };
+        if (baseScore > 100.0) { baseScore := 100.0 };
+
+        var scoreLabel = "Moderate";
+        if (baseScore < 35.0) { scoreLabel := "Low" };
+        if (baseScore > 65.0) { scoreLabel := "High" };
+
+        let factors = [
+          "Days Listed: " # daysListed.toText(),
+          "Price Drops: " # priceDrops.toText(),
+          "Price vs Avg: " # priceDiffPercent.toText(),
+          "Condition: " # listing.condition,
+        ];
+
+        ?{
+          listingId;
+          score = baseScore.toInt().toNat();
+          scoreLabel;
+          factors;
+        };
+      };
+    };
+  };
+
+  public query func getDealExpiryPrediction(listingId : Text) : async ?DealExpiryPrediction {
+    switch (listings.get(listingId)) {
+      case (null) { null };
+      case (?listing) {
+        let daysListed = (Time.now().toNat() - listing.timestamp.toNat()) / (24 * 3600 * 1000000000);
+
+        var estimatedDays : Nat = 30;
+        let dealScore = calculateCrossModelDealScore(listing.price, listing.make, listing.model);
+
+        switch (dealScore) {
+          case ("Good Deal") {
+            estimatedDays := 7;
+          };
+          case ("Fair") {
+            estimatedDays := 30;
+          };
+          case ("Overpriced") {
+            estimatedDays := 60;
+          };
+          case (_) {
+            estimatedDays := 30;
+          };
+        };
+
+        if (daysListed > 7) {
+          estimatedDays := Nat.max(7, estimatedDays - 7);
+        };
+        if (daysListed > 14) {
+          estimatedDays := Nat.max(3, estimatedDays - 7);
+        };
+
+        let result : DealExpiryPrediction = {
+          listingId = listing.id;
+          estimatedDaysRemaining = if (estimatedDays > daysListed) {
+            estimatedDays - daysListed;
+          } else { 1 };
+          urgency = switch (estimatedDays) {
+            case (d) {
+              if (d <= 7) { "High" } else if (d <= 30) { "Medium" } else { "Low" };
+            };
+          };
+        };
+
+        ?result;
+      };
+    };
+  };
+
+  public shared ({ caller }) func saveCustomAlertFormula(formula : CustomAlertFormula) : async () {
+    let isUser = AccessControl.hasPermission(accessControlState, caller, #user);
+    if (not isUser) {
+      Runtime.trap("Unauthorized: Only users can save formulas");
+    };
+
+    let existingFormulas = switch (userAlertFormulas.get(caller)) {
+      case (null) {
+        let newFormulas = Map.empty<Text, CustomAlertFormula>();
+        userAlertFormulas.add(caller, newFormulas);
+        newFormulas;
+      };
+      case (?f) { f };
+    };
+
+    existingFormulas.add(formula.id, formula);
+    ();
+  };
+
+  public query ({ caller }) func getCustomAlertFormulas() : async [CustomAlertFormula] {
+    let isUser = AccessControl.hasPermission(accessControlState, caller, #user);
+    if (not isUser) {
+      Runtime.trap("Unauthorized: Only users can get formulas");
+    };
+
+    switch (userAlertFormulas.get(caller)) {
+      case (null) { [] };
+      case (?formulas) {
+        formulas.values().toArray();
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteCustomAlertFormula(id : Text) : async () {
+    let isUser = AccessControl.hasPermission(accessControlState, caller, #user);
+    if (not isUser) {
+      Runtime.trap("Unauthorized: Only users can delete formulas");
+    };
+
+    let existingFormulas = switch (userAlertFormulas.get(caller)) {
+      case (null) {
+        let newFormulas = Map.empty<Text, CustomAlertFormula>();
+        userAlertFormulas.add(caller, newFormulas);
+        newFormulas;
+      };
+      case (?f) { f };
+    };
+
+    existingFormulas.remove(id);
+    ();
+  };
+
+  public shared ({ caller }) func evaluateCustomAlertFormulas() : async [AlertFormulaMatch] {
+    let isUser = AccessControl.hasPermission(accessControlState, caller, #user);
+    if (not isUser) {
+      Runtime.trap("Unauthorized: Only users can evaluate formulas");
+    };
+
+    let formulas = switch (userAlertFormulas.get(caller)) {
+      case (null) { Map.empty<Text, CustomAlertFormula>() };
+      case (?f) { f };
+    };
+
+    let listingsArray = listings.values().toArray();
+    let matchesList = List.empty<AlertFormulaMatch>();
+
+    for (formula in formulas.values()) {
+      let matchedIds = List.empty<Text>();
+
+      for (listing in listingsArray.values()) {
+        let isMatch = formula.conditions.foldLeft(
+          true,
+          func(acc, condition) {
+            acc and evaluateCondition(listing, condition);
+          },
+        );
+
+        if (isMatch) {
+          matchedIds.add(listing.id);
+        };
+      };
+
+      matchesList.add({
+        formulaId = formula.id;
+        formulaName = formula.name;
+        matchedListingIds = matchedIds.toArray();
+      });
+    };
+
+    matchesList.toArray();
+  };
+
+  func evaluateCondition(listing : ListingData, condition : AlertCondition) : Bool {
+    switch (condition.field) {
+      case ("make") { compareStrings(listing.make, condition.operator, condition.value) };
+      case ("model") { compareStrings(listing.model, condition.operator, condition.value) };
+      case ("trim") { compareStrings(listing.trim, condition.operator, condition.value) };
+      case ("dealerName") { compareStrings(listing.dealerName, condition.operator, condition.value) };
+      case ("source") { compareStrings(listing.source, condition.operator, condition.value) };
+      case ("region") { compareStrings(listing.region, condition.operator, condition.value) };
+      case ("listingUrl") { compareStrings(listing.listingUrl, condition.operator, condition.value) };
+      case ("condition") { compareStrings(listing.condition, condition.operator, condition.value) };
+      case ("year") { compareNumbers(listing.year, condition.operator, condition.value) };
+      case ("price") { compareNumbers(listing.price, condition.operator, condition.value) };
+      case ("mileage") { compareNumbers(listing.mileage, condition.operator, condition.value) };
+      case (_) { true };
+    };
+  };
+
+  func compareStrings(value : Text, operator : Text, target : Text) : Bool {
+    switch (operator) {
+      case ("eq") { Text.compare(value, target) == #equal };
+      case ("neq") { Text.compare(value, target) != #equal };
+      case ("contains") { value.contains(#text(target)) };
+      case ("lt") { Text.compare(value, target) == #less };
+      case ("gt") { Text.compare(value, target) == #greater };
+      case ("lte") { Text.compare(value, target) != #greater };
+      case ("gte") { Text.compare(value, target) != #less };
+      case (_) { false };
+    };
+  };
+
+  func compareNumbers(value : Nat, operator : Text, target : Text) : Bool {
+    let targetNum = target.toNat();
+    switch (targetNum) {
+      case (null) { false };
+      case (?number) {
+        switch (operator) {
+          case ("eq") { value == number };
+          case ("neq") { value != number };
+          case ("lt") { value < number };
+          case ("gt") { value > number };
+          case ("lte") { value <= number };
+          case ("gte") { value >= number };
+          case (_) { false };
+        };
+      };
+    };
   };
 };
