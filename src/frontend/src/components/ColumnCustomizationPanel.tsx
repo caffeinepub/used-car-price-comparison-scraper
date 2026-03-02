@@ -78,7 +78,7 @@ export default function ColumnCustomizationPanel({
                 onDragStart={() => handleDragStart(col.key)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(col.key)}
-                className={`flex items-center gap-2 px-3 py-1.5 hover:bg-white/5 transition-colors ${
+                className={`flex items-center gap-2 px-3 py-1.5 hover:bg-muted/60 transition-colors ${
                   isRequired
                     ? "opacity-60"
                     : "cursor-grab active:cursor-grabbing"

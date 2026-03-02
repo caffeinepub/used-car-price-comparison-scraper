@@ -70,19 +70,19 @@ export default {
           border: 'oklch(var(--sidebar-border))',
           ring: 'oklch(var(--sidebar-ring))',
         },
-        // Custom automotive theme tokens
+        // Custom automotive theme tokens — use CSS vars so light/dark both work
         surface: {
-          DEFAULT: 'oklch(0.18 0.01 240)',
-          elevated: 'oklch(0.22 0.01 240)',
+          DEFAULT: 'oklch(var(--surface))',
+          elevated: 'oklch(var(--surface))',
         },
         amber: {
           DEFAULT: 'oklch(0.75 0.16 75)',
           hover: 'oklch(0.70 0.18 75)',
         },
         emerald: 'oklch(0.70 0.18 160)',
-        'steel-border': 'oklch(0.30 0.02 240)',
+        'steel-border': 'oklch(var(--steel-border))',
         'steel-hover': 'oklch(0.26 0.015 240)',
-        'muted-text': 'oklch(0.55 0.03 240)',
+        'muted-text': 'oklch(var(--muted-text))',
       },
       borderRadius: {
         lg: 'var(--radius)',
