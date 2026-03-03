@@ -1,48 +1,36 @@
 # Auto Track Pro
 
 ## Current State
-The app is a full-featured used car price comparison and tracking dashboard with: listings management, CSV import/export, deal scoring, depreciation curves, cross-model search, market overview, watchlists, price alerts, saved searches, activity log, ownership cost calculator, duplicate merge, shared comparison reports, NHTSA recall/safety lookup, and VIN auto-fill.
-
-The backend (`main.mo`) already defines `getRegionalBreakdown()` which returns `[RegionalBreakdown]` — an array of `{ region, listingCount, avgPrice, sources }`. The `backend.d.ts` type bindings are also already correct. The backend work is complete.
-
-What is missing: a dedicated **Regional Sourcing Breakdown** frontend page that calls `getRegionalBreakdown()` and displays a geographic breakdown of listings by dealer state/region.
+Full-stack used car price comparison and tracking app with:
+- Dashboard with deal scoring, negotiation score, and deal expiry prediction columns
+- Comparison page with price history, NHTSA recall lookup, shareable reports
+- Cross-model search, depreciation curve, ownership cost calculator
+- Watchlist, price alerts, saved searches, activity log, alert rules
+- Internet Identity authentication, dark/light theme, CSV import/export
+- Backend: `getNegotiationScore`, `getDealExpiryPrediction` already exist
 
 ## Requested Changes (Diff)
 
 ### Add
-- `src/frontend/src/pages/RegionalBreakdownPage.tsx` — new page that:
-  - Calls `getRegionalBreakdown()` from the backend
-  - Displays a summary stat row: total regions, total listings, avg price across all regions
-  - Shows a ranked table/card list of regions sorted by listing count (descending)
-  - Each region card/row shows: region name, listing count, average price, sources (as badges)
-  - Includes a bar chart visualization showing listing count per region
-  - Shows an empty state if no listings have a region set, with guidance to add listings with a state/region field
-- Route `/regional` added to `App.tsx`
-- Nav item "Regions" with a Map/Globe icon added to `NAV_ITEMS` in `App.tsx`
+1. **Negotiation Coach page** (`/negotiation-coach`) — given a listing ID (or make/model/days listed/price drop), display step-by-step conversational guidance on what to say to a dealer. Uses `getNegotiationScore` backend data plus rule-based logic on days listed and price drop to generate specific opening offer, counter strategy, and closing scripts.
+2. **"Should I Wait?" page** (`/should-i-wait`) — buyer selects make/model; app shows a seasonal pricing signal (Good Time / Prices Are High / Average) with a month-by-month price trend chart and a plain-English recommendation on whether to buy now or wait.
+3. **True Cost of Ownership Timeline page** (`/tco-timeline`) — buyer selects a listing (or inputs make/model/year/price/mileage); app shows a 5-year stacked area/bar chart combining depreciation, fuel, insurance, and maintenance costs, plus a summary table. Uses the existing ownership cost calculator logic extended to 5-year projection.
+4. **Trim-Level Value Analyzer page** (`/trim-analyzer`) — buyer selects a make/model; app groups listings by trim, shows avg price per trim, price premium over base, and a "Worth It?" verdict badge based on the premium vs. feature tier.
+5. **Deal Expiry Prediction detail panel** — enhance the existing deal expiry column/data by adding a dedicated `/deal-expiry` page where buyers can look up any listing and see a full explanation of the urgency signal, historical data on how fast similar deals sell, and a recommended action.
+- Add nav items for all 5 new pages
+- Add a "Buyer Tools" nav section/grouping or dropdown in the header nav
 
 ### Modify
-- `App.tsx` — import `RegionalBreakdownPage`, add route `/regional`, add nav item with `MapPin` or `Globe` icon
+- `App.tsx` — add 5 new routes and nav items for buyer tool pages
+- Nav — add a "Buyer Tools" dropdown/section to group the 5 new pages cleanly without overcrowding the nav
 
 ### Remove
-- Nothing removed
+Nothing removed.
 
 ## Implementation Plan
-1. Create `RegionalBreakdownPage.tsx` with:
-   - `useQuery` to call `actor.getRegionalBreakdown()`
-   - Summary stat cards (regions count, total listings, overall avg price)
-   - A horizontal bar chart using inline SVG or simple CSS bars (no external chart lib needed)
-   - A ranked table with region, count, avg price, source badges
-   - Loading skeleton and empty state
-2. Update `App.tsx`:
-   - Import `RegionalBreakdownPage`
-   - Import `MapPin` from lucide-react
-   - Add `{ to: '/regional', icon: MapPin, label: 'Regions' }` to `NAV_ITEMS`
-   - Add route `createRoute(..., path: '/regional', component: RegionalBreakdownPage)`
-   - Add to `routeTree`
-
-## UX Notes
-- Keep styling consistent with the rest of the app (dark charcoal, amber accent, steel-border, surface panels)
-- The region field in listings is a free-text string (state name or abbreviation) — display as-is
-- Source badges should use small rounded chips, max 3 shown with "+N more" overflow
-- Bar chart bars should be amber-colored
-- Empty state should explain that listings need a "Region" field filled in when added, with a link to Add Listing
+1. Create `NegotiationCoachPage.tsx` — listing selector or manual input (days listed, price drop %, make/model), step-by-step script cards with copy buttons, uses `getNegotiationScore` if listing ID available
+2. Create `ShouldIWaitPage.tsx` — make/model selector, seasonal price signal card, simulated month-by-month price index chart, plain-English recommendation
+3. Create `TCOTimelinePage.tsx` — listing selector or manual inputs, 5-year stacked bar chart (Recharts), summary table with annual and total costs per category
+4. Create `TrimAnalyzerPage.tsx` — make/model selector, trim group cards with avg price, price premium badge, "Worth It?" verdict based on premium thresholds
+5. Create `DealExpiryPage.tsx` — listing selector, urgency card, days-remaining estimate, explanation of factors, recommended action CTA
+6. Update `App.tsx` — add all 5 routes, add "Buyer Tools" dropdown nav group with links to all 5 pages

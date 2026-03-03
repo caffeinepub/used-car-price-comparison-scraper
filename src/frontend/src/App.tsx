@@ -19,14 +19,19 @@ import {
   Calculator,
   Car,
   ChevronDown,
+  Clock,
   GitMerge,
   Heart,
+  Layers,
+  LineChart,
   MapPin,
   Menu,
+  MessageSquare,
   Moon,
   PlusCircle,
   Search,
   Sun,
+  Timer,
   TrendingDown,
   Upload,
   X,
@@ -48,15 +53,20 @@ import CrossModelSearchPage from "./pages/CrossModelSearchPage";
 import CustomAlertFormulasPage from "./pages/CustomAlertFormulasPage";
 // Pages
 import DashboardPage from "./pages/DashboardPage";
+import DealExpiryPage from "./pages/DealExpiryPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
 import DuplicateMergePage from "./pages/DuplicateMergePage";
 import MarketOverviewPage from "./pages/MarketOverviewPage";
+import NegotiationCoachPage from "./pages/NegotiationCoachPage";
 import OwnershipCostPage from "./pages/OwnershipCostPage";
 import PriceAlertsPage from "./pages/PriceAlertsPage";
 import RegionalBreakdownPage from "./pages/RegionalBreakdownPage";
 import SavedSearchesPage from "./pages/SavedSearchesPage";
 import SharedComparisonPage from "./pages/SharedComparisonPage";
 import SharedWatchlistPage from "./pages/SharedWatchlistPage";
+import ShouldIWaitPage from "./pages/ShouldIWaitPage";
+import TCOTimelinePage from "./pages/TCOTimelinePage";
+import TrimAnalyzerPage from "./pages/TrimAnalyzerPage";
 import WatchlistPage from "./pages/WatchlistPage";
 
 const queryClient = new QueryClient({
@@ -259,6 +269,76 @@ function NavLink({
   );
 }
 
+// ─── Buyer Tools Dropdown ─────────────────────────────────────────────────────
+
+const BUYER_TOOLS = [
+  { to: "/negotiation-coach", icon: MessageSquare, label: "Negotiation Coach" },
+  { to: "/should-i-wait", icon: Clock, label: "Should I Wait?" },
+  { to: "/tco-timeline", icon: LineChart, label: "TCO Timeline" },
+  { to: "/trim-analyzer", icon: Layers, label: "Trim Analyzer" },
+  { to: "/deal-expiry", icon: Timer, label: "Deal Expiry" },
+];
+
+function BuyerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const isAnyActive = BUYER_TOOLS.some(
+    (t) => window.location.pathname === t.to,
+  );
+
+  return (
+    <div className="relative" onMouseLeave={() => setOpen(false)}>
+      <button
+        type="button"
+        onMouseEnter={() => setOpen(true)}
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="nav.buyer_tools.toggle"
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+          isAnyActive
+            ? "bg-amber/10 text-amber border border-amber/20"
+            : "text-muted-text hover:text-foreground hover:bg-surface"
+        }`}
+      >
+        <Zap className="w-3.5 h-3.5" />
+        Buyer Tools
+        <ChevronDown
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden"
+          onMouseEnter={() => setOpen(true)}
+        >
+          {BUYER_TOOLS.map((item) => {
+            const Icon = item.icon;
+            const isActive = window.location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => {
+                  setOpen(false);
+                  onItemClick?.();
+                }}
+                data-ocid={`nav.buyer_tools.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-amber/10 text-amber"
+                    : "text-muted-text hover:text-foreground hover:bg-surface"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
@@ -343,6 +423,7 @@ function Layout() {
               {NAV_ITEMS.map((item) => (
                 <NavLink key={item.to} {...item} />
               ))}
+              <BuyerToolsDropdown />
             </nav>
 
             {/* Right controls */}
@@ -368,7 +449,7 @@ function Layout() {
 
         {/* Mobile nav */}
         {mobileOpen && (
-          <div className="xl:hidden border-t border-steel-border bg-background px-4 py-3">
+          <div className="xl:hidden border-t border-steel-border bg-background px-4 py-3 space-y-3">
             <div className="grid grid-cols-3 gap-1.5">
               {NAV_ITEMS.map((item) => (
                 <NavLink
@@ -377,6 +458,21 @@ function Layout() {
                   onClick={() => setMobileOpen(false)}
                 />
               ))}
+            </div>
+            <div className="border-t border-steel-border pt-2.5">
+              <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-amber" />
+                Buyer Tools
+              </p>
+              <div className="grid grid-cols-3 gap-1.5">
+                {BUYER_TOOLS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    {...item}
+                    onClick={() => setMobileOpen(false)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -504,6 +600,31 @@ const customAlertsRoute = createRoute({
   path: "/custom-alerts",
   component: CustomAlertFormulasPage,
 });
+const negotiationCoachRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/negotiation-coach",
+  component: NegotiationCoachPage,
+});
+const shouldIWaitRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/should-i-wait",
+  component: ShouldIWaitPage,
+});
+const tcoTimelineRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/tco-timeline",
+  component: TCOTimelinePage,
+});
+const trimAnalyzerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/trim-analyzer",
+  component: TrimAnalyzerPage,
+});
+const dealExpiryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/deal-expiry",
+  component: DealExpiryPage,
+});
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -523,6 +644,11 @@ const routeTree = rootRoute.addChildren([
   sharedComparisonRoute,
   regionalRoute,
   customAlertsRoute,
+  negotiationCoachRoute,
+  shouldIWaitRoute,
+  tcoTimelineRoute,
+  trimAnalyzerRoute,
+  dealExpiryRoute,
 ]);
 
 const router = createRouter({ routeTree });
