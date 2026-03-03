@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useMemo, useState } from "react";
-import type { CrossModelResult } from "../backend";
+import type { CrossModelResult } from "../hooks/useQueries";
 import { useCrossModelSearch } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

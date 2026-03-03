@@ -34,6 +34,7 @@ import {
   Radar,
   RefreshCw,
   Search,
+  Star,
   Sun,
   Timer,
   TrendingDown,
@@ -62,6 +63,7 @@ import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
 import DealerLotTrackerPage from "./pages/DealerLotTrackerPage";
 import DealerPriceElasticityPage from "./pages/DealerPriceElasticityPage";
 import DealerPricingRadarPage from "./pages/DealerPricingRadarPage";
+import DealerRatingsPage from "./pages/DealerRatingsPage";
 import DealerTurnoverReportPage from "./pages/DealerTurnoverReportPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
 import DuplicateMergePage from "./pages/DuplicateMergePage";
@@ -188,6 +190,7 @@ function useAppRole(): {
   };
 
   const clearRole = () => {
+    if (principalId) localStorage.removeItem(`atp_role_${principalId}`);
     setRoleState(null);
     checkedRef.current = false;
   };
@@ -217,8 +220,8 @@ function RoleSelectionModal({
             How will you use <span className="text-amber">Auto Track Pro</span>?
           </h2>
           <p className="text-sm text-muted-text">
-            Choose your role to personalize your experience. You can always sign
-            out and sign back in to change it.
+            Choose your role to personalize your experience. You can switch
+            roles anytime using the badge in the top navigation.
           </p>
         </div>
 
@@ -286,7 +289,7 @@ function ProfileSetupModal({ onComplete }: { onComplete: () => void }) {
     if (!name.trim() || !actor) return;
     setSaving(true);
     try {
-      await actor.saveCallerUserProfile({ name: name.trim() });
+      await (actor as any).saveCallerUserProfile({ name: name.trim() });
       onComplete();
     } catch (e) {
       console.error(e);
@@ -597,6 +600,7 @@ const NAV_ITEMS = [
   { to: "/activity", icon: Activity, label: "Activity" },
   { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
   { to: "/regional", icon: MapPin, label: "Regions" },
+  { to: "/dealer-ratings", icon: Star, label: "Ratings" },
 ];
 
 function Layout() {
@@ -605,7 +609,7 @@ function Layout() {
   const { actor } = useActor();
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
-  const { role, isLoading: roleLoading, setRole } = useAppRole();
+  const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
 
   // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
   const showRoleSelection =
@@ -626,7 +630,7 @@ function Layout() {
     if (!identity || !actor || profileChecked) return;
     (async () => {
       try {
-        const profile = await actor.getCallerUserProfile();
+        const profile = await (actor as any).getCallerUserProfile();
         if (!profile) setShowProfileSetup(true);
       } catch {
         // ignore
@@ -677,18 +681,13 @@ function Layout() {
 
             {/* Right controls */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* Role badge (shows current role; click to reset for non-admins) */}
+              {/* Role badge (shows current role; click to switch for non-admins) */}
               {identity && role && role !== "admin" && (
                 <button
                   type="button"
-                  onClick={() => {
-                    const principalId = identity.getPrincipal().toString();
-                    localStorage.removeItem(`atp_role_${principalId}`);
-                    // Force a page reload so useAppRole re-initialises cleanly
-                    window.location.reload();
-                  }}
+                  onClick={() => clearRole()}
                   title="Click to switch role"
-                  className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors"
                   data-ocid="nav.role_badge.toggle"
                 >
                   {role === "buyer" ? (
@@ -696,7 +695,8 @@ function Layout() {
                   ) : (
                     <Building2 className="w-3 h-3" />
                   )}
-                  {role === "buyer" ? "Buyer" : "Dealer"}
+                  <span>{role === "buyer" ? "Buyer" : "Dealer"}</span>
+                  <RefreshCw className="w-3 h-3 opacity-60" />
                 </button>
               )}
               <ThemeToggle />
@@ -762,6 +762,24 @@ function Layout() {
                     />
                   ))}
                 </div>
+              </div>
+            )}
+            {/* Switch role button in mobile nav */}
+            {identity && role && role !== "admin" && (
+              <div className="border-t border-steel-border pt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    clearRole();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
+                  data-ocid="nav.mobile_switch_role.button"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Switch Role (currently {role === "buyer" ? "Buyer" : "Dealer"}
+                  )
+                </button>
               </div>
             )}
           </div>
@@ -949,6 +967,11 @@ const dealerPriceElasticityRoute = createRoute({
   path: "/dealer/price-elasticity",
   component: DealerPriceElasticityPage,
 });
+const dealerRatingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer-ratings",
+  component: DealerRatingsPage,
+});
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -978,6 +1001,7 @@ const routeTree = rootRoute.addChildren([
   dealerDemandHeatmapRoute,
   dealerTurnoverRoute,
   dealerPriceElasticityRoute,
+  dealerRatingsRoute,
 ]);
 
 const router = createRouter({ routeTree });

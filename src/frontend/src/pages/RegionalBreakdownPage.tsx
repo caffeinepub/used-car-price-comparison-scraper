@@ -5,7 +5,13 @@ import { Link } from "@tanstack/react-router";
 import { Car, ChevronRight, DollarSign, Globe, MapPin } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
-import type { RegionalBreakdown } from "../backend";
+// Local type definition (matches backend RegionalBreakdown)
+interface RegionalBreakdown {
+  region: string;
+  listingCount: bigint;
+  avgPrice: number;
+  sources: string[];
+}
 import { useActor } from "../hooks/useActor";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -26,7 +32,7 @@ function useGetRegionalBreakdown() {
     queryKey: ["regionalBreakdown"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getRegionalBreakdown();
+      return (actor as any).getRegionalBreakdown();
     },
     enabled: !!actor && !isFetching,
     staleTime: 2 * 60 * 1000,

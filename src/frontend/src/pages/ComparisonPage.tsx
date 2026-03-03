@@ -58,12 +58,12 @@ function PriceDropAnnotationDot({
 }: PriceDropAnnotationDotProps) {
   const [hovered, setHovered] = useState(false);
 
-  const fmt = (n: number) =>
+  const fmt = (n: bigint | number) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
-    }).format(n);
+    }).format(Number(n));
 
   return (
     <g>
@@ -93,7 +93,7 @@ function PriceDropAnnotationDot({
           x={cx + 12}
           y={cy - 60}
           width={220}
-          height={160}
+          height={130}
           style={{ overflow: "visible" }}
         >
           <div
@@ -117,18 +117,6 @@ function PriceDropAnnotationDot({
               }}
             >
               📉 Price Drop
-            </div>
-            <div>
-              <span style={{ color: "var(--muted-foreground)" }}>Source:</span>{" "}
-              {event.source}
-            </div>
-            <div>
-              <span style={{ color: "var(--muted-foreground)" }}>Year:</span>{" "}
-              {String(event.year)}
-            </div>
-            <div>
-              <span style={{ color: "var(--muted-foreground)" }}>Trim:</span>{" "}
-              {event.trim || "—"}
             </div>
             <div>
               <span style={{ color: "var(--muted-foreground)" }}>Was:</span>{" "}
@@ -502,12 +490,12 @@ export default function ComparisonPage() {
                         day: "numeric",
                         year: "numeric",
                       });
-                      const fmt = (n: number) =>
+                      const fmt = (n: bigint | number) =>
                         new Intl.NumberFormat("en-US", {
                           style: "currency",
                           currency: "USD",
                           maximumFractionDigits: 0,
-                        }).format(n);
+                        }).format(Number(n));
                       return (
                         <div
                           key={`${ev.timestamp}-${i}`}
@@ -520,9 +508,6 @@ export default function ComparisonPage() {
                             <span className="text-emerald-700 dark:text-emerald-300 font-bold">
                               −{ev.dropPercent.toFixed(1)}%
                             </span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {ev.source} · {String(ev.year)} {ev.trim || ""}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="line-through text-muted-foreground">

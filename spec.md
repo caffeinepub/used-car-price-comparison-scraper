@@ -1,34 +1,27 @@
 # Auto Track Pro
 
 ## Current State
-The app has two nav dropdowns — Buyer Tools and Dealer Tools — both visible to all users regardless of authentication or role. There is no role-based separation. The backend already has `getCallerUserRole`, `assignCallerUserRole`, and `isCallerAdmin` methods, plus a `UserRole` type with `{ admin: null } | { user: null } | { guest: null }`. The existing `ProfileSetupModal` only prompts for a display name on first login.
+Version 57 is live in production. The app is a full-stack used car price comparison and intelligence platform with per-user data isolation, role-based nav (Buyer/Dealer/Admin), listing management, deal scoring, negotiation tools, buyer tools, dealer tools, NHTSA recall lookup on the Comparison page, confidence scores (stored frontend-only), and price history tracked in `priceHistory: [PricePoint]` on each listing.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **App-level role** stored in backend: `buyer` and `dealer` as two new role values (extending or mapping over the existing UserRole enum). Because the existing `UserRole` is `admin | user | guest`, we will store the chosen role in the user's `UserProfile` metadata on the frontend side and persist it to the backend via `saveCallerUserProfile` using the `name` field plus a role suffix, OR create a new `appRole` concept stored locally and synced. Given the backend already exposes `saveCallerUserProfile({ name })` and `getCallerUserProfile()`, we will extend the profile name storage to include a role tag, OR use a dedicated localStorage key per principal as the source of truth for role, with backend `assignCallerUserRole` used to store `{ user: null }` (buyer) vs a convention for dealer.
-  - Simpler approach: store app role (buyer/dealer) in `localStorage` keyed by principal, and also call `assignCallerUserRole` with `{ user: null }` for both (since backend only supports admin/user/guest). The role selection modal sets a localStorage entry `atp_role_<principal>` to `"buyer"` or `"dealer"`.
-- **Role Selection Modal** shown after first login (after or replacing the profile setup modal if profile already exists, or shown as second step). The modal lets the user pick "I'm a Buyer" or "I'm a Dealer" with icon cards. Admins skip this modal entirely.
-- **`useAppRole` hook** — reads role from localStorage for the current principal. Returns `"buyer" | "dealer" | "admin" | null` (null = not yet selected).
-- **Nav filtering logic** in `Layout`:
-  - Unauthenticated users: see all nav items (discovery mode), no role tools shown
-  - Buyers: see standard nav + Buyer Tools dropdown; Dealer Tools hidden
-  - Dealers: see standard nav + Dealer Tools dropdown; Buyer Tools hidden
-  - Admins (`isCallerAdmin` returns true): see standard nav + both Buyer Tools and Dealer Tools
+1. **Community Dealer Ratings** — buyers can submit a 1–5 star rating + text review for a dealer by name. Aggregate rating (avg stars, review count) shown on listing cards in the dashboard. A dedicated "Dealer Ratings" page lets users browse and submit ratings. Ratings are stored globally (shared across all users) so the community effect works.
+2. **Price Drop History Replay** — a modal/panel on any listing card that plays back all price changes chronologically using an animated step-through timeline. Sourced from the existing `priceHistory` array on `CarListing` plus the current price as the final point. Available via a "History" button on listing rows.
+3. **Confidence Score on Listings** — compute a 0–100 score in the backend based on how complete and trustworthy a listing's data is (make, model, year, mileage, price, trim, condition, dealer name, source, region, listing URL, price history length). Return it as `getConfidenceScore(listingId)`. Show as a badge on dashboard listing rows (color-coded: green ≥70, amber 40–69, red <40).
+4. **Recall Alert on Listing Cards** — fetch open NHTSA recalls for a listing's make/model/year from the free NHTSA API (`https://api.nhtsa.gov/recalls/recallsByVehicle?make=X&model=Y&modelYear=Z`) directly in the frontend. Show a compact recall badge on dashboard listing rows when open recalls exist (clicking it opens a small popover with recall count + top recall description). This is purely a frontend feature using the NHTSA public API.
 
 ### Modify
-- `App.tsx` — `Layout` component: conditionally render `BuyerToolsDropdown` and `DealerToolsDropdown` based on role
-- `App.tsx` — Add `RoleSelectionModal` component shown after login when no role is stored for the current principal
-- `App.tsx` — `ProfileSetupModal` flow: after name is saved, check role; if no role, trigger `RoleSelectionModal`
-- The role selection step should feel welcoming and clear, with two prominent card buttons (Buyer / Dealer)
+- **Dashboard listing rows** — add four new columns/elements: Dealer Rating badge, Price History button, Confidence Score badge, Recall Alert badge.
+- **DashboardPage** — wire up the four new features with appropriate loading states.
 
 ### Remove
-- Nothing removed; Buyer Tools and Dealer Tools pages remain accessible via direct URL but are hidden from nav for non-matching roles
+- Nothing removed.
 
 ## Implementation Plan
-1. Create `useAppRole` hook that reads/writes role to localStorage keyed by principal ID
-2. Add `RoleSelectionModal` component in `App.tsx` with Buyer and Dealer card options
-3. Update `Layout` to check admin status (via `isCallerAdmin`) and role, then conditionally render the two tool dropdowns
-4. Wire up the role selection flow: after login + profile check, if no role stored → show `RoleSelectionModal`
-5. Mobile nav also filtered by role
-6. Add `data-ocid` markers to the role selection modal
+1. **Backend**: Add `DealerRating` type with `dealerName`, `rating` (1–5), `review`, `reviewer` (Principal), `timestamp`. Add `dealerRatings: Map<Text, List<DealerRating>>` (keyed by dealerName, shared globally). Add `submitDealerRating(dealerName, rating, review)`, `getDealerRatings(dealerName) -> [DealerRating]`, `getAggregateDealerRating(dealerName) -> {avgRating: Float, count: Nat}`. Add `getConfidenceScore(listingId) -> ?Nat` query on caller's listings.
+2. **Frontend – Dealer Ratings**: New `DealerRatingsPage.tsx` at `/dealer-ratings`. Add nav link. Star rating form (1–5) + review textarea + submit. Aggregated rating display per dealer.
+3. **Frontend – Price Drop Replay**: `PriceHistoryReplayModal.tsx` component. Button on each dashboard row ("History"). Modal shows animated step-through of price changes with timestamps, previous → new price, drop % per step, and a Play/Pause auto-advance control.
+4. **Frontend – Confidence Score Badge**: `ConfidenceScoreBadge.tsx`. Calls `getConfidenceScore(listingId)`. Color-coded badge (green/amber/red). Shown as a column on the dashboard.
+5. **Frontend – Recall Alert Badge**: `RecallAlertBadge.tsx`. Fetches NHTSA API with make/model/year. Shows count badge in red when recalls exist. Popover with recall summaries on click.
+6. **Frontend – Dashboard integration**: Wire all four new UI elements into `DashboardPage.tsx` rows. Add a "Dealer Ratings" link to the nav.

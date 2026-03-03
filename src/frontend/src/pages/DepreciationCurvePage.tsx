@@ -19,7 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { DepreciationDataPoint } from "../backend";
+import type { DepreciationDataPoint } from "../hooks/useQueries";
 import { useDepreciationCurve } from "../hooks/useQueries";
 
 // ─── Placeholder depreciation data ───────────────────────────────────────────

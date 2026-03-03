@@ -17,7 +17,18 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { AlertCondition, CustomAlertFormula } from "../backend.d";
+// Local type definitions (match backend types)
+interface AlertCondition {
+  field: string;
+  operator: string;
+  value: string;
+}
+interface CustomAlertFormula {
+  id: string;
+  name: string;
+  conditions: AlertCondition[];
+  createdAt: bigint;
+}
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {

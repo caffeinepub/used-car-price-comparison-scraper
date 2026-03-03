@@ -14,7 +14,12 @@ import {
 import { Loader2, StickyNote, Trash2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import type { PrivateNote } from "../backend.d";
+// Local type definition (matches backend PrivateNote)
+interface PrivateNote {
+  id: string;
+  text: string;
+  lastUpdated: bigint;
+}
 import { useActor } from "../hooks/useActor";
 
 const MAX_CHARS = 500;
@@ -79,7 +84,7 @@ export default function ListingNoteButton({
     setIsSaving(true);
     setError(null);
     try {
-      await actor.savePrivateNote(listingId, text);
+      await (actor as any).savePrivateNote(listingId, text);
       // Optimistic update: create a synthetic PrivateNote
       const updated: PrivateNote = {
         id: listingId,
@@ -100,7 +105,7 @@ export default function ListingNoteButton({
     setIsDeleting(true);
     setError(null);
     try {
-      await actor.deletePrivateNote(listingId);
+      await (actor as any).deletePrivateNote(listingId);
       onNoteChange(listingId, null);
       setOpen(false);
     } catch (_err) {

@@ -1,31 +1,51 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  CrossModelResult,
-  DepreciationDataPoint,
-  UserProfile,
-} from "../backend";
 import { useActor } from "./useActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
-// ─── Local type definitions (not exported from backend) ───────────────────────
+// ─── Type definitions for backend types not yet in backend.ts interface ───────
 
-export interface PriceDropEvent {
-  listingId: number;
+export interface CrossModelResult {
+  id: string;
   make: string;
   model: string;
-  year: number;
+  year: bigint;
+  mileage: bigint;
+  price: bigint;
   trim: string;
+  condition: string;
+  dealerName: string;
   source: string;
-  previousPrice: number;
-  newPrice: number;
-  dropAmount: number;
+  region: string;
+  listingUrl: string;
+  timestamp: bigint;
+  archived: boolean;
+  dealScore: string;
+  pricePerMile: number;
+}
+
+export interface DepreciationDataPoint {
+  monthsFromFirst: bigint;
+  avgPrice: number;
+  listingCount: bigint;
+}
+
+export interface UserProfile {
+  name: string;
+}
+
+// ─── Local type definitions (not exported from backend runtime) ───────────────
+
+export interface PriceDropEvent {
+  listingId: string;
+  previousPrice: bigint;
+  newPrice: bigint;
+  dropAmount: bigint;
   dropPercent: number;
-  timestamp: number;
+  timestamp: bigint;
 }
 
 export interface DashboardWidget {
   id: bigint;
-  principal: any;
   make: string;
   model: string;
   customLabel: string | null;
@@ -280,7 +300,7 @@ export function useDepreciationCurve(make: string, model: string) {
     queryKey: ["depreciationCurve", make, model],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getDepreciationCurve(make, model);
+      return (actor as any).getDepreciationCurve(make, model);
     },
     enabled:
       !!actor && !isFetching && make.trim() !== "" && model.trim() !== "",
@@ -296,7 +316,7 @@ export function useCrossModelSearch(maxPrice: number, maxMileage: number) {
     queryKey: ["crossModelSearch", maxPrice, maxMileage],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCrossModelSearch(maxPrice, BigInt(maxMileage));
+      return (actor as any).getCrossModelSearch(maxPrice, BigInt(maxMileage));
     },
     enabled: !!actor && !isFetching && maxPrice > 0 && maxMileage > 0,
     staleTime: 60_000,
@@ -783,7 +803,7 @@ export function useGetCallerUserProfile() {
     queryKey: ["currentUserProfile"],
     queryFn: async () => {
       if (!actor) throw new Error("Actor not available");
-      return actor.getCallerUserProfile();
+      return (actor as any).getCallerUserProfile();
     },
     enabled: !!actor && !actorFetching,
     retry: false,
@@ -802,7 +822,7 @@ export function useSaveCallerUserProfile() {
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.saveCallerUserProfile(profile);
+      return (actor as any).saveCallerUserProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
@@ -846,7 +866,7 @@ export function useGetNegotiationScore(listingId: string, enabled = true) {
     queryKey: ["negotiationScore", listingId],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getNegotiationScore(listingId);
+      return (actor as any).getNegotiationScore(listingId);
     },
     enabled: !!actor && !isFetching && !!listingId && enabled,
     staleTime: 5 * 60 * 1000,
@@ -861,7 +881,7 @@ export function useGetDealExpiryPrediction(listingId: string, enabled = true) {
     queryKey: ["dealExpiryPrediction", listingId],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getDealExpiryPrediction(listingId);
+      return (actor as any).getDealExpiryPrediction(listingId);
     },
     enabled: !!actor && !isFetching && !!listingId && enabled,
     staleTime: 5 * 60 * 1000,
@@ -877,7 +897,7 @@ export function useGetCustomAlertFormulas() {
     queryKey: ["customAlertFormulas"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCustomAlertFormulas();
+      return (actor as any).getCustomAlertFormulas();
     },
     enabled: !!actor && !isFetching && !!identity,
   });
@@ -889,7 +909,7 @@ export function useSaveCustomAlertFormula() {
   return useMutation({
     mutationFn: async (formula: any) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.saveCustomAlertFormula(formula);
+      return (actor as any).saveCustomAlertFormula(formula);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customAlertFormulas"] });
@@ -903,7 +923,7 @@ export function useDeleteCustomAlertFormula() {
   return useMutation({
     mutationFn: async (id: string) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.deleteCustomAlertFormula(id);
+      return (actor as any).deleteCustomAlertFormula(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customAlertFormulas"] });
@@ -916,7 +936,74 @@ export function useEvaluateCustomAlertFormulas() {
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error("Actor not available");
-      return actor.evaluateCustomAlertFormulas();
+      return (actor as any).evaluateCustomAlertFormulas();
     },
+  });
+}
+
+// ─── Dealer Ratings ───────────────────────────────────────────────────────────
+
+export function useGetDealerRatings(dealerName: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["dealerRatings", dealerName],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getDealerRatings(dealerName);
+    },
+    enabled: !!actor && !isFetching && dealerName.trim() !== "",
+    staleTime: 60_000,
+  });
+}
+
+export function useGetAggregateDealerRating(dealerName: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["dealerRatingAggregate", dealerName],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getAggregateDealerRating(dealerName);
+    },
+    enabled: !!actor && !isFetching && dealerName.trim() !== "",
+    staleTime: 60_000,
+  });
+}
+
+export function useSubmitDealerRating() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      dealerName,
+      rating,
+      review,
+    }: { dealerName: string; rating: number; review: string }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.submitDealerRating(dealerName, BigInt(rating), review);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dealerRatings", variables.dealerName],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dealerRatingAggregate", variables.dealerName],
+      });
+    },
+  });
+}
+
+// ─── Confidence Score ─────────────────────────────────────────────────────────
+
+export function useGetConfidenceScore(listingId: string) {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  return useQuery<bigint | null>({
+    queryKey: ["confidenceScore", listingId],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getConfidenceScore(listingId);
+    },
+    enabled: !!actor && !isFetching && !!identity && listingId.trim() !== "",
+    staleTime: 5 * 60 * 1000,
   });
 }

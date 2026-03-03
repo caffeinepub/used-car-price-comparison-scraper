@@ -89,112 +89,28 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface UpdateListingInput {
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
+export interface DealerRating {
+    review: string;
+    timestamp: Time;
+    rating: bigint;
+    reviewer: Principal;
     dealerName: string;
-    price: bigint;
-    archived: boolean;
-    condition: string;
-    images: Array<ExternalBlob>;
 }
 export type Time = bigint;
-export interface PrivateNote {
-    id: string;
-    text: string;
-    lastUpdated: Time;
-}
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
-export interface RegionalBreakdown {
-    region: string;
-    avgPrice: number;
-    sources: Array<string>;
-    listingCount: bigint;
-}
-export interface CreateListingInput {
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    condition: string;
-    images: Array<ExternalBlob>;
+export interface RatingAggregate {
+    count: bigint;
+    avgRating: number;
 }
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
 }
-export interface NegotiationScore {
-    listingId: string;
-    score: bigint;
-    factors: Array<string>;
-    scoreLabel: string;
-}
-export interface CustomAlertFormula {
-    id: string;
-    name: string;
-    createdAt: Time;
-    conditions: Array<AlertCondition>;
-}
-export interface DealExpiryPrediction {
-    urgency: string;
-    listingId: string;
-    estimatedDaysRemaining: bigint;
-}
-export interface AlertFormulaMatch {
-    formulaName: string;
-    matchedListingIds: Array<string>;
-    formulaId: string;
-}
-export interface AlertCondition {
-    field: string;
-    value: string;
-    operator: string;
-}
-export interface CrossModelResult {
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    pricePerMile: number;
-    timestamp: Time;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    archived: boolean;
-    dealScore: string;
-    condition: string;
-    images: Array<ExternalBlob>;
-}
-export interface DepreciationDataPoint {
-    avgPrice: number;
-    monthsFromFirst: bigint;
-    listingCount: bigint;
-}
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
     topped_up_amount?: bigint;
-}
-export interface UserProfile {
-    name: string;
 }
 export enum UserRole {
     admin = "admin",
@@ -210,29 +126,14 @@ export interface backendInterface {
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    bulkCreateListings(inputs: Array<CreateListingInput>): Promise<void>;
-    createListing(input: CreateListingInput): Promise<void>;
-    deleteCustomAlertFormula(id: string): Promise<void>;
-    deletePrivateNote(listingId: string): Promise<void>;
-    evaluateCustomAlertFormulas(): Promise<Array<AlertFormulaMatch>>;
-    getAllPrivateNotes(): Promise<Array<PrivateNote>>;
-    getCallerUserProfile(): Promise<UserProfile | null>;
+    getAggregateDealerRating(dealerName: string): Promise<RatingAggregate>;
     getCallerUserRole(): Promise<UserRole>;
-    getCrossModelSearch(maxPrice: number, maxMileage: bigint): Promise<Array<CrossModelResult>>;
-    getCustomAlertFormulas(): Promise<Array<CustomAlertFormula>>;
-    getDealExpiryPrediction(listingId: string): Promise<DealExpiryPrediction | null>;
-    getDepreciationCurve(make: string, model: string): Promise<Array<DepreciationDataPoint>>;
-    getNegotiationScore(listingId: string): Promise<NegotiationScore | null>;
-    getPrivateNote(listingId: string): Promise<PrivateNote | null>;
-    getRegionalBreakdown(): Promise<Array<RegionalBreakdown>>;
-    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getConfidenceScore(listingId: string): Promise<bigint | null>;
+    getDealerRatings(dealerName: string): Promise<Array<DealerRating>>;
     isCallerAdmin(): Promise<boolean>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    saveCustomAlertFormula(formula: CustomAlertFormula): Promise<void>;
-    savePrivateNote(listingId: string, note: string): Promise<void>;
-    updateListing(id: string, input: UpdateListingInput): Promise<void>;
+    submitDealerRating(dealerName: string, rating: bigint, review: string): Promise<void>;
 }
-import type { CreateListingInput as _CreateListingInput, CrossModelResult as _CrossModelResult, DealExpiryPrediction as _DealExpiryPrediction, ExternalBlob as _ExternalBlob, NegotiationScore as _NegotiationScore, PrivateNote as _PrivateNote, Time as _Time, UpdateListingInput as _UpdateListingInput, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -347,228 +248,60 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async bulkCreateListings(arg0: Array<CreateListingInput>): Promise<void> {
+    async getAggregateDealerRating(arg0: string): Promise<RatingAggregate> {
         if (this.processError) {
             try {
-                const result = await this.actor.bulkCreateListings(await to_candid_vec_n10(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.getAggregateDealerRating(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.bulkCreateListings(await to_candid_vec_n10(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.getAggregateDealerRating(arg0);
             return result;
-        }
-    }
-    async createListing(arg0: CreateListingInput): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.createListing(await to_candid_CreateListingInput_n11(this._uploadFile, this._downloadFile, arg0));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.createListing(await to_candid_CreateListingInput_n11(this._uploadFile, this._downloadFile, arg0));
-            return result;
-        }
-    }
-    async deleteCustomAlertFormula(arg0: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteCustomAlertFormula(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteCustomAlertFormula(arg0);
-            return result;
-        }
-    }
-    async deletePrivateNote(arg0: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deletePrivateNote(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deletePrivateNote(arg0);
-            return result;
-        }
-    }
-    async evaluateCustomAlertFormulas(): Promise<Array<AlertFormulaMatch>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.evaluateCustomAlertFormulas();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.evaluateCustomAlertFormulas();
-            return result;
-        }
-    }
-    async getAllPrivateNotes(): Promise<Array<PrivateNote>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllPrivateNotes();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllPrivateNotes();
-            return result;
-        }
-    }
-    async getCallerUserProfile(): Promise<UserProfile | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n10(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getCrossModelSearch(arg0: number, arg1: bigint): Promise<Array<CrossModelResult>> {
+    async getConfidenceScore(arg0: string): Promise<bigint | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.getCrossModelSearch(arg0, arg1);
-                return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.getConfidenceScore(arg0);
+                return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getCrossModelSearch(arg0, arg1);
-            return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.getConfidenceScore(arg0);
+            return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getCustomAlertFormulas(): Promise<Array<CustomAlertFormula>> {
+    async getDealerRatings(arg0: string): Promise<Array<DealerRating>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getCustomAlertFormulas();
+                const result = await this.actor.getDealerRatings(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getCustomAlertFormulas();
+            const result = await this.actor.getDealerRatings(arg0);
             return result;
-        }
-    }
-    async getDealExpiryPrediction(arg0: string): Promise<DealExpiryPrediction | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getDealExpiryPrediction(arg0);
-                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getDealExpiryPrediction(arg0);
-            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getDepreciationCurve(arg0: string, arg1: string): Promise<Array<DepreciationDataPoint>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getDepreciationCurve(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getDepreciationCurve(arg0, arg1);
-            return result;
-        }
-    }
-    async getNegotiationScore(arg0: string): Promise<NegotiationScore | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getNegotiationScore(arg0);
-                return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getNegotiationScore(arg0);
-            return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getPrivateNote(arg0: string): Promise<PrivateNote | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getPrivateNote(arg0);
-                return from_candid_opt_n25(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getPrivateNote(arg0);
-            return from_candid_opt_n25(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getRegionalBreakdown(): Promise<Array<RegionalBreakdown>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getRegionalBreakdown();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getRegionalBreakdown();
-            return result;
-        }
-    }
-    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -585,149 +318,32 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+    async submitDealerRating(arg0: string, arg1: bigint, arg2: string): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveCallerUserProfile(arg0);
+                const result = await this.actor.submitDealerRating(arg0, arg1, arg2);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveCallerUserProfile(arg0);
-            return result;
-        }
-    }
-    async saveCustomAlertFormula(arg0: CustomAlertFormula): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.saveCustomAlertFormula(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.saveCustomAlertFormula(arg0);
-            return result;
-        }
-    }
-    async savePrivateNote(arg0: string, arg1: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.savePrivateNote(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.savePrivateNote(arg0, arg1);
-            return result;
-        }
-    }
-    async updateListing(arg0: string, arg1: UpdateListingInput): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateListing(arg0, await to_candid_UpdateListingInput_n26(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateListing(arg0, await to_candid_UpdateListingInput_n26(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.submitDealerRating(arg0, arg1, arg2);
             return result;
         }
     }
 }
-async function from_candid_CrossModelResult_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CrossModelResult): Promise<CrossModelResult> {
-    return await from_candid_record_n20(_uploadFile, _downloadFile, value);
-}
-async function from_candid_ExternalBlob_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
-    return await _downloadFile(value);
-}
-function from_candid_UserRole_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n17(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n11(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
-}
-function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
-    return value.length === 0 ? null : value[0];
-}
-function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_DealExpiryPrediction]): DealExpiryPrediction | null {
-    return value.length === 0 ? null : value[0];
-}
-function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_NegotiationScore]): NegotiationScore | null {
-    return value.length === 0 ? null : value[0];
-}
-function from_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PrivateNote]): PrivateNote | null {
-    return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
-}
-async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    pricePerMile: number;
-    timestamp: _Time;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    archived: boolean;
-    dealScore: string;
-    condition: string;
-    images: Array<_ExternalBlob>;
-}): Promise<{
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    pricePerMile: number;
-    timestamp: Time;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    archived: boolean;
-    dealScore: string;
-    condition: string;
-    images: Array<ExternalBlob>;
-}> {
-    return {
-        id: value.id,
-        region: value.region,
-        model: value.model,
-        mileage: value.mileage,
-        source: value.source,
-        make: value.make,
-        trim: value.trim,
-        year: value.year,
-        pricePerMile: value.pricePerMile,
-        timestamp: value.timestamp,
-        listingUrl: value.listingUrl,
-        dealerName: value.dealerName,
-        price: value.price,
-        archived: value.archived,
-        dealScore: value.dealScore,
-        condition: value.condition,
-        images: await from_candid_vec_n21(_uploadFile, _downloadFile, value.images)
-    };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     success: [] | [boolean];
@@ -741,7 +357,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -749,21 +365,6 @@ function from_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Ui
     guest: null;
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
-}
-async function from_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_CrossModelResult>): Promise<Array<CrossModelResult>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_CrossModelResult_n19(_uploadFile, _downloadFile, x)));
-}
-async function from_candid_vec_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ExternalBlob>): Promise<Array<ExternalBlob>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_ExternalBlob_n22(_uploadFile, _downloadFile, x)));
-}
-async function to_candid_CreateListingInput_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CreateListingInput): Promise<_CreateListingInput> {
-    return await to_candid_record_n12(_uploadFile, _downloadFile, value);
-}
-async function to_candid_ExternalBlob_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
-    return await _uploadFile(value);
-}
-async function to_candid_UpdateListingInput_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UpdateListingInput): Promise<_UpdateListingInput> {
-    return await to_candid_record_n27(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
@@ -773,96 +374,6 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 }
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
-}
-async function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    condition: string;
-    images: Array<ExternalBlob>;
-}): Promise<{
-    id: string;
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    condition: string;
-    images: Array<_ExternalBlob>;
-}> {
-    return {
-        id: value.id,
-        region: value.region,
-        model: value.model,
-        mileage: value.mileage,
-        source: value.source,
-        make: value.make,
-        trim: value.trim,
-        year: value.year,
-        listingUrl: value.listingUrl,
-        dealerName: value.dealerName,
-        price: value.price,
-        condition: value.condition,
-        images: await to_candid_vec_n13(_uploadFile, _downloadFile, value.images)
-    };
-}
-async function to_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    archived: boolean;
-    condition: string;
-    images: Array<ExternalBlob>;
-}): Promise<{
-    region: string;
-    model: string;
-    mileage: bigint;
-    source: string;
-    make: string;
-    trim: string;
-    year: bigint;
-    listingUrl: string;
-    dealerName: string;
-    price: bigint;
-    archived: boolean;
-    condition: string;
-    images: Array<_ExternalBlob>;
-}> {
-    return {
-        region: value.region,
-        model: value.model,
-        mileage: value.mileage,
-        source: value.source,
-        make: value.make,
-        trim: value.trim,
-        year: value.year,
-        listingUrl: value.listingUrl,
-        dealerName: value.dealerName,
-        price: value.price,
-        archived: value.archived,
-        condition: value.condition,
-        images: await to_candid_vec_n13(_uploadFile, _downloadFile, value.images)
-    };
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     proposed_top_up_amount?: bigint;
@@ -887,12 +398,6 @@ function to_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     } : value == UserRole.guest ? {
         guest: null
     } : value;
-}
-async function to_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<CreateListingInput>): Promise<Array<_CreateListingInput>> {
-    return await Promise.all(value.map(async (x)=>await to_candid_CreateListingInput_n11(_uploadFile, _downloadFile, x)));
-}
-async function to_candid_vec_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<ExternalBlob>): Promise<Array<_ExternalBlob>> {
-    return await Promise.all(value.map(async (x)=>await to_candid_ExternalBlob_n14(_uploadFile, _downloadFile, x)));
 }
 export interface CreateActorOptions {
     agent?: Agent;

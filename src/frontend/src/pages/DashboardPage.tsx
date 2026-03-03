@@ -17,6 +17,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Clock,
   Download,
   Edit2,
   LayoutDashboard,
@@ -31,14 +32,23 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import type { PrivateNote } from "../backend.d";
+// Local type definition (matches backend PrivateNote)
+interface PrivateNote {
+  id: string;
+  text: string;
+  lastUpdated: bigint;
+}
 import ColumnCustomizationPanel from "../components/ColumnCustomizationPanel";
+import ConfidenceScoreBadge from "../components/ConfidenceScoreBadge";
 import DealExpiryBadge from "../components/DealExpiryBadge";
+import DealerRatingBadge from "../components/DealerRatingBadge";
 import ExportFilterPanel from "../components/ExportFilterPanel";
 import ListingNoteButton from "../components/ListingNoteButton";
 import NegotiationScoreBadge from "../components/NegotiationScoreBadge";
 import OnboardingEmptyState from "../components/OnboardingEmptyState";
 import PaginationControls from "../components/PaginationControls";
+import PriceHistoryReplayModal from "../components/PriceHistoryReplayModal";
+import RecallAlertBadge from "../components/RecallAlertBadge";
 import StaleListingReminderPanel from "../components/StaleListingReminderPanel";
 import { useActor } from "../hooks/useActor";
 import { useColumnPreferences } from "../hooks/useColumnPreferences";
@@ -443,7 +453,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!identity || !actor) return;
     let cancelled = false;
-    actor
+    (actor as any)
       .getAllPrivateNotes()
       .then((notes) => {
         if (cancelled) return;
@@ -497,6 +507,7 @@ export default function DashboardPage() {
   const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const [bulkArchiveDays, setBulkArchiveDays] = useState(90);
   const [staleReminderDismissed, setStaleReminderDismissed] = useState(false);
+  const [replayListing, setReplayListing] = useState<any>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1081,6 +1092,12 @@ export default function DashboardPage() {
                       {isVisible("expiry") && (
                         <th className="text-left px-3 py-3">Expiry</th>
                       )}
+                      {isVisible("confidence") && (
+                        <th className="text-left px-3 py-3">Confidence</th>
+                      )}
+                      {isVisible("recalls") && (
+                        <th className="text-left px-3 py-3">Recalls</th>
+                      )}
                       <th className="text-left px-3 py-3">Actions</th>
                     </tr>
                   </thead>
@@ -1256,7 +1273,14 @@ export default function DashboardPage() {
                             )}
                             {isVisible("dealerName") && (
                               <td className="px-3 py-3 text-muted-foreground">
-                                {listing.dealerName || "—"}
+                                <div className="flex flex-col gap-0.5">
+                                  <span>{listing.dealerName || "—"}</span>
+                                  {listing.dealerName && (
+                                    <DealerRatingBadge
+                                      dealerName={listing.dealerName}
+                                    />
+                                  )}
+                                </div>
                               </td>
                             )}
                             {isVisible("timestamp") && (
@@ -1283,6 +1307,26 @@ export default function DashboardPage() {
                                 data-ocid={`dashboard.expiry_prediction_cell.${paginated.indexOf(listing) + 1}`}
                               >
                                 <DealExpiryBadge listingId={listing.id} />
+                              </td>
+                            )}
+                            {isVisible("confidence") && (
+                              <td
+                                className="px-3 py-3"
+                                data-ocid={`dashboard.confidence_score_cell.${paginated.indexOf(listing) + 1}`}
+                              >
+                                <ConfidenceScoreBadge listingId={listing.id} />
+                              </td>
+                            )}
+                            {isVisible("recalls") && (
+                              <td
+                                className="px-3 py-3"
+                                data-ocid={`dashboard.recall_alert_cell.${paginated.indexOf(listing) + 1}`}
+                              >
+                                <RecallAlertBadge
+                                  make={listing.make ?? ""}
+                                  model={listing.model ?? ""}
+                                  year={Number(listing.year) ?? 0}
+                                />
                               </td>
                             )}
                             <td className="px-3 py-3">
@@ -1365,6 +1409,15 @@ export default function DashboardPage() {
                                       isAuthenticated={Boolean(identity)}
                                       onNoteChange={handleNoteChange}
                                     />
+                                    <button
+                                      type="button"
+                                      onClick={() => setReplayListing(listing)}
+                                      className="p-1.5 rounded hover:bg-amber-500/20 text-muted-foreground hover:text-amber-400 transition-colors"
+                                      title="Price history replay"
+                                      data-ocid={`dashboard.price_replay.${paginated.indexOf(listing) + 1}.button`}
+                                    >
+                                      <Clock className="w-3.5 h-3.5" />
+                                    </button>
                                   </>
                                 )}
                               </div>
@@ -1396,6 +1449,15 @@ export default function DashboardPage() {
       {/* Export Panel */}
       {showExportPanel && (
         <ExportFilterPanel onClose={() => setShowExportPanel(false)} />
+      )}
+
+      {/* Price History Replay Modal */}
+      {replayListing && (
+        <PriceHistoryReplayModal
+          listing={replayListing}
+          open={Boolean(replayListing)}
+          onClose={() => setReplayListing(null)}
+        />
       )}
 
       {/* Bulk Archive Dialog */}

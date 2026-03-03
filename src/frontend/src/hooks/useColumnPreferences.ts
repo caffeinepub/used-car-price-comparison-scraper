@@ -26,6 +26,8 @@ export const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: "age", label: "Age" },
   { key: "negotiation", label: "Negotiation" },
   { key: "expiry", label: "Expiry" },
+  { key: "confidence", label: "Confidence" },
+  { key: "recalls", label: "Recalls" },
   { key: "actions", label: "Actions", required: true },
 ];
 

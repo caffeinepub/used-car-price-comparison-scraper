@@ -10,101 +10,15 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface AlertCondition {
-  'field' : string,
-  'value' : string,
-  'operator' : string,
-}
-export interface AlertFormulaMatch {
-  'formulaName' : string,
-  'matchedListingIds' : Array<string>,
-  'formulaId' : string,
-}
-export interface CreateListingInput {
-  'id' : string,
-  'region' : string,
-  'model' : string,
-  'mileage' : bigint,
-  'source' : string,
-  'make' : string,
-  'trim' : string,
-  'year' : bigint,
-  'listingUrl' : string,
-  'dealerName' : string,
-  'price' : bigint,
-  'condition' : string,
-  'images' : Array<ExternalBlob>,
-}
-export interface CrossModelResult {
-  'id' : string,
-  'region' : string,
-  'model' : string,
-  'mileage' : bigint,
-  'source' : string,
-  'make' : string,
-  'trim' : string,
-  'year' : bigint,
-  'pricePerMile' : number,
+export interface DealerRating {
+  'review' : string,
   'timestamp' : Time,
-  'listingUrl' : string,
+  'rating' : bigint,
+  'reviewer' : Principal,
   'dealerName' : string,
-  'price' : bigint,
-  'archived' : boolean,
-  'dealScore' : string,
-  'condition' : string,
-  'images' : Array<ExternalBlob>,
 }
-export interface CustomAlertFormula {
-  'id' : string,
-  'name' : string,
-  'createdAt' : Time,
-  'conditions' : Array<AlertCondition>,
-}
-export interface DealExpiryPrediction {
-  'urgency' : string,
-  'listingId' : string,
-  'estimatedDaysRemaining' : bigint,
-}
-export interface DepreciationDataPoint {
-  'avgPrice' : number,
-  'monthsFromFirst' : bigint,
-  'listingCount' : bigint,
-}
-export type ExternalBlob = Uint8Array;
-export interface NegotiationScore {
-  'listingId' : string,
-  'score' : bigint,
-  'factors' : Array<string>,
-  'scoreLabel' : string,
-}
-export interface PrivateNote {
-  'id' : string,
-  'text' : string,
-  'lastUpdated' : Time,
-}
-export interface RegionalBreakdown {
-  'region' : string,
-  'avgPrice' : number,
-  'sources' : Array<string>,
-  'listingCount' : bigint,
-}
+export interface RatingAggregate { 'count' : bigint, 'avgRating' : number }
 export type Time = bigint;
-export interface UpdateListingInput {
-  'region' : string,
-  'model' : string,
-  'mileage' : bigint,
-  'source' : string,
-  'make' : string,
-  'trim' : string,
-  'year' : bigint,
-  'listingUrl' : string,
-  'dealerName' : string,
-  'price' : bigint,
-  'archived' : boolean,
-  'condition' : string,
-  'images' : Array<ExternalBlob>,
-}
-export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -137,36 +51,12 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'bulkCreateListings' : ActorMethod<[Array<CreateListingInput>], undefined>,
-  'createListing' : ActorMethod<[CreateListingInput], undefined>,
-  'deleteCustomAlertFormula' : ActorMethod<[string], undefined>,
-  'deletePrivateNote' : ActorMethod<[string], undefined>,
-  'evaluateCustomAlertFormulas' : ActorMethod<[], Array<AlertFormulaMatch>>,
-  'getAllPrivateNotes' : ActorMethod<[], Array<PrivateNote>>,
-  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getAggregateDealerRating' : ActorMethod<[string], RatingAggregate>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getCrossModelSearch' : ActorMethod<
-    [number, bigint],
-    Array<CrossModelResult>
-  >,
-  'getCustomAlertFormulas' : ActorMethod<[], Array<CustomAlertFormula>>,
-  'getDealExpiryPrediction' : ActorMethod<
-    [string],
-    [] | [DealExpiryPrediction]
-  >,
-  'getDepreciationCurve' : ActorMethod<
-    [string, string],
-    Array<DepreciationDataPoint>
-  >,
-  'getNegotiationScore' : ActorMethod<[string], [] | [NegotiationScore]>,
-  'getPrivateNote' : ActorMethod<[string], [] | [PrivateNote]>,
-  'getRegionalBreakdown' : ActorMethod<[], Array<RegionalBreakdown>>,
-  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getConfidenceScore' : ActorMethod<[string], [] | [bigint]>,
+  'getDealerRatings' : ActorMethod<[string], Array<DealerRating>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'saveCustomAlertFormula' : ActorMethod<[CustomAlertFormula], undefined>,
-  'savePrivateNote' : ActorMethod<[string, string], undefined>,
-  'updateListing' : ActorMethod<[string, UpdateListingInput], undefined>,
+  'submitDealerRating' : ActorMethod<[string, bigint, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
