@@ -14,15 +14,18 @@ import {
 import {
   Activity,
   BarChart2,
+  BarChart3,
   Bell,
   BookmarkCheck,
   Building2,
   Calculator,
+  CalendarDays,
   Car,
   ChevronDown,
   Clock,
   Flame,
   GitMerge,
+  Globe,
   Heart,
   Layers,
   LineChart,
@@ -34,6 +37,7 @@ import {
   Radar,
   RefreshCw,
   Search,
+  Signal,
   Star,
   Sun,
   Timer,
@@ -54,6 +58,7 @@ import ActivityLogPage from "./pages/ActivityLogPage";
 import AddListingPage from "./pages/AddListingPage";
 import CSVImportPage from "./pages/CSVImportPage";
 import ComparisonPage from "./pages/ComparisonPage";
+import CrossMarketPage from "./pages/CrossMarketPage";
 import CrossModelSearchPage from "./pages/CrossModelSearchPage";
 import CustomAlertFormulasPage from "./pages/CustomAlertFormulasPage";
 // Pages
@@ -68,11 +73,13 @@ import DealerTurnoverReportPage from "./pages/DealerTurnoverReportPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
 import DuplicateMergePage from "./pages/DuplicateMergePage";
 import MarketOverviewPage from "./pages/MarketOverviewPage";
+import MarketSaturationPage from "./pages/MarketSaturationPage";
 import NegotiationCoachPage from "./pages/NegotiationCoachPage";
 import OwnershipCostPage from "./pages/OwnershipCostPage";
 import PriceAlertsPage from "./pages/PriceAlertsPage";
 import RegionalBreakdownPage from "./pages/RegionalBreakdownPage";
 import SavedSearchesPage from "./pages/SavedSearchesPage";
+import SeasonalPricingPage from "./pages/SeasonalPricingPage";
 import SharedComparisonPage from "./pages/SharedComparisonPage";
 import SharedWatchlistPage from "./pages/SharedWatchlistPage";
 import ShouldIWaitPage from "./pages/ShouldIWaitPage";
@@ -577,6 +584,74 @@ function DealerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
+// ─── Market Intel Dropdown ────────────────────────────────────────────────────
+
+const MARKET_INTEL_TOOLS = [
+  { to: "/market-saturation", icon: Signal, label: "Market Saturation" },
+  { to: "/cross-market", icon: Globe, label: "Cross-Market Comparison" },
+  { to: "/seasonal-pricing", icon: CalendarDays, label: "Seasonal Pricing" },
+];
+
+function MarketIntelDropdown({ onItemClick }: { onItemClick?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const isAnyActive = MARKET_INTEL_TOOLS.some(
+    (t) => window.location.pathname === t.to,
+  );
+
+  return (
+    <div className="relative" onMouseLeave={() => setOpen(false)}>
+      <button
+        type="button"
+        onMouseEnter={() => setOpen(true)}
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="nav.market_intel.toggle"
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+          isAnyActive
+            ? "bg-amber/10 text-amber border border-amber/20"
+            : "text-muted-text hover:text-foreground hover:bg-surface"
+        }`}
+      >
+        <BarChart3 className="w-3.5 h-3.5" />
+        Market Intel
+        <ChevronDown
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 w-56 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden"
+          onMouseEnter={() => setOpen(true)}
+        >
+          {MARKET_INTEL_TOOLS.map((item) => {
+            const Icon = item.icon;
+            const isActive = window.location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => {
+                  setOpen(false);
+                  onItemClick?.();
+                }}
+                data-ocid={`nav.market_intel.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-amber/10 text-amber"
+                    : "text-muted-text hover:text-foreground hover:bg-surface"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
@@ -675,6 +750,7 @@ function Layout() {
               {NAV_ITEMS.map((item) => (
                 <NavLink key={item.to} {...item} />
               ))}
+              <MarketIntelDropdown />
               {showBuyerTools && <BuyerToolsDropdown />}
               {showDealerTools && <DealerToolsDropdown />}
             </nav>
@@ -729,6 +805,22 @@ function Layout() {
                   onClick={() => setMobileOpen(false)}
                 />
               ))}
+            </div>
+            {/* Market Intel - always visible */}
+            <div className="border-t border-steel-border pt-2.5">
+              <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                <BarChart3 className="w-3 h-3 text-amber" />
+                Market Intel
+              </p>
+              <div className="grid grid-cols-3 gap-1.5">
+                {MARKET_INTEL_TOOLS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    {...item}
+                    onClick={() => setMobileOpen(false)}
+                  />
+                ))}
+              </div>
             </div>
             {showBuyerTools && (
               <div className="border-t border-steel-border pt-2.5">
@@ -972,6 +1064,21 @@ const dealerRatingsRoute = createRoute({
   path: "/dealer-ratings",
   component: DealerRatingsPage,
 });
+const marketSaturationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/market-saturation",
+  component: MarketSaturationPage,
+});
+const crossMarketRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cross-market",
+  component: CrossMarketPage,
+});
+const seasonalPricingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/seasonal-pricing",
+  component: SeasonalPricingPage,
+});
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -1002,6 +1109,9 @@ const routeTree = rootRoute.addChildren([
   dealerTurnoverRoute,
   dealerPriceElasticityRoute,
   dealerRatingsRoute,
+  marketSaturationRoute,
+  crossMarketRoute,
+  seasonalPricingRoute,
 ]);
 
 const router = createRouter({ routeTree });

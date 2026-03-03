@@ -1,27 +1,30 @@
 # Auto Track Pro
 
 ## Current State
-Version 57 is live in production. The app is a full-stack used car price comparison and intelligence platform with per-user data isolation, role-based nav (Buyer/Dealer/Admin), listing management, deal scoring, negotiation tools, buyer tools, dealer tools, NHTSA recall lookup on the Comparison page, confidence scores (stored frontend-only), and price history tracked in `priceHistory: [PricePoint]` on each listing.
+Full-stack used car intelligence platform (Motoko + React) with 28 page routes. Features include: listing management, dashboard with deal scoring, comparison charts, market overview, depreciation curve, cross-model search, regional breakdown, buyer tools (negotiation coach, should I wait, TCO timeline, trim analyzer, deal expiry), dealer tools (pricing radar, lot tracker, demand heatmap, turnover, price elasticity), dealer ratings, confidence scores, and custom alert formulas. Per-user data isolation via Internet Identity principal.
 
 ## Requested Changes (Diff)
 
 ### Add
-1. **Community Dealer Ratings** — buyers can submit a 1–5 star rating + text review for a dealer by name. Aggregate rating (avg stars, review count) shown on listing cards in the dashboard. A dedicated "Dealer Ratings" page lets users browse and submit ratings. Ratings are stored globally (shared across all users) so the community effect works.
-2. **Price Drop History Replay** — a modal/panel on any listing card that plays back all price changes chronologically using an animated step-through timeline. Sourced from the existing `priceHistory` array on `CarListing` plus the current price as the final point. Available via a "History" button on listing rows.
-3. **Confidence Score on Listings** — compute a 0–100 score in the backend based on how complete and trustworthy a listing's data is (make, model, year, mileage, price, trim, condition, dealer name, source, region, listing URL, price history length). Return it as `getConfidenceScore(listingId)`. Show as a badge on dashboard listing rows (color-coded: green ≥70, amber 40–69, red <40).
-4. **Recall Alert on Listing Cards** — fetch open NHTSA recalls for a listing's make/model/year from the free NHTSA API (`https://api.nhtsa.gov/recalls/recallsByVehicle?make=X&model=Y&modelYear=Z`) directly in the frontend. Show a compact recall badge on dashboard listing rows when open recalls exist (clicking it opens a small popover with recall count + top recall description). This is purely a frontend feature using the NHTSA public API.
+1. **Market Saturation Indicator page** (`/market-saturation`) — for each make/model, calculate listing count vs. market average and display a saturation level (Low / Moderate / High / Oversaturated). Show negotiating leverage score. High saturation = more buyer leverage. Display as a ranked table with saturation badges and a bar chart. Include a "leverage tip" per saturation tier.
+2. **Cross-Market Price Comparison page** (`/cross-market`) — compare listings for the same make/model/trim across different sources (dealer, private, auction, etc.) in a unified view. Grouped by source with avg price per source, price delta vs. cheapest source, and a sortable table of individual listings per source.
+3. **Seasonal Pricing Calendar page** (`/seasonal-pricing`) — historical chart showing best months to buy each make/model. Simulate 12-month price index per make/model. Highlight cheapest and most expensive months. Include a "Best Month to Buy" badge and a line chart. Allow make/model selector.
+4. **Nav entry** — add a "Market Intel" dropdown to the main nav containing all three new pages (visible to all authenticated users; also visible unauthenticated as read-only).
 
 ### Modify
-- **Dashboard listing rows** — add four new columns/elements: Dealer Rating badge, Price History button, Confidence Score badge, Recall Alert badge.
-- **DashboardPage** — wire up the four new features with appropriate loading states.
+- `App.tsx` — add route definitions and imports for 3 new pages; add "Market Intel" nav dropdown with TrendingUp/Globe/Calendar icons.
+- Backend `main.mo` — add `getMarketSaturation`, `getCrossMarketComparison`, `getSeasonalPricingIndex` query functions that compute from per-user listings data.
 
 ### Remove
-- Nothing removed.
+Nothing removed.
 
 ## Implementation Plan
-1. **Backend**: Add `DealerRating` type with `dealerName`, `rating` (1–5), `review`, `reviewer` (Principal), `timestamp`. Add `dealerRatings: Map<Text, List<DealerRating>>` (keyed by dealerName, shared globally). Add `submitDealerRating(dealerName, rating, review)`, `getDealerRatings(dealerName) -> [DealerRating]`, `getAggregateDealerRating(dealerName) -> {avgRating: Float, count: Nat}`. Add `getConfidenceScore(listingId) -> ?Nat` query on caller's listings.
-2. **Frontend – Dealer Ratings**: New `DealerRatingsPage.tsx` at `/dealer-ratings`. Add nav link. Star rating form (1–5) + review textarea + submit. Aggregated rating display per dealer.
-3. **Frontend – Price Drop Replay**: `PriceHistoryReplayModal.tsx` component. Button on each dashboard row ("History"). Modal shows animated step-through of price changes with timestamps, previous → new price, drop % per step, and a Play/Pause auto-advance control.
-4. **Frontend – Confidence Score Badge**: `ConfidenceScoreBadge.tsx`. Calls `getConfidenceScore(listingId)`. Color-coded badge (green/amber/red). Shown as a column on the dashboard.
-5. **Frontend – Recall Alert Badge**: `RecallAlertBadge.tsx`. Fetches NHTSA API with make/model/year. Shows count badge in red when recalls exist. Popover with recall summaries on click.
-6. **Frontend – Dashboard integration**: Wire all four new UI elements into `DashboardPage.tsx` rows. Add a "Dealer Ratings" link to the nav.
+1. Add 3 backend query functions to `main.mo`:
+   - `getMarketSaturation()` — returns array of `{make, model, count, avgCount, saturationLevel, leverageScore}` computed from caller's listings
+   - `getCrossMarketComparison(make, model, trim)` — returns listings grouped by source with price stats per source
+   - `getSeasonalPricingIndex(make, model)` — returns 12-element array of `{month, avgPrice, relativeIndex}` derived from listing timestamps and prices
+2. Regenerate `backend.d.ts` bindings
+3. Create `MarketSaturationPage.tsx` — ranked table with saturation badges (Low/Moderate/High/Oversaturated), bar chart of listing counts, leverage tip per tier
+4. Create `CrossMarketPage.tsx` — make/model/trim selector, source-grouped cards with avg price and delta, sortable table of matching listings
+5. Create `SeasonalPricingPage.tsx` — make/model selector, 12-month line chart with cheapest/priciest month highlights, "Best Month to Buy" badge
+6. Update `App.tsx` — add routes, imports, and "Market Intel" nav dropdown visible to all users
