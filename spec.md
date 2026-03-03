@@ -1,30 +1,34 @@
 # Auto Track Pro
 
 ## Current State
-Full-stack used car intelligence platform (Motoko + React) with 28 page routes. Features include: listing management, dashboard with deal scoring, comparison charts, market overview, depreciation curve, cross-model search, regional breakdown, buyer tools (negotiation coach, should I wait, TCO timeline, trim analyzer, deal expiry), dealer tools (pricing radar, lot tracker, demand heatmap, turnover, price elasticity), dealer ratings, confidence scores, and custom alert formulas. Per-user data isolation via Internet Identity principal.
+The desktop navigation has two rows:
+- Row 1: Logo + auth controls
+- Row 2a: Primary nav links (Dashboard, Add, Import, Compare, Market, Watchlist, Alerts, Activity, Ratings)
+- Row 2b: Dropdown buttons (More, Market Intel, Buyer Tools, Dealer Tools)
+
+The nav is still jamming on laptop screens because too many items compete for horizontal space. Market Intel dropdown is hard to access as it gets pushed to the far right where it can overlap with the viewport edge or get clipped.
 
 ## Requested Changes (Diff)
 
 ### Add
-1. **Market Saturation Indicator page** (`/market-saturation`) — for each make/model, calculate listing count vs. market average and display a saturation level (Low / Moderate / High / Oversaturated). Show negotiating leverage score. High saturation = more buyer leverage. Display as a ranked table with saturation badges and a bar chart. Include a "leverage tip" per saturation tier.
-2. **Cross-Market Price Comparison page** (`/cross-market`) — compare listings for the same make/model/trim across different sources (dealer, private, auction, etc.) in a unified view. Grouped by source with avg price per source, price delta vs. cheapest source, and a sortable table of individual listings per source.
-3. **Seasonal Pricing Calendar page** (`/seasonal-pricing`) — historical chart showing best months to buy each make/model. Simulate 12-month price index per make/model. Highlight cheapest and most expensive months. Include a "Best Month to Buy" badge and a line chart. Allow make/model selector.
-4. **Nav entry** — add a "Market Intel" dropdown to the main nav containing all three new pages (visible to all authenticated users; also visible unauthenticated as read-only).
+- Nothing new
 
 ### Modify
-- `App.tsx` — add route definitions and imports for 3 new pages; add "Market Intel" nav dropdown with TrendingUp/Globe/Calendar icons.
-- Backend `main.mo` — add `getMarketSaturation`, `getCrossMarketComparison`, `getSeasonalPricingIndex` query functions that compute from per-user listings data.
+- Restructure the desktop nav into a cleaner 3-row header layout:
+  - Row 1 (h-12): Logo on the left, auth controls (role badge, theme, sign in, mobile toggle) on the right
+  - Row 2 (compact): All primary nav links as a scrollable/wrapping row — Dashboard, Add, Import, Compare, Market, Watchlist, Alerts, Activity, Ratings
+  - Row 3 (compact): All dropdown groups side by side — More | Market Intel | Buyer Tools | Dealer Tools — left-aligned with generous gaps, each dropdown panel opening downward with `right-0` alignment so it never clips off-screen edge
+- All dropdown panels should use `right-0` (right-aligned) so they open toward the left and never get cut off at the screen edge, especially Market Intel which sits near the right end
+- Make the nav background slightly more distinct between rows so the structure is clear
+- Ensure the `lg:` breakpoint triggers at 1024px so desktop nav shows on most laptops
 
 ### Remove
-Nothing removed.
+- Remove the cramped single sub-row approach that causes overflow
 
 ## Implementation Plan
-1. Add 3 backend query functions to `main.mo`:
-   - `getMarketSaturation()` — returns array of `{make, model, count, avgCount, saturationLevel, leverageScore}` computed from caller's listings
-   - `getCrossMarketComparison(make, model, trim)` — returns listings grouped by source with price stats per source
-   - `getSeasonalPricingIndex(make, model)` — returns 12-element array of `{month, avgPrice, relativeIndex}` derived from listing timestamps and prices
-2. Regenerate `backend.d.ts` bindings
-3. Create `MarketSaturationPage.tsx` — ranked table with saturation badges (Low/Moderate/High/Oversaturated), bar chart of listing counts, leverage tip per tier
-4. Create `CrossMarketPage.tsx` — make/model/trim selector, source-grouped cards with avg price and delta, sortable table of matching listings
-5. Create `SeasonalPricingPage.tsx` — make/model selector, 12-month line chart with cheapest/priciest month highlights, "Best Month to Buy" badge
-6. Update `App.tsx` — add routes, imports, and "Market Intel" nav dropdown visible to all users
+1. In `App.tsx`, update the `Layout` component's `<header>` section
+2. Change `<nav>` to have:
+   - Sub-row A: all NAV_ITEMS links, flex-wrap allowed so they never overflow
+   - Sub-row B: all four dropdown buttons (More, MarketIntel, BuyerTools, DealerTools) with `flex-wrap` and generous gap
+3. Update all four dropdown components (MoreDropdown, MarketIntelDropdown, BuyerToolsDropdown, DealerToolsDropdown) to use `right-0` positioning on their dropdown panels so they open left-ward and don't get clipped
+4. Validate with typecheck/build

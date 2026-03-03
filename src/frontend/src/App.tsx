@@ -428,13 +428,13 @@ function NavLink({
       to={to}
       onClick={onClick}
       data-ocid={ocid}
-      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+      className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
         isActive
           ? "bg-amber/10 text-amber border border-amber/20"
           : "text-muted-text hover:text-foreground hover:bg-surface"
       }`}
     >
-      <Icon className="w-3.5 h-3.5" />
+      <Icon className="w-3.5 h-3.5 shrink-0" />
       {label}
     </Link>
   );
@@ -452,24 +452,35 @@ const BUYER_TOOLS = [
 
 function BuyerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const isAnyActive = BUYER_TOOLS.some(
     (t) => window.location.pathname === t.to,
   );
 
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
   return (
-    <div className="relative" onMouseLeave={() => setOpen(false)}>
+    <div className="relative" ref={ref}>
       <button
         type="button"
-        onMouseEnter={() => setOpen(true)}
         onClick={() => setOpen((v) => !v)}
         data-ocid="nav.buyer_tools.toggle"
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
           isAnyActive
             ? "bg-amber/10 text-amber border border-amber/20"
             : "text-muted-text hover:text-foreground hover:bg-surface"
         }`}
       >
-        <Zap className="w-3.5 h-3.5" />
+        <Zap className="w-3.5 h-3.5 shrink-0" />
         Buyer Tools
         <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
@@ -477,10 +488,7 @@ function BuyerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
       </button>
 
       {open && (
-        <div
-          className="absolute top-full left-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden"
-          onMouseEnter={() => setOpen(true)}
-        >
+        <div className="absolute top-full right-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden">
           {BUYER_TOOLS.map((item) => {
             const Icon = item.icon;
             const isActive = window.location.pathname === item.to;
@@ -526,24 +534,35 @@ const DEALER_TOOLS = [
 
 function DealerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const isAnyActive = DEALER_TOOLS.some(
     (t) => window.location.pathname === t.to,
   );
 
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
   return (
-    <div className="relative" onMouseLeave={() => setOpen(false)}>
+    <div className="relative" ref={ref}>
       <button
         type="button"
-        onMouseEnter={() => setOpen(true)}
         onClick={() => setOpen((v) => !v)}
         data-ocid="nav.dealer_tools.toggle"
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
           isAnyActive
             ? "bg-amber/10 text-amber border border-amber/20"
             : "text-muted-text hover:text-foreground hover:bg-surface"
         }`}
       >
-        <Building2 className="w-3.5 h-3.5" />
+        <Building2 className="w-3.5 h-3.5 shrink-0" />
         Dealer Tools
         <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
@@ -551,10 +570,7 @@ function DealerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
       </button>
 
       {open && (
-        <div
-          className="absolute top-full left-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden"
-          onMouseEnter={() => setOpen(true)}
-        >
+        <div className="absolute top-full right-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden">
           {DEALER_TOOLS.map((item) => {
             const Icon = item.icon;
             const isActive = window.location.pathname === item.to;
@@ -594,24 +610,35 @@ const MARKET_INTEL_TOOLS = [
 
 function MarketIntelDropdown({ onItemClick }: { onItemClick?: () => void }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const isAnyActive = MARKET_INTEL_TOOLS.some(
     (t) => window.location.pathname === t.to,
   );
 
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
   return (
-    <div className="relative" onMouseLeave={() => setOpen(false)}>
+    <div className="relative" ref={ref}>
       <button
         type="button"
-        onMouseEnter={() => setOpen(true)}
         onClick={() => setOpen((v) => !v)}
         data-ocid="nav.market_intel.toggle"
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
           isAnyActive
             ? "bg-amber/10 text-amber border border-amber/20"
             : "text-muted-text hover:text-foreground hover:bg-surface"
         }`}
       >
-        <BarChart3 className="w-3.5 h-3.5" />
+        <BarChart3 className="w-3.5 h-3.5 shrink-0" />
         Market Intel
         <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
@@ -619,10 +646,7 @@ function MarketIntelDropdown({ onItemClick }: { onItemClick?: () => void }) {
       </button>
 
       {open && (
-        <div
-          className="absolute top-full left-0 mt-1 w-56 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden"
-          onMouseEnter={() => setOpen(true)}
-        >
+        <div className="absolute top-full right-0 mt-1 w-64 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden">
           {MARKET_INTEL_TOOLS.map((item) => {
             const Icon = item.icon;
             const isActive = window.location.pathname === item.to;
@@ -635,7 +659,92 @@ function MarketIntelDropdown({ onItemClick }: { onItemClick?: () => void }) {
                   onItemClick?.();
                 }}
                 data-ocid={`nav.market_intel.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
-                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
+                  isActive
+                    ? "bg-amber/10 text-amber"
+                    : "text-muted-text hover:text-foreground hover:bg-surface"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── More Dropdown (secondary nav items) ─────────────────────────────────────
+
+const MORE_ITEMS = [
+  { to: "/cross-search", icon: Search, label: "Cross-Search" },
+  { to: "/depreciation", icon: TrendingDown, label: "Depreciation" },
+  { to: "/duplicates", icon: GitMerge, label: "Duplicates" },
+  { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
+  { to: "/regional", icon: MapPin, label: "Regions" },
+  {
+    to: "/saved-searches",
+    icon: BookmarkCheck,
+    label: "Saved Searches",
+  },
+  {
+    to: "/custom-alerts",
+    icon: Zap,
+    label: "Alert Rules",
+  },
+];
+
+function MoreDropdown({ onItemClick }: { onItemClick?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isAnyActive = MORE_ITEMS.some((t) => window.location.pathname === t.to);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="nav.more.toggle"
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+          isAnyActive
+            ? "bg-amber/10 text-amber border border-amber/20"
+            : "text-muted-text hover:text-foreground hover:bg-surface"
+        }`}
+      >
+        More
+        <ChevronDown
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 min-w-[200px] max-h-[70vh] overflow-y-auto bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5">
+          {MORE_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = window.location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => {
+                  setOpen(false);
+                  onItemClick?.();
+                }}
+                data-ocid={`nav.more.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
                   isActive
                     ? "bg-amber/10 text-amber"
                     : "text-muted-text hover:text-foreground hover:bg-surface"
@@ -654,27 +763,16 @@ function MarketIntelDropdown({ onItemClick }: { onItemClick?: () => void }) {
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
+// Primary nav items shown directly in the top bar (kept to 8 to fit on laptops)
 const NAV_ITEMS = [
   { to: "/", icon: BarChart2, label: "Dashboard" },
-  { to: "/add", icon: PlusCircle, label: "Add Listing" },
+  { to: "/add", icon: PlusCircle, label: "Add" },
   { to: "/import", icon: Upload, label: "Import" },
   { to: "/compare", icon: Car, label: "Compare" },
   { to: "/market", icon: TrendingDown, label: "Market" },
-  { to: "/cross-search", icon: Search, label: "Cross-Search" },
-  { to: "/depreciation", icon: TrendingDown, label: "Depreciation" },
-  { to: "/duplicates", icon: GitMerge, label: "Duplicates" },
   { to: "/watchlist", icon: Heart, label: "Watchlist" },
   { to: "/alerts", icon: Bell, label: "Alerts" },
-  {
-    to: "/custom-alerts",
-    icon: Zap,
-    label: "Alert Rules",
-    ocid: "nav.custom_alerts_link",
-  },
-  { to: "/saved-searches", icon: BookmarkCheck, label: "Saved" },
   { to: "/activity", icon: Activity, label: "Activity" },
-  { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
-  { to: "/regional", icon: MapPin, label: "Regions" },
   { to: "/dealer-ratings", icon: Star, label: "Ratings" },
 ];
 
@@ -736,24 +834,19 @@ function Layout() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-steel-border">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14 gap-4">
+          {/* ── Row 1: Logo + auth controls ── */}
+          <div className="flex items-center justify-between h-12 gap-3">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 shrink-0">
-              <ATPLogo size={36} />
+            <Link
+              to="/"
+              className="flex items-center gap-2 shrink-0"
+              data-ocid="nav.dashboard.link"
+            >
+              <ATPLogo size={32} />
               <span className="font-bold text-sm text-foreground hidden sm:block">
                 Auto Track <span className="text-amber">Pro</span>
               </span>
             </Link>
-
-            {/* Desktop nav */}
-            <nav className="hidden xl:flex items-center gap-0.5 flex-1 overflow-x-auto">
-              {NAV_ITEMS.map((item) => (
-                <NavLink key={item.to} {...item} />
-              ))}
-              <MarketIntelDropdown />
-              {showBuyerTools && <BuyerToolsDropdown />}
-              {showDealerTools && <DealerToolsDropdown />}
-            </nav>
 
             {/* Right controls */}
             <div className="flex items-center gap-2 shrink-0">
@@ -780,7 +873,7 @@ function Layout() {
               {/* Mobile menu toggle */}
               <button
                 type="button"
-                className="xl:hidden w-8 h-8 rounded-lg border border-steel-border bg-surface flex items-center justify-center"
+                className="lg:hidden w-8 h-8 rounded-lg border border-steel-border bg-surface flex items-center justify-center shrink-0"
                 onClick={() => setMobileOpen((v) => !v)}
                 aria-label="Toggle menu"
               >
@@ -792,12 +885,31 @@ function Layout() {
               </button>
             </div>
           </div>
+
+          {/* ── Row 2: Desktop nav (hidden on mobile) ── */}
+          <nav className="hidden lg:flex items-center justify-between border-t border-steel-border/50 py-1.5 gap-2">
+            {/* Primary nav links — left side */}
+            <div className="flex items-center gap-0.5 flex-wrap min-w-0">
+              {NAV_ITEMS.map((item) => (
+                <NavLink key={item.to} {...item} />
+              ))}
+            </div>
+            {/* Dropdown groups — right side, always visible, never pushed off */}
+            <div className="flex items-center gap-1 shrink-0">
+              <MoreDropdown />
+              <div className="w-px h-4 bg-steel-border/60 mx-0.5" />
+              <MarketIntelDropdown />
+              {showBuyerTools && <BuyerToolsDropdown />}
+              {showDealerTools && <DealerToolsDropdown />}
+            </div>
+          </nav>
         </div>
 
         {/* Mobile nav */}
         {mobileOpen && (
-          <div className="xl:hidden border-t border-steel-border bg-background px-4 py-3 space-y-3">
-            <div className="grid grid-cols-3 gap-1.5">
+          <div className="lg:hidden border-t border-steel-border bg-background px-4 py-3 space-y-3">
+            {/* Primary nav items */}
+            <div className="grid grid-cols-2 gap-1">
               {NAV_ITEMS.map((item) => (
                 <NavLink
                   key={item.to}
@@ -806,13 +918,28 @@ function Layout() {
                 />
               ))}
             </div>
+            {/* More / secondary items */}
+            <div className="border-t border-steel-border pt-2.5">
+              <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5">
+                More
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                {MORE_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    {...item}
+                    onClick={() => setMobileOpen(false)}
+                  />
+                ))}
+              </div>
+            </div>
             {/* Market Intel - always visible */}
             <div className="border-t border-steel-border pt-2.5">
               <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
                 <BarChart3 className="w-3 h-3 text-amber" />
                 Market Intel
               </p>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="flex flex-col gap-1">
                 {MARKET_INTEL_TOOLS.map((item) => (
                   <NavLink
                     key={item.to}
@@ -828,7 +955,7 @@ function Layout() {
                   <Zap className="w-3 h-3 text-amber" />
                   Buyer Tools
                 </p>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="flex flex-col gap-1">
                   {BUYER_TOOLS.map((item) => (
                     <NavLink
                       key={item.to}
@@ -845,7 +972,7 @@ function Layout() {
                   <Building2 className="w-3 h-3 text-amber" />
                   Dealer Tools
                 </p>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="flex flex-col gap-1">
                   {DEALER_TOOLS.map((item) => (
                     <NavLink
                       key={item.to}
