@@ -16,10 +16,12 @@ import {
   BarChart2,
   Bell,
   BookmarkCheck,
+  Building2,
   Calculator,
   Car,
   ChevronDown,
   Clock,
+  Flame,
   GitMerge,
   Heart,
   Layers,
@@ -29,6 +31,8 @@ import {
   MessageSquare,
   Moon,
   PlusCircle,
+  Radar,
+  RefreshCw,
   Search,
   Sun,
   Timer,
@@ -39,7 +43,7 @@ import {
 } from "lucide-react";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PriceAlertBanner from "./components/PriceAlertBanner";
 import { useActor } from "./hooks/useActor";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
@@ -54,6 +58,11 @@ import CustomAlertFormulasPage from "./pages/CustomAlertFormulasPage";
 // Pages
 import DashboardPage from "./pages/DashboardPage";
 import DealExpiryPage from "./pages/DealExpiryPage";
+import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
+import DealerLotTrackerPage from "./pages/DealerLotTrackerPage";
+import DealerPriceElasticityPage from "./pages/DealerPriceElasticityPage";
+import DealerPricingRadarPage from "./pages/DealerPricingRadarPage";
+import DealerTurnoverReportPage from "./pages/DealerTurnoverReportPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
 import DuplicateMergePage from "./pages/DuplicateMergePage";
 import MarketOverviewPage from "./pages/MarketOverviewPage";
@@ -111,6 +120,158 @@ function ATPLogo({ size = 36 }: { size?: number }) {
         ATP
       </text>
     </svg>
+  );
+}
+
+// ─── App Role (localStorage-backed, per principal) ───────────────────────────
+
+type AppRole = "buyer" | "dealer" | "admin" | null;
+
+function getStoredRole(principalId: string): "buyer" | "dealer" | null {
+  const stored = localStorage.getItem(`atp_role_${principalId}`);
+  if (stored === "buyer" || stored === "dealer") return stored;
+  return null;
+}
+
+function setStoredRole(principalId: string, role: "buyer" | "dealer") {
+  localStorage.setItem(`atp_role_${principalId}`, role);
+}
+
+function useAppRole(): {
+  role: AppRole;
+  isLoading: boolean;
+  setRole: (role: "buyer" | "dealer") => void;
+  clearRole: () => void;
+} {
+  const { identity } = useInternetIdentity();
+  const { actor, isFetching } = useActor();
+  const [role, setRoleState] = useState<AppRole>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const checkedRef = useRef(false);
+
+  const principalId = identity?.getPrincipal().toString() ?? null;
+
+  useEffect(() => {
+    if (!identity || !actor || isFetching) return;
+    if (checkedRef.current) return;
+    checkedRef.current = true;
+
+    (async () => {
+      setIsLoading(true);
+      try {
+        const isAdmin = await actor.isCallerAdmin();
+        if (isAdmin) {
+          setRoleState("admin");
+          return;
+        }
+        const stored = principalId ? getStoredRole(principalId) : null;
+        setRoleState(stored);
+      } catch {
+        const stored = principalId ? getStoredRole(principalId) : null;
+        setRoleState(stored);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [identity, actor, isFetching, principalId]);
+
+  useEffect(() => {
+    if (!identity) {
+      setRoleState(null);
+      checkedRef.current = false;
+    }
+  }, [identity]);
+
+  const setRole = (newRole: "buyer" | "dealer") => {
+    if (principalId) setStoredRole(principalId, newRole);
+    setRoleState(newRole);
+  };
+
+  const clearRole = () => {
+    setRoleState(null);
+    checkedRef.current = false;
+  };
+
+  return { role, isLoading, setRole, clearRole };
+}
+
+// ─── Role Selection Modal ─────────────────────────────────────────────────────
+
+function RoleSelectionModal({
+  onSelect,
+}: {
+  onSelect: (role: "buyer" | "dealer") => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm"
+      data-ocid="role_selection.modal"
+    >
+      <div className="bg-surface border border-steel-border rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <ATPLogo size={48} />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            How will you use <span className="text-amber">Auto Track Pro</span>?
+          </h2>
+          <p className="text-sm text-muted-text">
+            Choose your role to personalize your experience. You can always sign
+            out and sign back in to change it.
+          </p>
+        </div>
+
+        {/* Role cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Buyer card */}
+          <button
+            type="button"
+            onClick={() => onSelect("buyer")}
+            data-ocid="role_selection.buyer_button"
+            className="group flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-steel-border bg-background hover:border-amber/50 hover:bg-amber/5 transition-all duration-200 cursor-pointer text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-amber/10 border border-amber/20 flex items-center justify-center group-hover:bg-amber/20 transition-colors">
+              <Car className="w-7 h-7 text-amber" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground mb-1">
+                I'm a Buyer
+              </p>
+              <p className="text-xs text-muted-text leading-relaxed">
+                Find the best deals and track prices
+              </p>
+            </div>
+            <div className="mt-1 px-4 py-1.5 rounded-full bg-amber/10 border border-amber/20 text-xs font-semibold text-amber group-hover:bg-amber group-hover:text-charcoal transition-colors">
+              Select Buyer
+            </div>
+          </button>
+
+          {/* Dealer card */}
+          <button
+            type="button"
+            onClick={() => onSelect("dealer")}
+            data-ocid="role_selection.dealer_button"
+            className="group flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-steel-border bg-background hover:border-amber/50 hover:bg-amber/5 transition-all duration-200 cursor-pointer text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-amber/10 border border-amber/20 flex items-center justify-center group-hover:bg-amber/20 transition-colors">
+              <Building2 className="w-7 h-7 text-amber" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground mb-1">
+                I'm a Dealer
+              </p>
+              <p className="text-xs text-muted-text leading-relaxed">
+                Manage inventory and analyze the market
+              </p>
+            </div>
+            <div className="mt-1 px-4 py-1.5 rounded-full bg-amber/10 border border-amber/20 text-xs font-semibold text-amber group-hover:bg-amber group-hover:text-charcoal transition-colors">
+              Select Dealer
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -339,6 +500,80 @@ function BuyerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
+// ─── Dealer Tools Dropdown ────────────────────────────────────────────────────
+
+const DEALER_TOOLS = [
+  { to: "/dealer/pricing-radar", icon: Radar, label: "Pricing Radar" },
+  { to: "/dealer/lot-tracker", icon: Clock, label: "Lot Tracker" },
+  { to: "/dealer/demand-heatmap", icon: Flame, label: "Demand Heatmap" },
+  { to: "/dealer/turnover", icon: RefreshCw, label: "Turnover Report" },
+  {
+    to: "/dealer/price-elasticity",
+    icon: TrendingDown,
+    label: "Price Elasticity",
+  },
+];
+
+function DealerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const isAnyActive = DEALER_TOOLS.some(
+    (t) => window.location.pathname === t.to,
+  );
+
+  return (
+    <div className="relative" onMouseLeave={() => setOpen(false)}>
+      <button
+        type="button"
+        onMouseEnter={() => setOpen(true)}
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="nav.dealer_tools.toggle"
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+          isAnyActive
+            ? "bg-amber/10 text-amber border border-amber/20"
+            : "text-muted-text hover:text-foreground hover:bg-surface"
+        }`}
+      >
+        <Building2 className="w-3.5 h-3.5" />
+        Dealer Tools
+        <ChevronDown
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden"
+          onMouseEnter={() => setOpen(true)}
+        >
+          {DEALER_TOOLS.map((item) => {
+            const Icon = item.icon;
+            const isActive = window.location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => {
+                  setOpen(false);
+                  onItemClick?.();
+                }}
+                data-ocid={`nav.dealer_tools.${item.to.replace("/dealer/", "").replace(/-/g, "_")}.link`}
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-amber/10 text-amber"
+                    : "text-muted-text hover:text-foreground hover:bg-surface"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
@@ -370,6 +605,19 @@ function Layout() {
   const { actor } = useActor();
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
+  const { role, isLoading: roleLoading, setRole } = useAppRole();
+
+  // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
+  const showRoleSelection =
+    !!identity &&
+    profileChecked &&
+    !showProfileSetup &&
+    !roleLoading &&
+    role === null;
+
+  // Role-based nav visibility
+  const showBuyerTools = role === "buyer" || role === "admin";
+  const showDealerTools = role === "dealer" || role === "admin";
 
   // For the shared comparison route, render without nav/header/footer
   const isSharedRoute = window.location.pathname === "/shared-comparison";
@@ -423,11 +671,34 @@ function Layout() {
               {NAV_ITEMS.map((item) => (
                 <NavLink key={item.to} {...item} />
               ))}
-              <BuyerToolsDropdown />
+              {showBuyerTools && <BuyerToolsDropdown />}
+              {showDealerTools && <DealerToolsDropdown />}
             </nav>
 
             {/* Right controls */}
             <div className="flex items-center gap-2 shrink-0">
+              {/* Role badge (shows current role; click to reset for non-admins) */}
+              {identity && role && role !== "admin" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const principalId = identity.getPrincipal().toString();
+                    localStorage.removeItem(`atp_role_${principalId}`);
+                    // Force a page reload so useAppRole re-initialises cleanly
+                    window.location.reload();
+                  }}
+                  title="Click to switch role"
+                  className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors"
+                  data-ocid="nav.role_badge.toggle"
+                >
+                  {role === "buyer" ? (
+                    <Car className="w-3 h-3" />
+                  ) : (
+                    <Building2 className="w-3 h-3" />
+                  )}
+                  {role === "buyer" ? "Buyer" : "Dealer"}
+                </button>
+              )}
               <ThemeToggle />
               <AuthButton />
               {/* Mobile menu toggle */}
@@ -459,21 +730,40 @@ function Layout() {
                 />
               ))}
             </div>
-            <div className="border-t border-steel-border pt-2.5">
-              <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-amber" />
-                Buyer Tools
-              </p>
-              <div className="grid grid-cols-3 gap-1.5">
-                {BUYER_TOOLS.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    {...item}
-                    onClick={() => setMobileOpen(false)}
-                  />
-                ))}
+            {showBuyerTools && (
+              <div className="border-t border-steel-border pt-2.5">
+                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-amber" />
+                  Buyer Tools
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {BUYER_TOOLS.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      {...item}
+                      onClick={() => setMobileOpen(false)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+            {showDealerTools && (
+              <div className="border-t border-steel-border pt-2.5">
+                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                  <Building2 className="w-3 h-3 text-amber" />
+                  Dealer Tools
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {DEALER_TOOLS.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      {...item}
+                      onClick={() => setMobileOpen(false)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -481,11 +771,20 @@ function Layout() {
       {/* Alert banner */}
       <PriceAlertBanner />
 
-      {/* Profile setup */}
+      {/* Profile setup modal (shows first, before role selection) */}
       {showProfileSetup && (
         <ProfileSetupModal
           onComplete={() => {
             setShowProfileSetup(false);
+          }}
+        />
+      )}
+
+      {/* Role selection modal (shows after profile setup is complete) */}
+      {showRoleSelection && (
+        <RoleSelectionModal
+          onSelect={(selectedRole) => {
+            setRole(selectedRole);
           }}
         />
       )}
@@ -625,6 +924,31 @@ const dealExpiryRoute = createRoute({
   path: "/deal-expiry",
   component: DealExpiryPage,
 });
+const dealerPricingRadarRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/pricing-radar",
+  component: DealerPricingRadarPage,
+});
+const dealerLotTrackerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/lot-tracker",
+  component: DealerLotTrackerPage,
+});
+const dealerDemandHeatmapRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/demand-heatmap",
+  component: DealerDemandHeatmapPage,
+});
+const dealerTurnoverRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/turnover",
+  component: DealerTurnoverReportPage,
+});
+const dealerPriceElasticityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/price-elasticity",
+  component: DealerPriceElasticityPage,
+});
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -649,6 +973,11 @@ const routeTree = rootRoute.addChildren([
   tcoTimelineRoute,
   trimAnalyzerRoute,
   dealExpiryRoute,
+  dealerPricingRadarRoute,
+  dealerLotTrackerRoute,
+  dealerDemandHeatmapRoute,
+  dealerTurnoverRoute,
+  dealerPriceElasticityRoute,
 ]);
 
 const router = createRouter({ routeTree });

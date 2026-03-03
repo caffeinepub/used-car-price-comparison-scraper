@@ -1,36 +1,34 @@
 # Auto Track Pro
 
 ## Current State
-Full-stack used car price comparison and tracking app with:
-- Dashboard with deal scoring, negotiation score, and deal expiry prediction columns
-- Comparison page with price history, NHTSA recall lookup, shareable reports
-- Cross-model search, depreciation curve, ownership cost calculator
-- Watchlist, price alerts, saved searches, activity log, alert rules
-- Internet Identity authentication, dark/light theme, CSV import/export
-- Backend: `getNegotiationScore`, `getDealExpiryPrediction` already exist
+The app has two nav dropdowns — Buyer Tools and Dealer Tools — both visible to all users regardless of authentication or role. There is no role-based separation. The backend already has `getCallerUserRole`, `assignCallerUserRole`, and `isCallerAdmin` methods, plus a `UserRole` type with `{ admin: null } | { user: null } | { guest: null }`. The existing `ProfileSetupModal` only prompts for a display name on first login.
 
 ## Requested Changes (Diff)
 
 ### Add
-1. **Negotiation Coach page** (`/negotiation-coach`) — given a listing ID (or make/model/days listed/price drop), display step-by-step conversational guidance on what to say to a dealer. Uses `getNegotiationScore` backend data plus rule-based logic on days listed and price drop to generate specific opening offer, counter strategy, and closing scripts.
-2. **"Should I Wait?" page** (`/should-i-wait`) — buyer selects make/model; app shows a seasonal pricing signal (Good Time / Prices Are High / Average) with a month-by-month price trend chart and a plain-English recommendation on whether to buy now or wait.
-3. **True Cost of Ownership Timeline page** (`/tco-timeline`) — buyer selects a listing (or inputs make/model/year/price/mileage); app shows a 5-year stacked area/bar chart combining depreciation, fuel, insurance, and maintenance costs, plus a summary table. Uses the existing ownership cost calculator logic extended to 5-year projection.
-4. **Trim-Level Value Analyzer page** (`/trim-analyzer`) — buyer selects a make/model; app groups listings by trim, shows avg price per trim, price premium over base, and a "Worth It?" verdict badge based on the premium vs. feature tier.
-5. **Deal Expiry Prediction detail panel** — enhance the existing deal expiry column/data by adding a dedicated `/deal-expiry` page where buyers can look up any listing and see a full explanation of the urgency signal, historical data on how fast similar deals sell, and a recommended action.
-- Add nav items for all 5 new pages
-- Add a "Buyer Tools" nav section/grouping or dropdown in the header nav
+- **App-level role** stored in backend: `buyer` and `dealer` as two new role values (extending or mapping over the existing UserRole enum). Because the existing `UserRole` is `admin | user | guest`, we will store the chosen role in the user's `UserProfile` metadata on the frontend side and persist it to the backend via `saveCallerUserProfile` using the `name` field plus a role suffix, OR create a new `appRole` concept stored locally and synced. Given the backend already exposes `saveCallerUserProfile({ name })` and `getCallerUserProfile()`, we will extend the profile name storage to include a role tag, OR use a dedicated localStorage key per principal as the source of truth for role, with backend `assignCallerUserRole` used to store `{ user: null }` (buyer) vs a convention for dealer.
+  - Simpler approach: store app role (buyer/dealer) in `localStorage` keyed by principal, and also call `assignCallerUserRole` with `{ user: null }` for both (since backend only supports admin/user/guest). The role selection modal sets a localStorage entry `atp_role_<principal>` to `"buyer"` or `"dealer"`.
+- **Role Selection Modal** shown after first login (after or replacing the profile setup modal if profile already exists, or shown as second step). The modal lets the user pick "I'm a Buyer" or "I'm a Dealer" with icon cards. Admins skip this modal entirely.
+- **`useAppRole` hook** — reads role from localStorage for the current principal. Returns `"buyer" | "dealer" | "admin" | null` (null = not yet selected).
+- **Nav filtering logic** in `Layout`:
+  - Unauthenticated users: see all nav items (discovery mode), no role tools shown
+  - Buyers: see standard nav + Buyer Tools dropdown; Dealer Tools hidden
+  - Dealers: see standard nav + Dealer Tools dropdown; Buyer Tools hidden
+  - Admins (`isCallerAdmin` returns true): see standard nav + both Buyer Tools and Dealer Tools
 
 ### Modify
-- `App.tsx` — add 5 new routes and nav items for buyer tool pages
-- Nav — add a "Buyer Tools" dropdown/section to group the 5 new pages cleanly without overcrowding the nav
+- `App.tsx` — `Layout` component: conditionally render `BuyerToolsDropdown` and `DealerToolsDropdown` based on role
+- `App.tsx` — Add `RoleSelectionModal` component shown after login when no role is stored for the current principal
+- `App.tsx` — `ProfileSetupModal` flow: after name is saved, check role; if no role, trigger `RoleSelectionModal`
+- The role selection step should feel welcoming and clear, with two prominent card buttons (Buyer / Dealer)
 
 ### Remove
-Nothing removed.
+- Nothing removed; Buyer Tools and Dealer Tools pages remain accessible via direct URL but are hidden from nav for non-matching roles
 
 ## Implementation Plan
-1. Create `NegotiationCoachPage.tsx` — listing selector or manual input (days listed, price drop %, make/model), step-by-step script cards with copy buttons, uses `getNegotiationScore` if listing ID available
-2. Create `ShouldIWaitPage.tsx` — make/model selector, seasonal price signal card, simulated month-by-month price index chart, plain-English recommendation
-3. Create `TCOTimelinePage.tsx` — listing selector or manual inputs, 5-year stacked bar chart (Recharts), summary table with annual and total costs per category
-4. Create `TrimAnalyzerPage.tsx` — make/model selector, trim group cards with avg price, price premium badge, "Worth It?" verdict based on premium thresholds
-5. Create `DealExpiryPage.tsx` — listing selector, urgency card, days-remaining estimate, explanation of factors, recommended action CTA
-6. Update `App.tsx` — add all 5 routes, add "Buyer Tools" dropdown nav group with links to all 5 pages
+1. Create `useAppRole` hook that reads/writes role to localStorage keyed by principal ID
+2. Add `RoleSelectionModal` component in `App.tsx` with Buyer and Dealer card options
+3. Update `Layout` to check admin status (via `isCallerAdmin`) and role, then conditionally render the two tool dropdowns
+4. Wire up the role selection flow: after login + profile check, if no role stored → show `RoleSelectionModal`
+5. Mobile nav also filtered by role
+6. Add `data-ocid` markers to the role selection modal
