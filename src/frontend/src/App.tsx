@@ -21,7 +21,6 @@ import {
   Calculator,
   CalendarDays,
   Car,
-  ChevronDown,
   Clock,
   Flame,
   GitMerge,
@@ -440,7 +439,7 @@ function NavLink({
   );
 }
 
-// ─── Buyer Tools Dropdown ─────────────────────────────────────────────────────
+// ─── Nav item data arrays ─────────────────────────────────────────────────────
 
 const BUYER_TOOLS = [
   { to: "/negotiation-coach", icon: MessageSquare, label: "Negotiation Coach" },
@@ -449,76 +448,6 @@ const BUYER_TOOLS = [
   { to: "/trim-analyzer", icon: Layers, label: "Trim Analyzer" },
   { to: "/deal-expiry", icon: Timer, label: "Deal Expiry" },
 ];
-
-function BuyerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const isAnyActive = BUYER_TOOLS.some(
-    (t) => window.location.pathname === t.to,
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        data-ocid="nav.buyer_tools.toggle"
-        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
-          isAnyActive
-            ? "bg-amber/10 text-amber border border-amber/20"
-            : "text-muted-text hover:text-foreground hover:bg-surface"
-        }`}
-      >
-        <Zap className="w-3.5 h-3.5 shrink-0" />
-        Buyer Tools
-        <ChevronDown
-          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute top-full right-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden">
-          {BUYER_TOOLS.map((item) => {
-            const Icon = item.icon;
-            const isActive = window.location.pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => {
-                  setOpen(false);
-                  onItemClick?.();
-                }}
-                data-ocid={`nav.buyer_tools.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
-                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
-                  isActive
-                    ? "bg-amber/10 text-amber"
-                    : "text-muted-text hover:text-foreground hover:bg-surface"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Dealer Tools Dropdown ────────────────────────────────────────────────────
 
 const DEALER_TOOLS = [
   { to: "/dealer/pricing-radar", icon: Radar, label: "Pricing Radar" },
@@ -532,151 +461,11 @@ const DEALER_TOOLS = [
   },
 ];
 
-function DealerToolsDropdown({ onItemClick }: { onItemClick?: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const isAnyActive = DEALER_TOOLS.some(
-    (t) => window.location.pathname === t.to,
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        data-ocid="nav.dealer_tools.toggle"
-        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
-          isAnyActive
-            ? "bg-amber/10 text-amber border border-amber/20"
-            : "text-muted-text hover:text-foreground hover:bg-surface"
-        }`}
-      >
-        <Building2 className="w-3.5 h-3.5 shrink-0" />
-        Dealer Tools
-        <ChevronDown
-          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute top-full right-0 mt-1 w-52 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden">
-          {DEALER_TOOLS.map((item) => {
-            const Icon = item.icon;
-            const isActive = window.location.pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => {
-                  setOpen(false);
-                  onItemClick?.();
-                }}
-                data-ocid={`nav.dealer_tools.${item.to.replace("/dealer/", "").replace(/-/g, "_")}.link`}
-                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
-                  isActive
-                    ? "bg-amber/10 text-amber"
-                    : "text-muted-text hover:text-foreground hover:bg-surface"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Market Intel Dropdown ────────────────────────────────────────────────────
-
 const MARKET_INTEL_TOOLS = [
   { to: "/market-saturation", icon: Signal, label: "Market Saturation" },
   { to: "/cross-market", icon: Globe, label: "Cross-Market Comparison" },
   { to: "/seasonal-pricing", icon: CalendarDays, label: "Seasonal Pricing" },
 ];
-
-function MarketIntelDropdown({ onItemClick }: { onItemClick?: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const isAnyActive = MARKET_INTEL_TOOLS.some(
-    (t) => window.location.pathname === t.to,
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        data-ocid="nav.market_intel.toggle"
-        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
-          isAnyActive
-            ? "bg-amber/10 text-amber border border-amber/20"
-            : "text-muted-text hover:text-foreground hover:bg-surface"
-        }`}
-      >
-        <BarChart3 className="w-3.5 h-3.5 shrink-0" />
-        Market Intel
-        <ChevronDown
-          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute top-full right-0 mt-1 w-64 bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5 overflow-hidden">
-          {MARKET_INTEL_TOOLS.map((item) => {
-            const Icon = item.icon;
-            const isActive = window.location.pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => {
-                  setOpen(false);
-                  onItemClick?.();
-                }}
-                data-ocid={`nav.market_intel.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
-                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
-                  isActive
-                    ? "bg-amber/10 text-amber"
-                    : "text-muted-text hover:text-foreground hover:bg-surface"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── More Dropdown (secondary nav items) ─────────────────────────────────────
 
 const MORE_ITEMS = [
   { to: "/cross-search", icon: Search, label: "Cross-Search" },
@@ -684,82 +473,9 @@ const MORE_ITEMS = [
   { to: "/duplicates", icon: GitMerge, label: "Duplicates" },
   { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
   { to: "/regional", icon: MapPin, label: "Regions" },
-  {
-    to: "/saved-searches",
-    icon: BookmarkCheck,
-    label: "Saved Searches",
-  },
-  {
-    to: "/custom-alerts",
-    icon: Zap,
-    label: "Alert Rules",
-  },
+  { to: "/saved-searches", icon: BookmarkCheck, label: "Saved Searches" },
+  { to: "/custom-alerts", icon: Zap, label: "Alert Rules" },
 ];
-
-function MoreDropdown({ onItemClick }: { onItemClick?: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const isAnyActive = MORE_ITEMS.some((t) => window.location.pathname === t.to);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        data-ocid="nav.more.toggle"
-        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-          isAnyActive
-            ? "bg-amber/10 text-amber border border-amber/20"
-            : "text-muted-text hover:text-foreground hover:bg-surface"
-        }`}
-      >
-        More
-        <ChevronDown
-          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute top-full left-0 mt-1 min-w-[200px] max-h-[70vh] overflow-y-auto bg-popover border border-steel-border rounded-xl shadow-panel z-50 py-1.5">
-          {MORE_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = window.location.pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => {
-                  setOpen(false);
-                  onItemClick?.();
-                }}
-                data-ocid={`nav.more.${item.to.replace("/", "").replace(/-/g, "_")}.link`}
-                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
-                  isActive
-                    ? "bg-amber/10 text-amber"
-                    : "text-muted-text hover:text-foreground hover:bg-surface"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
@@ -886,22 +602,60 @@ function Layout() {
             </div>
           </div>
 
-          {/* ── Row 2: Desktop nav (hidden on mobile) ── */}
-          <nav className="hidden lg:flex items-center justify-between border-t border-steel-border/50 py-1.5 gap-2">
-            {/* Primary nav links — left side */}
-            <div className="flex items-center gap-0.5 flex-wrap min-w-0">
+          {/* ── Desktop nav rows (hidden on mobile) ── */}
+          <nav
+            className="hidden lg:block border-t border-steel-border/50"
+            data-ocid="nav.desktop.panel"
+          >
+            {/* Row 2a: All primary + secondary links as flat buttons */}
+            <div className="flex items-center flex-wrap gap-0.5 py-1.5">
               {NAV_ITEMS.map((item) => (
                 <NavLink key={item.to} {...item} />
               ))}
+              <div className="w-px h-4 bg-steel-border/60 mx-1 self-center" />
+              {MORE_ITEMS.map((item) => (
+                <NavLink key={item.to} {...item} />
+              ))}
             </div>
-            {/* Dropdown groups — right side, always visible, never pushed off */}
-            <div className="flex items-center gap-1 shrink-0">
-              <MoreDropdown />
-              <div className="w-px h-4 bg-steel-border/60 mx-0.5" />
-              <MarketIntelDropdown />
-              {showBuyerTools && <BuyerToolsDropdown />}
-              {showDealerTools && <DealerToolsDropdown />}
-            </div>
+            {/* Row 2b: Tool sections (Market Intel + role-based tools) */}
+            {(true || showBuyerTools || showDealerTools) && (
+              <div className="flex items-center flex-wrap gap-x-4 gap-y-1 py-1.5 border-t border-steel-border/30">
+                {/* Market Intel section */}
+                <div className="flex items-center gap-0.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-text/60 mr-1 flex items-center gap-1">
+                    <BarChart3 className="w-3 h-3 text-amber/60" />
+                    Market Intel
+                  </span>
+                  {MARKET_INTEL_TOOLS.map((item) => (
+                    <NavLink key={item.to} {...item} />
+                  ))}
+                </div>
+                {/* Buyer Tools section */}
+                {showBuyerTools && (
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-text/60 mr-1 flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-amber/60" />
+                      Buyer Tools
+                    </span>
+                    {BUYER_TOOLS.map((item) => (
+                      <NavLink key={item.to} {...item} />
+                    ))}
+                  </div>
+                )}
+                {/* Dealer Tools section */}
+                {showDealerTools && (
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-text/60 mr-1 flex items-center gap-1">
+                      <Building2 className="w-3 h-3 text-amber/60" />
+                      Dealer Tools
+                    </span>
+                    {DEALER_TOOLS.map((item) => (
+                      <NavLink key={item.to} {...item} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
         </div>
 
