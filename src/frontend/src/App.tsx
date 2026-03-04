@@ -10,11 +10,11 @@ import {
   createRoute,
   createRouter,
   useNavigate,
+  useRouterState,
 } from "@tanstack/react-router";
 import {
   Activity,
   BarChart2,
-  BarChart3,
   Bell,
   BookmarkCheck,
   Building2,
@@ -26,7 +26,7 @@ import {
   GitMerge,
   Globe,
   Heart,
-  Layers,
+  LayoutGrid,
   LineChart,
   MapPin,
   Menu,
@@ -93,9 +93,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// App icons – referenced here so the build pipeline preserves these files
-const _APP_ICON = "/assets/generated/atp-touch-icon.dim_180x180.png";
-const _APP_ICON_LG = "/assets/generated/atp-app-icon.dim_512x512.png";
+import atpAppIcon from "/assets/generated/atp-app-icon.dim_512x512.png";
+// App icons – imported as real ES module assets so the build pipeline preserves these files
+import atpTouchIcon from "/assets/generated/atp-touch-icon.dim_180x180.png";
+// Keep references used so tree-shaking doesn't remove them
+const _ATP_TOUCH_ICON = atpTouchIcon;
+const _ATP_APP_ICON = atpAppIcon;
 
 // ─── ATP Logo SVG (theme-aware) ───────────────────────────────────────────────
 
@@ -481,7 +484,7 @@ const BUYER_TOOLS = [
   { to: "/negotiation-coach", icon: MessageSquare, label: "Negotiation Coach" },
   { to: "/should-i-wait", icon: Clock, label: "Should I Wait?" },
   { to: "/tco-timeline", icon: LineChart, label: "TCO Timeline" },
-  { to: "/trim-analyzer", icon: Layers, label: "Trim Analyzer" },
+  { to: "/trim-analyzer", icon: BarChart2, label: "Trim Analyzer" },
   { to: "/deal-expiry", icon: Timer, label: "Deal Expiry" },
 ];
 
@@ -526,40 +529,6 @@ const MORE_ITEMS = [
   { to: "/custom-alerts", icon: Zap, label: "Alert Rules" },
 ];
 
-// ─── Mobile Nav Link ──────────────────────────────────────────────────────────
-
-function NavLink({
-  to,
-  icon: Icon,
-  label,
-  onClick,
-  ocid,
-}: {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  onClick?: () => void;
-  ocid?: string;
-}) {
-  const isActive =
-    window.location.pathname === to || window.location.hash === `#${to}`;
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      data-ocid={ocid}
-      className={`shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
-        isActive
-          ? "bg-amber/10 text-amber border border-amber/20"
-          : "text-muted-text hover:text-foreground hover:bg-surface"
-      }`}
-    >
-      <Icon className="w-3.5 h-3.5 shrink-0" />
-      {label}
-    </Link>
-  );
-}
-
 // ─── App Header ───────────────────────────────────────────────────────────────
 
 function AppHeader({
@@ -597,7 +566,7 @@ function AppHeader({
         data-ocid="header.logo.link"
       >
         <ATPLogo size={28} />
-        <span className="font-bold text-sm text-foreground whitespace-nowrap hidden sm:inline">
+        <span className="font-bold text-sm text-foreground whitespace-nowrap">
           Auto Track <span className="text-amber">Pro</span>
         </span>
       </Link>
@@ -698,639 +667,360 @@ function AppHeader({
   );
 }
 
-// ─── Nav Card Grid ────────────────────────────────────────────────────────────
+// ─── NavDrawer — full feature list, mobile fullscreen / desktop right-panel ──
 
-interface NavCardDef {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  ocid: string;
-  accent?: boolean;
-}
-
-interface NavSectionDef {
-  title: string;
-  accent?: boolean;
-  cards: NavCardDef[];
-}
-
-function NavCardGrid({
-  role,
-  navigate,
-}: {
-  role: AppRole;
-  navigate: ReturnType<typeof useNavigate>;
-}) {
-  const showBuyerTools = role === "buyer" || role === "admin";
-  const showDealerTools = role === "dealer" || role === "admin";
-
-  const sections: NavSectionDef[] = [
-    {
-      title: "Core",
-      cards: [
-        {
-          to: "/",
-          icon: BarChart2,
-          label: "Dashboard",
-          description: "Track & manage listings",
-          ocid: "nav_card.core.dashboard.button",
-        },
-        {
-          to: "/add",
-          icon: PlusCircle,
-          label: "Add Listing",
-          description: "Add a new vehicle listing",
-          ocid: "nav_card.core.add.button",
-        },
-        {
-          to: "/import",
-          icon: Upload,
-          label: "Import",
-          description: "Bulk import via CSV",
-          ocid: "nav_card.core.import.button",
-        },
-        {
-          to: "/compare",
-          icon: Car,
-          label: "Compare",
-          description: "Compare prices by model",
-          ocid: "nav_card.core.compare.button",
-        },
-        {
-          to: "/market",
-          icon: TrendingDown,
-          label: "Market",
-          description: "Market overview & trends",
-          ocid: "nav_card.core.market.button",
-        },
-      ],
-    },
-    {
-      title: "Tracking",
-      cards: [
-        {
-          to: "/watchlist",
-          icon: Heart,
-          label: "Watchlist",
-          description: "Monitor saved makes & models",
-          ocid: "nav_card.tracking.watchlist.button",
-        },
-        {
-          to: "/custom-alerts",
-          icon: Zap,
-          label: "Alert Rules",
-          description: "Custom price alert formulas",
-          ocid: "nav_card.tracking.alert_rules.button",
-        },
-        {
-          to: "/saved-searches",
-          icon: BookmarkCheck,
-          label: "Saved Searches",
-          description: "Saved filter configurations",
-          ocid: "nav_card.tracking.saved_searches.button",
-        },
-        {
-          to: "/activity",
-          icon: Activity,
-          label: "Activity",
-          description: "Timeline of all changes",
-          ocid: "nav_card.tracking.activity.button",
-        },
-      ],
-    },
-    {
-      title: "Analysis",
-      cards: [
-        {
-          to: "/cross-search",
-          icon: Search,
-          label: "Cross Search",
-          description: "Search across all models",
-          ocid: "nav_card.analysis.cross_search.button",
-        },
-        {
-          to: "/depreciation",
-          icon: TrendingDown,
-          label: "Depreciation",
-          description: "Value loss over time",
-          ocid: "nav_card.analysis.depreciation.button",
-        },
-        {
-          to: "/duplicates",
-          icon: GitMerge,
-          label: "Duplicates",
-          description: "Detect & merge duplicates",
-          ocid: "nav_card.analysis.duplicates.button",
-        },
-        {
-          to: "/ownership-cost",
-          icon: Calculator,
-          label: "Cost Calculator",
-          description: "Annual ownership costs",
-          ocid: "nav_card.analysis.cost_calculator.button",
-        },
-        {
-          to: "/regional",
-          icon: MapPin,
-          label: "Regions",
-          description: "Regional sourcing breakdown",
-          ocid: "nav_card.analysis.regions.button",
-        },
-        {
-          to: "/dealer-ratings",
-          icon: Star,
-          label: "Dealer Ratings",
-          description: "Community dealer reviews",
-          ocid: "nav_card.analysis.dealer_ratings.button",
-        },
-      ],
-    },
-    {
-      title: "Market Intel",
-      accent: true,
-      cards: [
-        {
-          to: "/market-saturation",
-          icon: Signal,
-          label: "Market Saturation",
-          description: "Listing volume & leverage",
-          ocid: "nav_card.market_intel.saturation.button",
-          accent: true,
-        },
-        {
-          to: "/cross-market",
-          icon: Globe,
-          label: "Cross-Market",
-          description: "Compare prices by source",
-          ocid: "nav_card.market_intel.cross_market.button",
-          accent: true,
-        },
-        {
-          to: "/seasonal-pricing",
-          icon: CalendarDays,
-          label: "Seasonal Pricing",
-          description: "Best months to buy",
-          ocid: "nav_card.market_intel.seasonal_pricing.button",
-          accent: true,
-        },
-      ],
-    },
-    ...(showBuyerTools
-      ? [
-          {
-            title: "Buyer Tools",
-            accent: true,
-            cards: [
-              {
-                to: "/negotiation-coach",
-                icon: MessageSquare,
-                label: "Negotiation Coach",
-                description: "Step-by-step dealer scripts",
-                ocid: "nav_card.buyer_tools.negotiation_coach.button",
-                accent: true,
-              },
-              {
-                to: "/should-i-wait",
-                icon: Clock,
-                label: "Should I Wait?",
-                description: "Seasonal buy/wait signal",
-                ocid: "nav_card.buyer_tools.should_i_wait.button",
-                accent: true,
-              },
-              {
-                to: "/tco-timeline",
-                icon: LineChart,
-                label: "TCO Timeline",
-                description: "5-year cost projection",
-                ocid: "nav_card.buyer_tools.tco_timeline.button",
-                accent: true,
-              },
-              {
-                to: "/trim-analyzer",
-                icon: Layers,
-                label: "Trim Analyzer",
-                description: "Is the trim upgrade worth it?",
-                ocid: "nav_card.buyer_tools.trim_analyzer.button",
-                accent: true,
-              },
-              {
-                to: "/deal-expiry",
-                icon: Timer,
-                label: "Deal Expiry",
-                description: "How long before deal expires",
-                ocid: "nav_card.buyer_tools.deal_expiry.button",
-                accent: true,
-              },
-            ] as NavCardDef[],
-          } as NavSectionDef,
-        ]
-      : []),
-    ...(showDealerTools
-      ? [
-          {
-            title: "Dealer Tools",
-            accent: true,
-            cards: [
-              {
-                to: "/dealer/pricing-radar",
-                icon: Radar,
-                label: "Pricing Radar",
-                description: "vs market average",
-                ocid: "nav_card.dealer_tools.pricing_radar.button",
-                accent: true,
-              },
-              {
-                to: "/dealer/lot-tracker",
-                icon: Clock,
-                label: "Lot Tracker",
-                description: "Aging inventory alerts",
-                ocid: "nav_card.dealer_tools.lot_tracker.button",
-                accent: true,
-              },
-              {
-                to: "/dealer/demand-heatmap",
-                icon: Flame,
-                label: "Demand Heatmap",
-                description: "Most searched models",
-                ocid: "nav_card.dealer_tools.demand_heatmap.button",
-                accent: true,
-              },
-              {
-                to: "/dealer/turnover",
-                icon: RefreshCw,
-                label: "Turnover Report",
-                description: "Inventory velocity",
-                ocid: "nav_card.dealer_tools.turnover_report.button",
-                accent: true,
-              },
-              {
-                to: "/dealer/price-elasticity",
-                icon: TrendingDown,
-                label: "Price Elasticity",
-                description: "Value by trim",
-                ocid: "nav_card.dealer_tools.price_elasticity.button",
-                accent: true,
-              },
-            ] as NavCardDef[],
-          } as NavSectionDef,
-        ]
-      : []),
-  ];
-
-  const now = new Date();
-  const greeting =
-    now.getHours() < 12
-      ? "Good morning"
-      : now.getHours() < 17
-        ? "Good afternoon"
-        : "Good evening";
-  const dateLabel = now.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-  return (
-    <div className="max-w-screen-2xl mx-auto px-4 py-6">
-      {/* Compact status bar — replaces the redundant logo block */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">
-            {greeting} —{" "}
-            <span className="text-muted-text font-normal">{dateLabel}</span>
-          </h1>
-          <p className="text-xs text-muted-text mt-0.5">
-            Select a tool below or scroll down to your listings
-          </p>
-        </div>
-        {role && role !== "admin" && (
-          <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber/10 text-amber border border-amber/20">
-            {role === "buyer" ? "Buyer" : "Dealer"} view
-          </span>
-        )}
-      </div>
-
-      <div className="space-y-8">
-        {sections.map((section) => {
-          const isAccent = section.accent;
-          const inner = (
-            <>
-              {/* Section label */}
-              <div className="flex items-center gap-2 mb-3">
-                {isAccent && (
-                  <BarChart3 className="w-3.5 h-3.5 text-amber shrink-0" />
-                )}
-                <span
-                  className={`text-[11px] font-bold uppercase tracking-widest ${
-                    isAccent ? "text-amber" : "text-muted-text/70"
-                  }`}
-                >
-                  {section.title}
-                </span>
-                {!isAccent && (
-                  <div className="flex-1 h-px bg-steel-border/50" />
-                )}
-              </div>
-
-              {/* Cards grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {section.cards.map((card) => {
-                  const Icon = card.icon;
-                  return (
-                    <button
-                      key={card.to}
-                      type="button"
-                      onClick={() => navigate({ to: card.to })}
-                      data-ocid={card.ocid}
-                      className={`rounded-xl border bg-surface p-4 flex flex-col items-start gap-3 cursor-pointer text-left shadow-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber group hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm ${
-                        card.accent
-                          ? "border-amber/20 hover:border-amber/50 hover:bg-amber/5"
-                          : "border-steel-border hover:border-amber/40 hover:bg-surface"
-                      }`}
-                    >
-                      {/* Icon */}
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                          card.accent
-                            ? "bg-amber/10 border border-amber/20 group-hover:bg-amber/20"
-                            : "bg-background border border-steel-border group-hover:border-amber/30 group-hover:bg-amber/5"
-                        }`}
-                      >
-                        <Icon
-                          className={`w-5 h-5 transition-colors ${
-                            card.accent
-                              ? "text-amber"
-                              : "text-muted-text group-hover:text-amber"
-                          }`}
-                        />
-                      </div>
-
-                      {/* Text */}
-                      <div className="min-w-0 w-full">
-                        <p className="text-sm font-semibold text-foreground leading-tight mb-0.5">
-                          {card.label}
-                        </p>
-                        <p className="text-xs text-muted-text leading-snug line-clamp-2">
-                          {card.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          );
-
-          return isAccent ? (
-            <div
-              key={section.title}
-              className="rounded-2xl border border-amber/10 bg-amber/[0.03] px-4 py-5"
-            >
-              {inner}
-            </div>
-          ) : (
-            <div key={section.title}>{inner}</div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── Home Screen wrapper (NavCardGrid + Dashboard) ────────────────────────────
-
-function HomeScreen() {
-  const { role } = useAppRole();
-  const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen">
-      <NavCardGrid role={role} navigate={navigate} />
-      {/* Dashboard section divider */}
-      <div className="max-w-screen-2xl mx-auto px-4 mb-2">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-steel-border/60" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-text/50 shrink-0 flex items-center gap-1.5">
-            <BarChart2 className="w-3 h-3" />
-            Your Listings
-          </span>
-          <div className="flex-1 h-px bg-steel-border/60" />
-        </div>
-      </div>
-      <DashboardPage />
-    </div>
-  );
-}
-
-// ─── Mobile-only Theme Toggle ─────────────────────────────────────────────────
-
-function MobileThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className="w-8 h-8 rounded-lg border border-steel-border bg-surface hover:border-amber/40 flex items-center justify-center transition-colors"
-      aria-label="Toggle theme"
-    >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4 text-muted-text" />
-      ) : (
-        <Moon className="w-4 h-4 text-muted-text" />
-      )}
-    </button>
-  );
-}
-
-// ─── Mobile-only Auth Button ──────────────────────────────────────────────────
-
-function MobileAuthButton({ onSignInClick }: { onSignInClick: () => void }) {
-  const { clear, loginStatus, identity } = useInternetIdentity();
-  const qc = useQueryClient();
-  const isAuthenticated = !!identity;
-  const isLoggingIn = loginStatus === "logging-in";
-
-  const handleAuth = async () => {
-    if (isAuthenticated) {
-      await clear();
-      qc.clear();
-    } else {
-      onSignInClick();
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleAuth}
-      disabled={isLoggingIn}
-      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
-        isAuthenticated
-          ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
-          : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
-      } disabled:opacity-50`}
-    >
-      {isLoggingIn ? "Signing in…" : isAuthenticated ? "Sign out" : "Sign in"}
-    </button>
-  );
-}
-
-// ─── Mobile FAB Nav ───────────────────────────────────────────────────────────
-
-function MobileNav({
-  role,
-  clearRole,
-  identity,
+function NavDrawer({
+  open,
+  onClose,
   showBuyerTools,
   showDealerTools,
-  onSignInClick,
 }: {
-  role: AppRole;
-  clearRole: () => void;
-  identity: any;
+  open: boolean;
+  onClose: () => void;
   showBuyerTools: boolean;
   showDealerTools: boolean;
-  onSignInClick: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
 
-  const close = () => setOpen(false);
+  // Close on Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const handleNav = (to: string) => {
+    navigate({ to });
+    onClose();
+  };
+
+  const isActive = (to: string, exact = false) =>
+    exact ? pathname === to : pathname === to || pathname.startsWith(`${to}/`);
+
+  const DrawerItem = ({
+    item,
+    ocid,
+    exact = false,
+  }: {
+    item: { to: string; icon: React.ElementType; label: string };
+    ocid?: string;
+    exact?: boolean;
+  }) => {
+    const Icon = item.icon;
+    const active = isActive(item.to, exact);
+    return (
+      <button
+        type="button"
+        onClick={() => handleNav(item.to)}
+        data-ocid={ocid}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left ${
+          active
+            ? "bg-amber/15 text-amber border border-amber/25"
+            : "text-foreground hover:bg-surface hover:text-foreground border border-transparent"
+        }`}
+      >
+        <Icon
+          className={`w-4 h-4 shrink-0 ${active ? "text-amber" : "text-muted-text"}`}
+        />
+        {item.label}
+      </button>
+    );
+  };
+
+  const SectionLabel = ({
+    icon: Icon,
+    label,
+    amber = false,
+  }: {
+    icon?: React.ElementType;
+    label: string;
+    amber?: boolean;
+  }) => (
+    <div
+      className={`flex items-center gap-1.5 px-4 pt-4 pb-1 ${amber ? "text-amber" : "text-muted-text"}`}
+    >
+      {Icon && <Icon className="w-3 h-3" />}
+      <span className="text-[10px] font-bold uppercase tracking-widest">
+        {label}
+      </span>
+    </div>
+  );
 
   return (
     <>
-      {/* Backdrop overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
-          onClick={close}
-          onKeyDown={(e) => e.key === "Escape" && close()}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Slide-up drawer panel */}
-      <div
-        className={`fixed bottom-16 right-2 z-50 md:hidden w-[min(340px,calc(100vw-16px))] bg-surface border border-steel-border rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out origin-bottom-right ${
+      {/* Backdrop */}
+      <button
+        type="button"
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 w-full cursor-default ${
           open
-            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-            : "opacity-0 translate-y-4 scale-95 pointer-events-none"
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
-        aria-hidden={!open}
+        onClick={onClose}
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
+        aria-label="Close menu"
+        tabIndex={open ? 0 : -1}
+      />
+
+      {/* Drawer panel — slides up from bottom on mobile, slides in from right on desktop */}
+      <dialog
+        aria-label="All features navigation"
+        data-ocid="nav_drawer.panel"
+        open={open}
+        className={`fixed z-50 bg-background border-steel-border shadow-2xl transition-transform duration-300 ease-out p-0 m-0
+          bottom-0 left-0 right-0 rounded-t-2xl border-t max-h-[88vh] overflow-y-auto w-full max-w-full
+          md:top-0 md:right-0 md:left-auto md:bottom-0 md:rounded-none md:rounded-l-2xl md:border-t-0 md:border-l md:w-80 md:max-h-full md:h-full
+          ${
+            open
+              ? "translate-y-0 md:translate-x-0"
+              : "translate-y-full md:translate-x-full"
+          }`}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-steel-border">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-background border-b border-steel-border">
           <div className="flex items-center gap-2">
-            <ATPLogo size={22} />
-            <span className="font-bold text-sm text-foreground">
-              Auto Track <span className="text-amber">Pro</span>
+            <LayoutGrid className="w-4 h-4 text-amber" />
+            <span className="text-sm font-bold text-foreground">
+              All Features
             </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <MobileThemeToggle />
-            <MobileAuthButton onSignInClick={onSignInClick} />
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            data-ocid="nav_drawer.close_button"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-text hover:text-foreground hover:bg-surface border border-transparent hover:border-steel-border transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Scrollable nav content */}
-        <div className="overflow-y-auto max-h-[70vh] px-3 py-3 space-y-3">
-          {/* Primary nav items */}
-          <div className="grid grid-cols-2 gap-1">
-            {NAV_ITEMS.map((item) => (
-              <NavLink key={item.to} {...item} onClick={close} />
+        {/* Mobile drag handle indicator */}
+        <div className="md:hidden flex justify-center pt-2 -mt-1 absolute top-0 left-0 right-0 pointer-events-none">
+          <div className="w-10 h-1 rounded-full bg-steel-border/60" />
+        </div>
+
+        {/* Drawer content */}
+        <div className="px-3 pb-6 pt-2">
+          {/* Core section */}
+          <SectionLabel label="Core" />
+          <div className="space-y-0.5">
+            <DrawerItem
+              item={NAV_ITEMS[0]}
+              ocid="nav_drawer.dashboard.link"
+              exact
+            />
+            {NAV_ITEMS.slice(1).map((item, i) => (
+              <DrawerItem
+                key={item.to}
+                item={item}
+                ocid={`nav_drawer.core.link.${i + 2}`}
+              />
             ))}
           </div>
 
-          {/* More / secondary items */}
-          <div className="border-t border-steel-border pt-2.5">
-            <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5">
-              More
-            </p>
-            <div className="grid grid-cols-2 gap-1">
-              {MORE_ITEMS.map((item) => (
-                <NavLink key={item.to} {...item} onClick={close} />
-              ))}
-            </div>
+          {/* More section */}
+          <SectionLabel label="More Tools" />
+          <div className="space-y-0.5">
+            {MORE_ITEMS.map((item, i) => (
+              <DrawerItem
+                key={item.to}
+                item={item}
+                ocid={`nav_drawer.more.link.${i + 1}`}
+              />
+            ))}
           </div>
 
-          {/* Market Intel */}
-          <div className="border-t border-steel-border pt-2.5">
-            <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
-              <BarChart3 className="w-3 h-3 text-amber" />
-              Market Intel
-            </p>
-            <div className="flex flex-col gap-1">
-              {MARKET_INTEL_TOOLS.map((item) => (
-                <NavLink key={item.to} {...item} onClick={close} />
-              ))}
-            </div>
+          {/* Market Intel section */}
+          <SectionLabel icon={Signal} label="Market Intel" amber />
+          <div className="space-y-0.5 rounded-xl overflow-hidden border border-amber/10 bg-amber/3 p-1">
+            {MARKET_INTEL_TOOLS.map((item, i) => (
+              <DrawerItem
+                key={item.to}
+                item={item}
+                ocid={`nav_drawer.market_intel.link.${i + 1}`}
+              />
+            ))}
           </div>
 
-          {/* Buyer Tools */}
+          {/* Buyer Tools (conditional) */}
           {showBuyerTools && (
-            <div className="border-t border-steel-border pt-2.5">
-              <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-amber" />
-                Buyer Tools
-              </p>
-              <div className="flex flex-col gap-1">
-                {BUYER_TOOLS.map((item) => (
-                  <NavLink key={item.to} {...item} onClick={close} />
+            <>
+              <SectionLabel icon={Zap} label="Buyer Tools" amber />
+              <div className="space-y-0.5 rounded-xl overflow-hidden border border-amber/10 bg-amber/3 p-1">
+                {BUYER_TOOLS.map((item, i) => (
+                  <DrawerItem
+                    key={item.to}
+                    item={item}
+                    ocid={`nav_drawer.buyer_tools.link.${i + 1}`}
+                  />
                 ))}
               </div>
-            </div>
+            </>
           )}
 
-          {/* Dealer Tools */}
+          {/* Dealer Tools (conditional) */}
           {showDealerTools && (
-            <div className="border-t border-steel-border pt-2.5">
-              <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
-                <Building2 className="w-3 h-3 text-amber" />
-                Dealer Tools
-              </p>
-              <div className="flex flex-col gap-1">
-                {DEALER_TOOLS.map((item) => (
-                  <NavLink key={item.to} {...item} onClick={close} />
+            <>
+              <SectionLabel icon={Building2} label="Dealer Tools" amber />
+              <div className="space-y-0.5 rounded-xl overflow-hidden border border-amber/10 bg-amber/3 p-1">
+                {DEALER_TOOLS.map((item, i) => (
+                  <DrawerItem
+                    key={item.to}
+                    item={item}
+                    ocid={`nav_drawer.dealer_tools.link.${i + 1}`}
+                  />
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Switch Role */}
-          {identity && role && role !== "admin" && (
-            <div className="border-t border-steel-border pt-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  close();
-                  clearRole();
-                }}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
-                data-ocid="nav.mobile_switch_role.button"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Switch Role (currently {role === "buyer" ? "Buyer" : "Dealer"})
-              </button>
-            </div>
+            </>
           )}
         </div>
-      </div>
+      </dialog>
+    </>
+  );
+}
 
-      {/* FAB button */}
+// ─── BottomTabBar — fixed bottom bar for mobile ───────────────────────────────
+
+const BOTTOM_TABS = [
+  { to: "/", icon: BarChart2, label: "Dashboard", exact: true },
+  { to: "/add", icon: PlusCircle, label: "Add", exact: false },
+  { to: "/compare", icon: Car, label: "Compare", exact: false },
+  { to: "/market", icon: TrendingDown, label: "Market", exact: false },
+];
+
+function BottomTabBar({ onMenuOpen }: { onMenuOpen: () => void }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const isActive = (to: string, exact: boolean) =>
+    exact ? pathname === to : pathname === to || pathname.startsWith(`${to}/`);
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-surface/95 backdrop-blur-md border-t border-steel-border"
+      aria-label="Bottom navigation"
+      data-ocid="bottom_tab_bar.panel"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div className="flex items-stretch h-16">
+        {BOTTOM_TABS.map((tab, i) => {
+          const Icon = tab.icon;
+          const active = isActive(tab.to, tab.exact);
+          return (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              data-ocid={`bottom_tab_bar.tab.${i + 1}`}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
+                active ? "text-amber" : "text-muted-text hover:text-foreground"
+              }`}
+            >
+              <Icon
+                className={`w-5 h-5 transition-transform ${active ? "scale-110" : ""}`}
+              />
+              <span>{tab.label}</span>
+            </Link>
+          );
+        })}
+
+        {/* Menu button */}
+        <button
+          type="button"
+          onClick={onMenuOpen}
+          data-ocid="bottom_tab_bar.menu_button"
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-muted-text hover:text-foreground transition-colors"
+          aria-label="Open all features menu"
+        >
+          <Menu className="w-5 h-5" />
+          <span>Menu</span>
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+// ─── Desktop NavBar — single compact row with "All Features" button ───────────
+
+const NAV_PILL_BASE =
+  "shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-colors whitespace-nowrap text-muted-text hover:text-foreground hover:bg-surface border border-transparent";
+const NAV_PILL_ACTIVE = "bg-amber/15 text-amber border border-amber/30";
+
+function NavBar({
+  showBuyerTools: _showBuyerTools,
+  showDealerTools: _showDealerTools,
+  onOpenDrawer,
+}: {
+  showBuyerTools: boolean;
+  showDealerTools: boolean;
+  onOpenDrawer: () => void;
+}) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const navPill = (
+    item: { to: string; icon: React.ElementType; label: string },
+    ocid?: string,
+    exact = false,
+  ) => {
+    const Icon = item.icon;
+    const isActive = exact
+      ? pathname === item.to
+      : pathname === item.to || pathname.startsWith(`${item.to}/`);
+    return (
+      <Link
+        key={item.to}
+        to={item.to}
+        data-ocid={ocid}
+        className={`${NAV_PILL_BASE}${isActive ? ` ${NAV_PILL_ACTIVE}` : ""}`}
+      >
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        {item.label}
+      </Link>
+    );
+  };
+
+  return (
+    <nav
+      className="hidden md:flex bg-surface/95 backdrop-blur-md border-b border-steel-border items-center gap-1.5 px-4 py-1.5 overflow-x-auto scrollbar-none"
+      aria-label="Main navigation"
+      data-ocid="navbar.panel"
+    >
+      {/* Primary nav pills */}
+      {navPill(NAV_ITEMS[0], "navbar.primary.link.1", true)}
+      {NAV_ITEMS.slice(1).map((item, i) =>
+        navPill(item, `navbar.primary.link.${i + 2}`),
+      )}
+
+      {/* Spacer */}
+      <div className="flex-1 min-w-2" />
+
+      {/* All Features button */}
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? "Close navigation" : "Open navigation"}
-        data-ocid="nav.mobile_fab.button"
-        className="fixed bottom-4 right-4 z-50 md:hidden w-12 h-12 rounded-full bg-amber text-charcoal shadow-lg hover:bg-amber/90 active:scale-95 flex items-center justify-center transition-all duration-200"
+        onClick={onOpenDrawer}
+        data-ocid="navbar.all_features.button"
+        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-amber/10 text-amber border border-amber/30 hover:bg-amber/20 transition-colors whitespace-nowrap"
+        aria-label="Open all features"
       >
-        <div
-          className={`transition-transform duration-200 ${open ? "rotate-90" : "rotate-0"}`}
-        >
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </div>
+        <Menu className="w-3.5 h-3.5" />
+        All Features
       </button>
-    </>
+    </nav>
   );
 }
 
@@ -1346,6 +1036,9 @@ function Layout() {
   // Pre-login role picker state
   const [showPreLoginModal, setShowPreLoginModal] = useState(false);
   const pendingRole = useRef<"buyer" | "dealer" | null>(null);
+
+  // Nav drawer state — shared between NavBar, BottomTabBar, and NavDrawer
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
   const showRoleSelection =
@@ -1414,8 +1107,17 @@ function Layout() {
         onSignInClick={handleSignInClick}
       />
 
-      {/* ── Main content area (offset for header height) ── */}
+      {/* ── Main content area (offset for fixed header height = 56px / pt-14) ── */}
       <div className="flex-1 flex flex-col min-w-0 pt-14">
+        {/* ── Sticky NavBar — desktop only (sits right below the header in the flow) ── */}
+        <div className="sticky top-14 z-20 hidden md:block">
+          <NavBar
+            showBuyerTools={showBuyerTools}
+            showDealerTools={showDealerTools}
+            onOpenDrawer={() => setDrawerOpen(true)}
+          />
+        </div>
+
         {/* Alert banner */}
         <PriceAlertBanner />
 
@@ -1453,15 +1155,15 @@ function Layout() {
           />
         )}
 
-        {/* Page content */}
-        <main className="flex-1">
+        {/* Page content — add pb-16 on mobile for bottom tab bar */}
+        <main className="flex-1 pb-16 md:pb-0">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-steel-border bg-surface mt-auto">
+        <footer className="border-t border-steel-border bg-surface mt-auto mb-16 md:mb-0">
           <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
             <div className="flex items-center gap-2">
               <ATPLogo size={28} />
@@ -1474,14 +1176,15 @@ function Layout() {
         </footer>
       </div>
 
-      {/* ── Mobile FAB Nav (fixed, visible only on mobile) ── */}
-      <MobileNav
-        role={role}
-        clearRole={clearRole}
-        identity={identity}
+      {/* ── Mobile bottom tab bar ── */}
+      <BottomTabBar onMenuOpen={() => setDrawerOpen(true)} />
+
+      {/* ── Nav Drawer — shared between mobile (full-screen slide-up) and desktop (right panel) ── */}
+      <NavDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
         showBuyerTools={showBuyerTools}
         showDealerTools={showDealerTools}
-        onSignInClick={handleSignInClick}
       />
     </div>
   );
@@ -1511,7 +1214,7 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: HomeScreen,
+  component: DashboardPage,
 });
 const addRoute = createRoute({
   getParentRoute: () => rootRoute,
