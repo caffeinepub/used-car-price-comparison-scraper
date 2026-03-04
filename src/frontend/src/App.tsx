@@ -21,8 +21,6 @@ import {
   Calculator,
   CalendarDays,
   Car,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Flame,
   GitMerge,
@@ -207,6 +205,98 @@ function useAppRole(): {
   return { role, isLoading, setRole, clearRole };
 }
 
+// ─── Pre-Login Role Picker Modal ──────────────────────────────────────────────
+
+function PreLoginRoleModal({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (role: "buyer" | "dealer") => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm"
+      data-ocid="pre_login_modal.modal"
+    >
+      <div className="bg-surface border border-steel-border rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4 relative">
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          data-ocid="pre_login_modal.close_button"
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-muted-text hover:text-foreground hover:bg-surface border border-transparent hover:border-steel-border transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <ATPLogo size={48} />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            How would you like to <span className="text-amber">sign in</span>?
+          </h2>
+          <p className="text-sm text-muted-text">
+            Choose your role to personalize your experience
+          </p>
+        </div>
+
+        {/* Role cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Buyer card */}
+          <button
+            type="button"
+            onClick={() => onSelect("buyer")}
+            data-ocid="pre_login_modal.buyer_button"
+            className="group flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-steel-border bg-background hover:border-amber/50 hover:bg-amber/5 transition-all duration-200 cursor-pointer text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-amber/10 border border-amber/20 flex items-center justify-center group-hover:bg-amber/20 transition-colors">
+              <Car className="w-7 h-7 text-amber" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground mb-1">
+                I'm a Buyer
+              </p>
+              <p className="text-xs text-muted-text leading-relaxed">
+                Find the best deals, track prices &amp; negotiate smarter
+              </p>
+            </div>
+            <div className="mt-1 px-4 py-1.5 rounded-full bg-amber/10 border border-amber/20 text-xs font-semibold text-amber group-hover:bg-amber group-hover:text-charcoal transition-colors">
+              Sign in as Buyer
+            </div>
+          </button>
+
+          {/* Dealer card */}
+          <button
+            type="button"
+            onClick={() => onSelect("dealer")}
+            data-ocid="pre_login_modal.dealer_button"
+            className="group flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-steel-border bg-background hover:border-amber/50 hover:bg-amber/5 transition-all duration-200 cursor-pointer text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-amber/10 border border-amber/20 flex items-center justify-center group-hover:bg-amber/20 transition-colors">
+              <Building2 className="w-7 h-7 text-amber" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground mb-1">
+                I'm a Dealer
+              </p>
+              <p className="text-xs text-muted-text leading-relaxed">
+                Manage inventory, analyze markets &amp; track demand
+              </p>
+            </div>
+            <div className="mt-1 px-4 py-1.5 rounded-full bg-amber/10 border border-amber/20 text-xs font-semibold text-amber group-hover:bg-amber group-hover:text-charcoal transition-colors">
+              Sign in as Dealer
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Role Selection Modal ─────────────────────────────────────────────────────
 
 function RoleSelectionModal({
@@ -230,7 +320,7 @@ function RoleSelectionModal({
           </h2>
           <p className="text-sm text-muted-text">
             Choose your role to personalize your experience. You can switch
-            roles anytime using the badge in the sidebar.
+            roles anytime using the badge in the header.
           </p>
         </div>
 
@@ -345,102 +435,6 @@ function ProfileSetupModal({ onComplete }: { onComplete: () => void }) {
         </Button>
       </div>
     </div>
-  );
-}
-
-// ─── Theme Toggle ─────────────────────────────────────────────────────────────
-
-function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className={`flex items-center gap-2 rounded-lg border border-steel-border bg-surface hover:border-amber/40 transition-colors ${
-        collapsed ? "w-9 h-9 justify-center" : "w-full px-3 py-2"
-      }`}
-      aria-label="Toggle theme"
-      title="Toggle theme"
-      data-ocid="sidebar.theme.toggle"
-    >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4 text-muted-text shrink-0" />
-      ) : (
-        <Moon className="w-4 h-4 text-muted-text shrink-0" />
-      )}
-      {!collapsed && (
-        <span className="text-xs text-muted-text">
-          {theme === "dark" ? "Light mode" : "Dark mode"}
-        </span>
-      )}
-    </button>
-  );
-}
-
-// ─── Auth Button ──────────────────────────────────────────────────────────────
-
-function AuthButton({ collapsed = false }: { collapsed?: boolean }) {
-  const { login, clear, loginStatus, identity } = useInternetIdentity();
-  const qc = useQueryClient();
-  const isAuthenticated = !!identity;
-  const isLoggingIn = loginStatus === "logging-in";
-
-  const handleAuth = async () => {
-    if (isAuthenticated) {
-      await clear();
-      qc.clear();
-    } else {
-      try {
-        await login();
-      } catch (error: any) {
-        if (error?.message === "User is already authenticated") {
-          await clear();
-          setTimeout(() => login(), 300);
-        }
-      }
-    }
-  };
-
-  if (collapsed) {
-    return (
-      <button
-        type="button"
-        onClick={handleAuth}
-        disabled={isLoggingIn}
-        title={
-          isLoggingIn ? "Signing in…" : isAuthenticated ? "Sign out" : "Sign in"
-        }
-        className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-colors ${
-          isAuthenticated
-            ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
-            : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
-        } disabled:opacity-50`}
-        data-ocid="sidebar.auth.button"
-      >
-        {isAuthenticated ? (
-          <X className="w-4 h-4" />
-        ) : (
-          <Shield className="w-4 h-4" />
-        )}
-      </button>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleAuth}
-      disabled={isLoggingIn}
-      className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-colors border flex items-center gap-2 ${
-        isAuthenticated
-          ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
-          : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
-      } disabled:opacity-50`}
-      data-ocid="sidebar.auth.button"
-    >
-      <Shield className="w-4 h-4 shrink-0" />
-      {isLoggingIn ? "Signing in…" : isAuthenticated ? "Sign out" : "Sign in"}
-    </button>
   );
 }
 
@@ -566,431 +560,566 @@ function NavLink({
   );
 }
 
-// ─── Desktop Sidebar ──────────────────────────────────────────────────────────
+// ─── App Header ───────────────────────────────────────────────────────────────
 
-interface SidebarNavItem {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  ocid: string;
-}
-
-interface SidebarSection {
-  title: string;
-  items: SidebarNavItem[];
-  color?: "amber";
-  ocid?: string;
-}
-
-function SidebarLink({
-  to,
-  icon: Icon,
-  label,
-  collapsed,
-  ocid,
-}: SidebarNavItem & { collapsed: boolean }) {
-  const navigate = useNavigate();
-  const isActive =
-    window.location.pathname === to ||
-    (to !== "/" && window.location.pathname.startsWith(to));
-
-  return (
-    <button
-      type="button"
-      onClick={() => navigate({ to })}
-      title={collapsed ? label : undefined}
-      data-ocid={ocid}
-      className={`w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${
-        collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
-      } ${
-        isActive
-          ? "bg-amber/10 text-amber border-l-2 border-amber pl-[10px]"
-          : "text-muted-text hover:text-foreground hover:bg-surface/80 border-l-2 border-transparent"
-      }`}
-    >
-      <Icon className="w-4 h-4 shrink-0" />
-      {!collapsed && (
-        <span className="text-xs font-medium truncate">{label}</span>
-      )}
-    </button>
-  );
-}
-
-function DesktopSidebar({
+function AppHeader({
   role,
   clearRole,
   identity,
+  onSignInClick,
 }: {
   role: AppRole;
   clearRole: () => void;
   identity: any;
+  onSignInClick: () => void;
 }) {
-  const [collapsed, setCollapsed] = useState(() => {
-    // Always default to expanded — only collapse if user explicitly set it
-    const stored = localStorage.getItem("atp_sidebar_collapsed");
-    // Clear old "true" if it was set by a previous broken version
-    if (stored === "true") {
-      // Keep it collapsed if user explicitly chose it
-      return true;
+  const { theme, toggleTheme } = useTheme();
+  const { clear, loginStatus } = useInternetIdentity();
+  const qc = useQueryClient();
+  const isAuthenticated = !!identity;
+  const isLoggingIn = loginStatus === "logging-in";
+
+  const handleAuth = async () => {
+    if (isAuthenticated) {
+      await clear();
+      qc.clear();
+    } else {
+      onSignInClick();
     }
-    localStorage.setItem("atp_sidebar_collapsed", "false");
-    return false;
-  });
-
-  const toggleCollapsed = () => {
-    setCollapsed((v) => {
-      const next = !v;
-      localStorage.setItem("atp_sidebar_collapsed", String(next));
-      return next;
-    });
   };
-
-  const showBuyerTools = role === "buyer" || role === "admin";
-  const showDealerTools = role === "dealer" || role === "admin";
-
-  const coreSections: SidebarSection[] = [
-    {
-      title: "Core",
-      items: [
-        {
-          to: "/",
-          icon: BarChart2,
-          label: "Dashboard",
-          ocid: "sidebar.dashboard.link",
-        },
-        {
-          to: "/add",
-          icon: PlusCircle,
-          label: "Add Listing",
-          ocid: "sidebar.add.link",
-        },
-        {
-          to: "/import",
-          icon: Upload,
-          label: "Import",
-          ocid: "sidebar.import.link",
-        },
-        {
-          to: "/compare",
-          icon: Car,
-          label: "Compare",
-          ocid: "sidebar.compare.link",
-        },
-        {
-          to: "/market",
-          icon: TrendingDown,
-          label: "Market",
-          ocid: "sidebar.market.link",
-        },
-      ],
-    },
-    {
-      title: "Tracking",
-      items: [
-        {
-          to: "/watchlist",
-          icon: Heart,
-          label: "Watchlist",
-          ocid: "sidebar.watchlist.link",
-        },
-        {
-          to: "/custom-alerts",
-          icon: Zap,
-          label: "Alert Rules",
-          ocid: "sidebar.alert_rules.link",
-        },
-        {
-          to: "/saved-searches",
-          icon: BookmarkCheck,
-          label: "Saved",
-          ocid: "sidebar.saved.link",
-        },
-        {
-          to: "/activity",
-          icon: Activity,
-          label: "Activity",
-          ocid: "sidebar.activity.link",
-        },
-      ],
-    },
-    {
-      title: "Analysis",
-      items: [
-        {
-          to: "/cross-search",
-          icon: Search,
-          label: "Cross Search",
-          ocid: "sidebar.cross_search.link",
-        },
-        {
-          to: "/depreciation",
-          icon: TrendingDown,
-          label: "Depreciation",
-          ocid: "sidebar.depreciation.link",
-        },
-        {
-          to: "/duplicates",
-          icon: GitMerge,
-          label: "Duplicates",
-          ocid: "sidebar.duplicates.link",
-        },
-        {
-          to: "/ownership-cost",
-          icon: Calculator,
-          label: "Cost Calculator",
-          ocid: "sidebar.cost_calculator.link",
-        },
-        {
-          to: "/regional",
-          icon: MapPin,
-          label: "Regions",
-          ocid: "sidebar.regions.link",
-        },
-        {
-          to: "/dealer-ratings",
-          icon: Star,
-          label: "Ratings",
-          ocid: "sidebar.ratings.link",
-        },
-      ],
-    },
-  ];
-
-  const marketIntelSection: SidebarSection = {
-    title: "Market Intel",
-    color: "amber",
-    ocid: "sidebar.market_intel.section",
-    items: [
-      {
-        to: "/market-saturation",
-        icon: Signal,
-        label: "Market Saturation",
-        ocid: "sidebar.market_saturation.link",
-      },
-      {
-        to: "/cross-market",
-        icon: Globe,
-        label: "Cross-Market",
-        ocid: "sidebar.cross_market.link",
-      },
-      {
-        to: "/seasonal-pricing",
-        icon: CalendarDays,
-        label: "Seasonal Pricing",
-        ocid: "sidebar.seasonal_pricing.link",
-      },
-    ],
-  };
-
-  const buyerToolsSection: SidebarSection = {
-    title: "Buyer Tools",
-    color: "amber",
-    ocid: "sidebar.buyer_tools.section",
-    items: [
-      {
-        to: "/negotiation-coach",
-        icon: MessageSquare,
-        label: "Negotiation Coach",
-        ocid: "sidebar.negotiation_coach.link",
-      },
-      {
-        to: "/should-i-wait",
-        icon: Clock,
-        label: "Should I Wait?",
-        ocid: "sidebar.should_i_wait.link",
-      },
-      {
-        to: "/tco-timeline",
-        icon: LineChart,
-        label: "TCO Timeline",
-        ocid: "sidebar.tco_timeline.link",
-      },
-      {
-        to: "/trim-analyzer",
-        icon: Layers,
-        label: "Trim Analyzer",
-        ocid: "sidebar.trim_analyzer.link",
-      },
-      {
-        to: "/deal-expiry",
-        icon: Timer,
-        label: "Deal Expiry",
-        ocid: "sidebar.deal_expiry.link",
-      },
-    ],
-  };
-
-  const dealerToolsSection: SidebarSection = {
-    title: "Dealer Tools",
-    color: "amber",
-    ocid: "sidebar.dealer_tools.section",
-    items: [
-      {
-        to: "/dealer/pricing-radar",
-        icon: Radar,
-        label: "Pricing Radar",
-        ocid: "sidebar.pricing_radar.link",
-      },
-      {
-        to: "/dealer/lot-tracker",
-        icon: Clock,
-        label: "Lot Tracker",
-        ocid: "sidebar.lot_tracker.link",
-      },
-      {
-        to: "/dealer/demand-heatmap",
-        icon: Flame,
-        label: "Demand Heatmap",
-        ocid: "sidebar.demand_heatmap.link",
-      },
-      {
-        to: "/dealer/turnover",
-        icon: RefreshCw,
-        label: "Turnover Report",
-        ocid: "sidebar.turnover_report.link",
-      },
-      {
-        to: "/dealer/price-elasticity",
-        icon: TrendingDown,
-        label: "Price Elasticity",
-        ocid: "sidebar.price_elasticity.link",
-      },
-    ],
-  };
-
-  const allSections = [
-    ...coreSections,
-    marketIntelSection,
-    ...(showBuyerTools ? [buyerToolsSection] : []),
-    ...(showDealerTools ? [dealerToolsSection] : []),
-  ];
 
   return (
-    <aside
-      className={`hidden md:flex flex-col fixed top-0 left-0 h-screen z-30 bg-surface border-r border-steel-border transition-all duration-300 ease-in-out ${
-        collapsed ? "w-14" : "w-56"
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-30 h-14 bg-surface/95 backdrop-blur-md border-b border-steel-border flex items-center px-4 gap-3 shadow-sm">
       {/* Logo + App name */}
-      <div
-        className={`flex items-center h-14 border-b border-steel-border shrink-0 ${
-          collapsed ? "justify-center px-2" : "px-4 gap-2.5"
-        }`}
+      <Link
+        to="/"
+        className="flex items-center gap-2.5 shrink-0 hover:opacity-80 transition-opacity"
+        data-ocid="header.logo.link"
       >
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 shrink-0"
-          data-ocid="sidebar.dashboard.link"
-        >
-          <ATPLogo size={28} />
-          {!collapsed && (
-            <span className="font-bold text-sm text-foreground whitespace-nowrap">
-              Auto Track <span className="text-amber">Pro</span>
-            </span>
-          )}
-        </Link>
-      </div>
+        <ATPLogo size={28} />
+        <span className="font-bold text-sm text-foreground whitespace-nowrap hidden sm:inline">
+          Auto Track <span className="text-amber">Pro</span>
+        </span>
+      </Link>
 
-      {/* Collapse toggle */}
-      <button
-        type="button"
-        onClick={toggleCollapsed}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="absolute -right-3 top-[52px] z-10 w-6 h-6 rounded-full bg-surface border border-steel-border flex items-center justify-center hover:border-amber/40 hover:bg-amber/5 transition-colors shadow-sm"
-        data-ocid="sidebar.collapse.toggle"
-      >
-        {collapsed ? (
-          <ChevronRight className="w-3 h-3 text-muted-text" />
-        ) : (
-          <ChevronLeft className="w-3 h-3 text-muted-text" />
-        )}
-      </button>
+      {/* Spacer */}
+      <div className="flex-1" />
 
-      {/* Scrollable nav area */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 space-y-0.5">
-        {allSections.map((section, si) => (
-          <div
-            key={section.title}
-            className={si > 0 ? "pt-3" : ""}
-            data-ocid={section.ocid}
-          >
-            {/* Section label */}
-            {!collapsed && (
-              <div className="px-2 pb-1.5">
-                <span
-                  className={`text-[9px] font-bold uppercase tracking-widest ${
-                    section.color === "amber"
-                      ? "text-amber/70"
-                      : "text-muted-text/60"
-                  }`}
-                >
-                  {section.title}
-                </span>
-              </div>
-            )}
-            {collapsed && si > 0 && (
-              <div className="border-t border-steel-border/40 my-1.5 mx-1" />
-            )}
-            {/* Nav items */}
-            <div className="space-y-0.5">
-              {section.items.map((item) => (
-                <SidebarLink key={item.to} {...item} collapsed={collapsed} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </nav>
-
-      {/* Bottom controls */}
-      <div className="border-t border-steel-border shrink-0 p-2 space-y-1.5">
-        {/* Role badge / switch role */}
+      {/* Right controls */}
+      <div className="flex items-center gap-2">
+        {/* Role badge */}
         {identity && role && role !== "admin" && (
           <button
             type="button"
             onClick={clearRole}
             title="Click to switch role"
-            className={`flex items-center gap-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors ${
-              collapsed ? "w-9 h-9 justify-center p-0" : "w-full px-3 py-2"
-            }`}
-            data-ocid="sidebar.role_badge.toggle"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
+            data-ocid="header.role_badge.toggle"
           >
             {role === "buyer" ? (
-              <Car className="w-4 h-4 shrink-0" />
+              <Car className="w-3.5 h-3.5 shrink-0" />
             ) : (
-              <Building2 className="w-4 h-4 shrink-0" />
+              <Building2 className="w-3.5 h-3.5 shrink-0" />
             )}
-            {!collapsed && (
-              <>
-                <span className="text-xs font-semibold">
-                  {role === "buyer" ? "Buyer" : "Dealer"}
-                </span>
-                <RefreshCw className="w-3 h-3 opacity-60 ml-auto" />
-              </>
-            )}
+            <span className="hidden sm:inline">
+              {role === "buyer" ? "Buyer" : "Dealer"}
+            </span>
+            <RefreshCw className="w-3 h-3 opacity-60" />
           </button>
         )}
 
         {/* Admin badge */}
         {identity && role === "admin" && (
           <div
-            className={`flex items-center gap-2 rounded-lg border border-slate-500/30 text-slate-400 bg-slate-500/10 ${
-              collapsed ? "w-9 h-9 justify-center" : "w-full px-3 py-2"
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-500/30 text-slate-400 bg-slate-500/10 text-xs font-semibold"
             title="Admin — sees all tools"
             data-ocid="nav.admin_badge.panel"
           >
-            <Shield className="w-4 h-4 shrink-0" />
-            {!collapsed && <span className="text-xs font-semibold">Admin</span>}
+            <Shield className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Admin</span>
           </div>
         )}
 
         {/* Theme toggle */}
-        <ThemeToggle collapsed={collapsed} />
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="w-9 h-9 rounded-lg border border-steel-border bg-background hover:border-amber/40 flex items-center justify-center transition-colors"
+          aria-label="Toggle theme"
+          title="Toggle theme"
+          data-ocid="header.theme.toggle"
+        >
+          {theme === "dark" ? (
+            <Sun className="w-4 h-4 text-muted-text" />
+          ) : (
+            <Moon className="w-4 h-4 text-muted-text" />
+          )}
+        </button>
 
         {/* Auth button */}
-        <AuthButton collapsed={collapsed} />
+        <button
+          type="button"
+          onClick={handleAuth}
+          disabled={isLoggingIn}
+          className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
+            isAuthenticated
+              ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
+              : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
+          } disabled:opacity-50`}
+          data-ocid="header.auth.button"
+        >
+          {isLoggingIn
+            ? "Signing in…"
+            : isAuthenticated
+              ? "Sign out"
+              : "Sign in"}
+        </button>
+
+        {/* Auth button (mobile) */}
+        <button
+          type="button"
+          onClick={handleAuth}
+          disabled={isLoggingIn}
+          className={`sm:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
+            isAuthenticated
+              ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
+              : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
+          } disabled:opacity-50`}
+          data-ocid="header.auth.button"
+        >
+          {isLoggingIn
+            ? "Signing in…"
+            : isAuthenticated
+              ? "Sign out"
+              : "Sign in"}
+        </button>
       </div>
-    </aside>
+    </header>
+  );
+}
+
+// ─── Nav Card Grid ────────────────────────────────────────────────────────────
+
+interface NavCardDef {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  description: string;
+  ocid: string;
+  accent?: boolean;
+}
+
+interface NavSectionDef {
+  title: string;
+  accent?: boolean;
+  cards: NavCardDef[];
+}
+
+function NavCardGrid({
+  role,
+  navigate,
+}: {
+  role: AppRole;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const showBuyerTools = role === "buyer" || role === "admin";
+  const showDealerTools = role === "dealer" || role === "admin";
+
+  const sections: NavSectionDef[] = [
+    {
+      title: "Core",
+      cards: [
+        {
+          to: "/",
+          icon: BarChart2,
+          label: "Dashboard",
+          description: "Track & manage listings",
+          ocid: "nav_card.core.dashboard.button",
+        },
+        {
+          to: "/add",
+          icon: PlusCircle,
+          label: "Add Listing",
+          description: "Add a new vehicle listing",
+          ocid: "nav_card.core.add.button",
+        },
+        {
+          to: "/import",
+          icon: Upload,
+          label: "Import",
+          description: "Bulk import via CSV",
+          ocid: "nav_card.core.import.button",
+        },
+        {
+          to: "/compare",
+          icon: Car,
+          label: "Compare",
+          description: "Compare prices by model",
+          ocid: "nav_card.core.compare.button",
+        },
+        {
+          to: "/market",
+          icon: TrendingDown,
+          label: "Market",
+          description: "Market overview & trends",
+          ocid: "nav_card.core.market.button",
+        },
+      ],
+    },
+    {
+      title: "Tracking",
+      cards: [
+        {
+          to: "/watchlist",
+          icon: Heart,
+          label: "Watchlist",
+          description: "Monitor saved makes & models",
+          ocid: "nav_card.tracking.watchlist.button",
+        },
+        {
+          to: "/custom-alerts",
+          icon: Zap,
+          label: "Alert Rules",
+          description: "Custom price alert formulas",
+          ocid: "nav_card.tracking.alert_rules.button",
+        },
+        {
+          to: "/saved-searches",
+          icon: BookmarkCheck,
+          label: "Saved Searches",
+          description: "Saved filter configurations",
+          ocid: "nav_card.tracking.saved_searches.button",
+        },
+        {
+          to: "/activity",
+          icon: Activity,
+          label: "Activity",
+          description: "Timeline of all changes",
+          ocid: "nav_card.tracking.activity.button",
+        },
+      ],
+    },
+    {
+      title: "Analysis",
+      cards: [
+        {
+          to: "/cross-search",
+          icon: Search,
+          label: "Cross Search",
+          description: "Search across all models",
+          ocid: "nav_card.analysis.cross_search.button",
+        },
+        {
+          to: "/depreciation",
+          icon: TrendingDown,
+          label: "Depreciation",
+          description: "Value loss over time",
+          ocid: "nav_card.analysis.depreciation.button",
+        },
+        {
+          to: "/duplicates",
+          icon: GitMerge,
+          label: "Duplicates",
+          description: "Detect & merge duplicates",
+          ocid: "nav_card.analysis.duplicates.button",
+        },
+        {
+          to: "/ownership-cost",
+          icon: Calculator,
+          label: "Cost Calculator",
+          description: "Annual ownership costs",
+          ocid: "nav_card.analysis.cost_calculator.button",
+        },
+        {
+          to: "/regional",
+          icon: MapPin,
+          label: "Regions",
+          description: "Regional sourcing breakdown",
+          ocid: "nav_card.analysis.regions.button",
+        },
+        {
+          to: "/dealer-ratings",
+          icon: Star,
+          label: "Dealer Ratings",
+          description: "Community dealer reviews",
+          ocid: "nav_card.analysis.dealer_ratings.button",
+        },
+      ],
+    },
+    {
+      title: "Market Intel",
+      accent: true,
+      cards: [
+        {
+          to: "/market-saturation",
+          icon: Signal,
+          label: "Market Saturation",
+          description: "Listing volume & leverage",
+          ocid: "nav_card.market_intel.saturation.button",
+          accent: true,
+        },
+        {
+          to: "/cross-market",
+          icon: Globe,
+          label: "Cross-Market",
+          description: "Compare prices by source",
+          ocid: "nav_card.market_intel.cross_market.button",
+          accent: true,
+        },
+        {
+          to: "/seasonal-pricing",
+          icon: CalendarDays,
+          label: "Seasonal Pricing",
+          description: "Best months to buy",
+          ocid: "nav_card.market_intel.seasonal_pricing.button",
+          accent: true,
+        },
+      ],
+    },
+    ...(showBuyerTools
+      ? [
+          {
+            title: "Buyer Tools",
+            accent: true,
+            cards: [
+              {
+                to: "/negotiation-coach",
+                icon: MessageSquare,
+                label: "Negotiation Coach",
+                description: "Step-by-step dealer scripts",
+                ocid: "nav_card.buyer_tools.negotiation_coach.button",
+                accent: true,
+              },
+              {
+                to: "/should-i-wait",
+                icon: Clock,
+                label: "Should I Wait?",
+                description: "Seasonal buy/wait signal",
+                ocid: "nav_card.buyer_tools.should_i_wait.button",
+                accent: true,
+              },
+              {
+                to: "/tco-timeline",
+                icon: LineChart,
+                label: "TCO Timeline",
+                description: "5-year cost projection",
+                ocid: "nav_card.buyer_tools.tco_timeline.button",
+                accent: true,
+              },
+              {
+                to: "/trim-analyzer",
+                icon: Layers,
+                label: "Trim Analyzer",
+                description: "Is the trim upgrade worth it?",
+                ocid: "nav_card.buyer_tools.trim_analyzer.button",
+                accent: true,
+              },
+              {
+                to: "/deal-expiry",
+                icon: Timer,
+                label: "Deal Expiry",
+                description: "How long before deal expires",
+                ocid: "nav_card.buyer_tools.deal_expiry.button",
+                accent: true,
+              },
+            ] as NavCardDef[],
+          } as NavSectionDef,
+        ]
+      : []),
+    ...(showDealerTools
+      ? [
+          {
+            title: "Dealer Tools",
+            accent: true,
+            cards: [
+              {
+                to: "/dealer/pricing-radar",
+                icon: Radar,
+                label: "Pricing Radar",
+                description: "vs market average",
+                ocid: "nav_card.dealer_tools.pricing_radar.button",
+                accent: true,
+              },
+              {
+                to: "/dealer/lot-tracker",
+                icon: Clock,
+                label: "Lot Tracker",
+                description: "Aging inventory alerts",
+                ocid: "nav_card.dealer_tools.lot_tracker.button",
+                accent: true,
+              },
+              {
+                to: "/dealer/demand-heatmap",
+                icon: Flame,
+                label: "Demand Heatmap",
+                description: "Most searched models",
+                ocid: "nav_card.dealer_tools.demand_heatmap.button",
+                accent: true,
+              },
+              {
+                to: "/dealer/turnover",
+                icon: RefreshCw,
+                label: "Turnover Report",
+                description: "Inventory velocity",
+                ocid: "nav_card.dealer_tools.turnover_report.button",
+                accent: true,
+              },
+              {
+                to: "/dealer/price-elasticity",
+                icon: TrendingDown,
+                label: "Price Elasticity",
+                description: "Value by trim",
+                ocid: "nav_card.dealer_tools.price_elasticity.button",
+                accent: true,
+              },
+            ] as NavCardDef[],
+          } as NavSectionDef,
+        ]
+      : []),
+  ];
+
+  const now = new Date();
+  const greeting =
+    now.getHours() < 12
+      ? "Good morning"
+      : now.getHours() < 17
+        ? "Good afternoon"
+        : "Good evening";
+  const dateLabel = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <div className="max-w-screen-2xl mx-auto px-4 py-6">
+      {/* Compact status bar — replaces the redundant logo block */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-base font-semibold text-foreground">
+            {greeting} —{" "}
+            <span className="text-muted-text font-normal">{dateLabel}</span>
+          </h1>
+          <p className="text-xs text-muted-text mt-0.5">
+            Select a tool below or scroll down to your listings
+          </p>
+        </div>
+        {role && role !== "admin" && (
+          <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber/10 text-amber border border-amber/20">
+            {role === "buyer" ? "Buyer" : "Dealer"} view
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-8">
+        {sections.map((section) => {
+          const isAccent = section.accent;
+          const inner = (
+            <>
+              {/* Section label */}
+              <div className="flex items-center gap-2 mb-3">
+                {isAccent && (
+                  <BarChart3 className="w-3.5 h-3.5 text-amber shrink-0" />
+                )}
+                <span
+                  className={`text-[11px] font-bold uppercase tracking-widest ${
+                    isAccent ? "text-amber" : "text-muted-text/70"
+                  }`}
+                >
+                  {section.title}
+                </span>
+                {!isAccent && (
+                  <div className="flex-1 h-px bg-steel-border/50" />
+                )}
+              </div>
+
+              {/* Cards grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {section.cards.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <button
+                      key={card.to}
+                      type="button"
+                      onClick={() => navigate({ to: card.to })}
+                      data-ocid={card.ocid}
+                      className={`rounded-xl border bg-surface p-4 flex flex-col items-start gap-3 cursor-pointer text-left shadow-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber group hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm ${
+                        card.accent
+                          ? "border-amber/20 hover:border-amber/50 hover:bg-amber/5"
+                          : "border-steel-border hover:border-amber/40 hover:bg-surface"
+                      }`}
+                    >
+                      {/* Icon */}
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                          card.accent
+                            ? "bg-amber/10 border border-amber/20 group-hover:bg-amber/20"
+                            : "bg-background border border-steel-border group-hover:border-amber/30 group-hover:bg-amber/5"
+                        }`}
+                      >
+                        <Icon
+                          className={`w-5 h-5 transition-colors ${
+                            card.accent
+                              ? "text-amber"
+                              : "text-muted-text group-hover:text-amber"
+                          }`}
+                        />
+                      </div>
+
+                      {/* Text */}
+                      <div className="min-w-0 w-full">
+                        <p className="text-sm font-semibold text-foreground leading-tight mb-0.5">
+                          {card.label}
+                        </p>
+                        <p className="text-xs text-muted-text leading-snug line-clamp-2">
+                          {card.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          );
+
+          return isAccent ? (
+            <div
+              key={section.title}
+              className="rounded-2xl border border-amber/10 bg-amber/[0.03] px-4 py-5"
+            >
+              {inner}
+            </div>
+          ) : (
+            <div key={section.title}>{inner}</div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Home Screen wrapper (NavCardGrid + Dashboard) ────────────────────────────
+
+function HomeScreen() {
+  const { role } = useAppRole();
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen">
+      <NavCardGrid role={role} navigate={navigate} />
+      {/* Dashboard section divider */}
+      <div className="max-w-screen-2xl mx-auto px-4 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-steel-border/60" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-text/50 shrink-0 flex items-center gap-1.5">
+            <BarChart2 className="w-3 h-3" />
+            Your Listings
+          </span>
+          <div className="flex-1 h-px bg-steel-border/60" />
+        </div>
+      </div>
+      <DashboardPage />
+    </div>
   );
 }
 
@@ -1016,8 +1145,8 @@ function MobileThemeToggle() {
 
 // ─── Mobile-only Auth Button ──────────────────────────────────────────────────
 
-function MobileAuthButton() {
-  const { login, clear, loginStatus, identity } = useInternetIdentity();
+function MobileAuthButton({ onSignInClick }: { onSignInClick: () => void }) {
+  const { clear, loginStatus, identity } = useInternetIdentity();
   const qc = useQueryClient();
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === "logging-in";
@@ -1027,14 +1156,7 @@ function MobileAuthButton() {
       await clear();
       qc.clear();
     } else {
-      try {
-        await login();
-      } catch (error: any) {
-        if (error?.message === "User is already authenticated") {
-          await clear();
-          setTimeout(() => login(), 300);
-        }
-      }
+      onSignInClick();
     }
   };
 
@@ -1062,12 +1184,14 @@ function MobileNav({
   identity,
   showBuyerTools,
   showDealerTools,
+  onSignInClick,
 }: {
   role: AppRole;
   clearRole: () => void;
   identity: any;
   showBuyerTools: boolean;
   showDealerTools: boolean;
+  onSignInClick: () => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -1104,7 +1228,7 @@ function MobileNav({
           </div>
           <div className="flex items-center gap-1.5">
             <MobileThemeToggle />
-            <MobileAuthButton />
+            <MobileAuthButton onSignInClick={onSignInClick} />
           </div>
         </div>
 
@@ -1213,34 +1337,15 @@ function MobileNav({
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 function Layout() {
-  const { identity } = useInternetIdentity();
+  const { identity, login } = useInternetIdentity();
   const { actor } = useActor();
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
   const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
 
-  // Sidebar collapsed state (read from localStorage to keep layout in sync)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    return localStorage.getItem("atp_sidebar_collapsed") === "true";
-  });
-
-  // Listen for sidebar state changes (sidebar toggles localStorage directly)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const isCollapsed =
-        localStorage.getItem("atp_sidebar_collapsed") === "true";
-      setSidebarCollapsed(isCollapsed);
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  // One-time: ensure sidebar starts expanded if the user has never set a preference
-  useEffect(() => {
-    if (localStorage.getItem("atp_sidebar_collapsed") === null) {
-      localStorage.setItem("atp_sidebar_collapsed", "false");
-      setSidebarCollapsed(false);
-    }
-  }, []);
+  // Pre-login role picker state
+  const [showPreLoginModal, setShowPreLoginModal] = useState(false);
+  const pendingRole = useRef<"buyer" | "dealer" | null>(null);
 
   // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
   const showRoleSelection =
@@ -1252,6 +1357,15 @@ function Layout() {
 
   // For the shared comparison route, render without nav/header/footer
   const isSharedRoute = window.location.pathname === "/shared-comparison";
+
+  // When identity becomes available and we have a pending role, auto-apply it
+  useEffect(() => {
+    if (identity && pendingRole.current) {
+      setRole(pendingRole.current);
+      pendingRole.current = null;
+      setShowPreLoginModal(false);
+    }
+  }, [identity, setRole]);
 
   useEffect(() => {
     if (!identity || !actor || profileChecked) return;
@@ -1274,6 +1388,10 @@ function Layout() {
     }
   }, [identity]);
 
+  const handleSignInClick = () => {
+    setShowPreLoginModal(true);
+  };
+
   // Shared comparison page gets a bare layout (no nav/auth/footer)
   if (isSharedRoute) {
     return (
@@ -1287,18 +1405,35 @@ function Layout() {
   const showDealerTools = role === "dealer" || role === "admin";
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* ── Desktop Sidebar (768px+) ── */}
-      <DesktopSidebar role={role} clearRole={clearRole} identity={identity} />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* ── Fixed top header ── */}
+      <AppHeader
+        role={role}
+        clearRole={clearRole}
+        identity={identity}
+        onSignInClick={handleSignInClick}
+      />
 
-      {/* ── Main content area ── */}
-      <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          sidebarCollapsed ? "md:ml-14" : "md:ml-56"
-        }`}
-      >
+      {/* ── Main content area (offset for header height) ── */}
+      <div className="flex-1 flex flex-col min-w-0 pt-14">
         {/* Alert banner */}
         <PriceAlertBanner />
+
+        {/* Pre-login role picker (shown before Internet Identity flow) */}
+        {showPreLoginModal && (
+          <PreLoginRoleModal
+            onSelect={async (role) => {
+              pendingRole.current = role;
+              setShowPreLoginModal(false);
+              try {
+                await login();
+              } catch {
+                pendingRole.current = null;
+              }
+            }}
+            onClose={() => setShowPreLoginModal(false)}
+          />
+        )}
 
         {/* Profile setup modal (shows first, before role selection) */}
         {showProfileSetup && (
@@ -1309,7 +1444,7 @@ function Layout() {
           />
         )}
 
-        {/* Role selection modal (shows after profile setup is complete) */}
+        {/* Role selection modal (shows after profile setup is complete, for users who didn't use pre-login picker) */}
         {showRoleSelection && (
           <RoleSelectionModal
             onSelect={(selectedRole) => {
@@ -1346,6 +1481,7 @@ function Layout() {
         identity={identity}
         showBuyerTools={showBuyerTools}
         showDealerTools={showDealerTools}
+        onSignInClick={handleSignInClick}
       />
     </div>
   );
@@ -1375,7 +1511,7 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: DashboardPage,
+  component: HomeScreen,
 });
 const addRoute = createRoute({
   getParentRoute: () => rootRoute,
