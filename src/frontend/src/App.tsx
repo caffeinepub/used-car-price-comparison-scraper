@@ -21,6 +21,7 @@ import {
   Calculator,
   CalendarDays,
   Car,
+  ChevronDown,
   Clock,
   Flame,
   GitMerge,
@@ -492,8 +493,89 @@ const NAV_ITEMS = [
   { to: "/dealer-ratings", icon: Star, label: "Ratings" },
 ];
 
+// ─── Desktop Dropdown ─────────────────────────────────────────────────────────
+
+function DesktopDropdown({
+  id,
+  label,
+  icon: Icon,
+  items,
+  openDropdown,
+  setOpenDropdown,
+  highlight,
+}: {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  items: { to: string; icon: React.ElementType; label: string }[];
+  openDropdown: string | null;
+  setOpenDropdown: (id: string | null) => void;
+  highlight?: boolean;
+}) {
+  const isOpen = openDropdown === id;
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpenDropdown(null);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [isOpen, setOpenDropdown]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpenDropdown(isOpen ? null : id)}
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
+          highlight
+            ? isOpen
+              ? "bg-amber/20 text-amber border border-amber/30"
+              : "text-amber hover:bg-amber/10 border border-amber/20"
+            : isOpen
+              ? "bg-surface text-foreground border border-steel-border"
+              : "text-muted-text hover:text-foreground hover:bg-surface border border-transparent"
+        }`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        data-ocid={`nav.${id}.toggle`}
+      >
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        {label}
+        <ChevronDown
+          className={`w-3 h-3 shrink-0 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-1 bg-surface border border-steel-border rounded-xl shadow-xl py-1 z-50 min-w-[200px]">
+          {items.map((item) => {
+            const ItemIcon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpenDropdown(null)}
+                className="flex items-center gap-2 px-3 py-2 text-xs text-muted-text hover:text-foreground hover:bg-amber/5 transition-colors w-full"
+                data-ocid={`nav.${id}.link`}
+              >
+                <ItemIcon className="w-3.5 h-3.5 shrink-0 text-amber/70" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
   const [showProfileSetup, setShowProfileSetup] = useState(false);
@@ -549,30 +631,95 @@ function Layout() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-steel-border">
-        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
-          {/* ── Row 1: Logo + auth controls ── */}
-          <div className="flex items-center justify-between h-12 gap-3">
-            {/* Logo */}
+        <div className="max-w-screen-2xl mx-auto px-3 sm:px-5">
+          {/* ── Single row desktop nav + mobile controls ── */}
+          <div className="flex items-center h-14 gap-1">
+            {/* Logo — always shrinks to its natural size */}
             <Link
               to="/"
-              className="flex items-center gap-2 shrink-0"
+              className="flex items-center gap-2 shrink-0 mr-2"
               data-ocid="nav.dashboard.link"
             >
               <ATPLogo size={32} />
-              <span className="font-bold text-sm text-foreground hidden sm:block">
+              <span className="font-bold text-sm text-foreground hidden xl:block">
                 Auto Track <span className="text-amber">Pro</span>
               </span>
             </Link>
 
-            {/* Right controls */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* ── Desktop nav (hidden on mobile) ── */}
+            <nav
+              className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0"
+              data-ocid="nav.desktop.panel"
+            >
+              {/* Primary nav links */}
+              {NAV_ITEMS.map((item) => (
+                <NavLink key={item.to} {...item} />
+              ))}
+
+              {/* Divider */}
+              <span className="w-px h-4 bg-steel-border/60 mx-1 self-center shrink-0" />
+
+              {/* More dropdown */}
+              <DesktopDropdown
+                id="more"
+                label="More"
+                icon={BarChart2}
+                items={MORE_ITEMS}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+              />
+
+              {/* Divider */}
+              <span className="w-px h-4 bg-steel-border/60 mx-1 self-center shrink-0" />
+
+              {/* Market Intel dropdown — amber highlight */}
+              <DesktopDropdown
+                id="market-intel"
+                label="Market Intel"
+                icon={BarChart3}
+                items={MARKET_INTEL_TOOLS}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                highlight
+              />
+
+              {/* Buyer Tools dropdown (role-gated) */}
+              {showBuyerTools && (
+                <DesktopDropdown
+                  id="buyer-tools"
+                  label="Buyer Tools"
+                  icon={Zap}
+                  items={BUYER_TOOLS}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                />
+              )}
+
+              {/* Dealer Tools dropdown (role-gated) */}
+              {showDealerTools && (
+                <DesktopDropdown
+                  id="dealer-tools"
+                  label="Dealer Tools"
+                  icon={Building2}
+                  items={DEALER_TOOLS}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                />
+              )}
+            </nav>
+
+            {/* Spacer for mobile (pushes right controls to far right) */}
+            <div className="flex-1 lg:hidden" />
+
+            {/* Right controls — always visible */}
+            <div className="flex items-center gap-1.5 shrink-0">
               {/* Role badge (shows current role; click to switch for non-admins) */}
               {identity && role && role !== "admin" && (
                 <button
                   type="button"
                   onClick={() => clearRole()}
                   title="Click to switch role"
-                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors"
+                  className="hidden lg:flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors"
                   data-ocid="nav.role_badge.toggle"
                 >
                   {role === "buyer" ? (
@@ -601,62 +748,6 @@ function Layout() {
               </button>
             </div>
           </div>
-
-          {/* ── Desktop nav rows (hidden on mobile) ── */}
-          <nav
-            className="hidden lg:block border-t border-steel-border/50"
-            data-ocid="nav.desktop.panel"
-          >
-            {/* Row 2a: All primary + secondary links as flat buttons */}
-            <div className="flex items-center flex-wrap gap-0.5 py-1.5">
-              {NAV_ITEMS.map((item) => (
-                <NavLink key={item.to} {...item} />
-              ))}
-              <div className="w-px h-4 bg-steel-border/60 mx-1 self-center" />
-              {MORE_ITEMS.map((item) => (
-                <NavLink key={item.to} {...item} />
-              ))}
-            </div>
-            {/* Row 2b: Tool sections (Market Intel + role-based tools) */}
-            {(true || showBuyerTools || showDealerTools) && (
-              <div className="flex items-center flex-wrap gap-x-4 gap-y-1 py-1.5 border-t border-steel-border/30">
-                {/* Market Intel section */}
-                <div className="flex items-center gap-0.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-text/60 mr-1 flex items-center gap-1">
-                    <BarChart3 className="w-3 h-3 text-amber/60" />
-                    Market Intel
-                  </span>
-                  {MARKET_INTEL_TOOLS.map((item) => (
-                    <NavLink key={item.to} {...item} />
-                  ))}
-                </div>
-                {/* Buyer Tools section */}
-                {showBuyerTools && (
-                  <div className="flex items-center gap-0.5">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-text/60 mr-1 flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-amber/60" />
-                      Buyer Tools
-                    </span>
-                    {BUYER_TOOLS.map((item) => (
-                      <NavLink key={item.to} {...item} />
-                    ))}
-                  </div>
-                )}
-                {/* Dealer Tools section */}
-                {showDealerTools && (
-                  <div className="flex items-center gap-0.5">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-text/60 mr-1 flex items-center gap-1">
-                      <Building2 className="w-3 h-3 text-amber/60" />
-                      Dealer Tools
-                    </span>
-                    {DEALER_TOOLS.map((item) => (
-                      <NavLink key={item.to} {...item} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </nav>
         </div>
 
         {/* Mobile nav */}
