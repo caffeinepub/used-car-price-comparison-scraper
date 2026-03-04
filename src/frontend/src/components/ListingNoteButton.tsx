@@ -81,6 +81,10 @@ export default function ListingNoteButton({
 
   const handleSave = async () => {
     if (!actor || !isDirty || text.length === 0) return;
+    if (typeof (actor as any).savePrivateNote !== "function") {
+      setError("Notes not available yet.");
+      return;
+    }
     setIsSaving(true);
     setError(null);
     try {
@@ -102,6 +106,10 @@ export default function ListingNoteButton({
 
   const handleDelete = async () => {
     if (!actor) return;
+    if (typeof (actor as any).deletePrivateNote !== "function") {
+      setError("Notes not available yet.");
+      return;
+    }
     setIsDeleting(true);
     setError(null);
     try {

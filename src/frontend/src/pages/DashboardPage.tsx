@@ -453,15 +453,23 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!identity || !actor) return;
     let cancelled = false;
-    (actor as any)
-      .getAllPrivateNotes()
-      .then((notes) => {
-        if (cancelled) return;
-        setNotesMap(new Map(notes.map((n) => [n.id, n])));
-      })
-      .catch(() => {
-        /* silent — notes are non-critical */
-      });
+    try {
+      const fn = (actor as any).getAllPrivateNotes;
+      if (typeof fn !== "function")
+        return () => {
+          cancelled = true;
+        };
+      fn.call(actor)
+        .then((notes: any[]) => {
+          if (cancelled) return;
+          setNotesMap(new Map(notes.map((n: any) => [n.id, n])));
+        })
+        .catch(() => {
+          /* silent — notes are non-critical */
+        });
+    } catch {
+      /* backend doesn't support notes yet — silent */
+    }
     return () => {
       cancelled = true;
     };
