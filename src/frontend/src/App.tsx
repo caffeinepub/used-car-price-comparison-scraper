@@ -626,7 +626,15 @@ function DesktopSidebar({
   identity: any;
 }) {
   const [collapsed, setCollapsed] = useState(() => {
-    return localStorage.getItem("atp_sidebar_collapsed") === "true";
+    // Always default to expanded — only collapse if user explicitly set it
+    const stored = localStorage.getItem("atp_sidebar_collapsed");
+    // Clear old "true" if it was set by a previous broken version
+    if (stored === "true") {
+      // Keep it collapsed if user explicitly chose it
+      return true;
+    }
+    localStorage.setItem("atp_sidebar_collapsed", "false");
+    return false;
   });
 
   const toggleCollapsed = () => {
@@ -986,276 +994,6 @@ function DesktopSidebar({
   );
 }
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
-
-function Layout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const { identity } = useInternetIdentity();
-  const { actor } = useActor();
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
-  const [profileChecked, setProfileChecked] = useState(false);
-  const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
-
-  // Sidebar collapsed state (read from localStorage to keep layout in sync)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    return localStorage.getItem("atp_sidebar_collapsed") === "true";
-  });
-
-  // Listen for sidebar state changes (sidebar toggles localStorage directly)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const isCollapsed =
-        localStorage.getItem("atp_sidebar_collapsed") === "true";
-      setSidebarCollapsed(isCollapsed);
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
-  const showRoleSelection =
-    !!identity &&
-    profileChecked &&
-    !showProfileSetup &&
-    !roleLoading &&
-    role === null;
-
-  // For the shared comparison route, render without nav/header/footer
-  const isSharedRoute = window.location.pathname === "/shared-comparison";
-
-  useEffect(() => {
-    if (!identity || !actor || profileChecked) return;
-    (async () => {
-      try {
-        const profile = await (actor as any).getCallerUserProfile();
-        if (!profile) setShowProfileSetup(true);
-      } catch {
-        // ignore
-      } finally {
-        setProfileChecked(true);
-      }
-    })();
-  }, [identity, actor, profileChecked]);
-
-  useEffect(() => {
-    if (!identity) {
-      setProfileChecked(false);
-      setShowProfileSetup(false);
-    }
-  }, [identity]);
-
-  // Shared comparison page gets a bare layout (no nav/auth/footer)
-  if (isSharedRoute) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Outlet />
-      </div>
-    );
-  }
-
-  const showBuyerTools = role === "buyer" || role === "admin";
-  const showDealerTools = role === "dealer" || role === "admin";
-
-  return (
-    <div className="min-h-screen bg-background flex">
-      {/* ── Desktop Sidebar (md+) ── */}
-      <DesktopSidebar role={role} clearRole={clearRole} identity={identity} />
-
-      {/* ── Main content area ── */}
-      <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          sidebarCollapsed ? "md:ml-14" : "md:ml-56"
-        }`}
-      >
-        {/* ── Mobile header (visible only on mobile) ── */}
-        <header className="md:hidden sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-steel-border">
-          <div className="w-full px-3">
-            <div className="flex items-center h-12 gap-2">
-              {/* Logo */}
-              <Link
-                to="/"
-                className="flex items-center gap-2 shrink-0"
-                data-ocid="nav.dashboard.link"
-              >
-                <ATPLogo size={30} />
-                <span className="font-bold text-sm text-foreground">
-                  Auto Track <span className="text-amber">Pro</span>
-                </span>
-              </Link>
-
-              <div className="flex-1" />
-
-              {/* Right controls — mobile only */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {/* Mobile theme toggle inline */}
-                <MobileThemeToggle />
-                {/* Mobile auth inline */}
-                <MobileAuthButton />
-                {/* Mobile menu toggle */}
-                <button
-                  type="button"
-                  className="w-8 h-8 rounded-lg border border-steel-border bg-surface flex items-center justify-center shrink-0"
-                  onClick={() => setMobileOpen((v) => !v)}
-                  aria-label="Toggle menu"
-                >
-                  {mobileOpen ? (
-                    <X className="w-4 h-4" />
-                  ) : (
-                    <Menu className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile nav drawer */}
-          <div
-            className={`border-t border-steel-border bg-background overflow-hidden transition-all duration-300 ease-in-out ${
-              mobileOpen ? "max-h-[1400px] opacity-100" : "max-h-0 opacity-0"
-            }`}
-          >
-            <div className="px-4 py-3 space-y-3">
-              {/* Primary nav items */}
-              <div className="grid grid-cols-2 gap-1">
-                {NAV_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    {...item}
-                    onClick={() => setMobileOpen(false)}
-                  />
-                ))}
-              </div>
-              {/* More / secondary items */}
-              <div className="border-t border-steel-border pt-2.5">
-                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5">
-                  More
-                </p>
-                <div className="grid grid-cols-2 gap-1">
-                  {MORE_ITEMS.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      {...item}
-                      onClick={() => setMobileOpen(false)}
-                    />
-                  ))}
-                </div>
-              </div>
-              {/* Market Intel - always visible */}
-              <div className="border-t border-steel-border pt-2.5">
-                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                  <BarChart3 className="w-3 h-3 text-amber" />
-                  Market Intel
-                </p>
-                <div className="flex flex-col gap-1">
-                  {MARKET_INTEL_TOOLS.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      {...item}
-                      onClick={() => setMobileOpen(false)}
-                    />
-                  ))}
-                </div>
-              </div>
-              {showBuyerTools && (
-                <div className="border-t border-steel-border pt-2.5">
-                  <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                    <Zap className="w-3 h-3 text-amber" />
-                    Buyer Tools
-                  </p>
-                  <div className="flex flex-col gap-1">
-                    {BUYER_TOOLS.map((item) => (
-                      <NavLink
-                        key={item.to}
-                        {...item}
-                        onClick={() => setMobileOpen(false)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {showDealerTools && (
-                <div className="border-t border-steel-border pt-2.5">
-                  <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                    <Building2 className="w-3 h-3 text-amber" />
-                    Dealer Tools
-                  </p>
-                  <div className="flex flex-col gap-1">
-                    {DEALER_TOOLS.map((item) => (
-                      <NavLink
-                        key={item.to}
-                        {...item}
-                        onClick={() => setMobileOpen(false)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* Switch role button in mobile nav */}
-              {identity && role && role !== "admin" && (
-                <div className="border-t border-steel-border pt-2.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileOpen(false);
-                      clearRole();
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
-                    data-ocid="nav.mobile_switch_role.button"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    Switch Role (currently{" "}
-                    {role === "buyer" ? "Buyer" : "Dealer"})
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* Alert banner */}
-        <PriceAlertBanner />
-
-        {/* Profile setup modal (shows first, before role selection) */}
-        {showProfileSetup && (
-          <ProfileSetupModal
-            onComplete={() => {
-              setShowProfileSetup(false);
-            }}
-          />
-        )}
-
-        {/* Role selection modal (shows after profile setup is complete) */}
-        {showRoleSelection && (
-          <RoleSelectionModal
-            onSelect={(selectedRole) => {
-              setRole(selectedRole);
-            }}
-          />
-        )}
-
-        {/* Page content */}
-        <main className="flex-1">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-steel-border bg-surface mt-auto">
-          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
-            <div className="flex items-center gap-2">
-              <ATPLogo size={28} />
-              <span>
-                © {new Date().getFullYear()} Auto Track Pro — Used Car
-                Intelligence
-              </span>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </div>
-  );
-}
-
 // ─── Mobile-only Theme Toggle ─────────────────────────────────────────────────
 
 function MobileThemeToggle() {
@@ -1313,6 +1051,303 @@ function MobileAuthButton() {
     >
       {isLoggingIn ? "Signing in…" : isAuthenticated ? "Sign out" : "Sign in"}
     </button>
+  );
+}
+
+// ─── Mobile FAB Nav ───────────────────────────────────────────────────────────
+
+function MobileNav({
+  role,
+  clearRole,
+  identity,
+  showBuyerTools,
+  showDealerTools,
+}: {
+  role: AppRole;
+  clearRole: () => void;
+  identity: any;
+  showBuyerTools: boolean;
+  showDealerTools: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const close = () => setOpen(false);
+
+  return (
+    <>
+      {/* Backdrop overlay */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={close}
+          onKeyDown={(e) => e.key === "Escape" && close()}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Slide-up drawer panel */}
+      <div
+        className={`fixed bottom-16 right-2 z-50 md:hidden w-[min(340px,calc(100vw-16px))] bg-surface border border-steel-border rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out origin-bottom-right ${
+          open
+            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+            : "opacity-0 translate-y-4 scale-95 pointer-events-none"
+        }`}
+        aria-hidden={!open}
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-steel-border">
+          <div className="flex items-center gap-2">
+            <ATPLogo size={22} />
+            <span className="font-bold text-sm text-foreground">
+              Auto Track <span className="text-amber">Pro</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MobileThemeToggle />
+            <MobileAuthButton />
+          </div>
+        </div>
+
+        {/* Scrollable nav content */}
+        <div className="overflow-y-auto max-h-[70vh] px-3 py-3 space-y-3">
+          {/* Primary nav items */}
+          <div className="grid grid-cols-2 gap-1">
+            {NAV_ITEMS.map((item) => (
+              <NavLink key={item.to} {...item} onClick={close} />
+            ))}
+          </div>
+
+          {/* More / secondary items */}
+          <div className="border-t border-steel-border pt-2.5">
+            <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5">
+              More
+            </p>
+            <div className="grid grid-cols-2 gap-1">
+              {MORE_ITEMS.map((item) => (
+                <NavLink key={item.to} {...item} onClick={close} />
+              ))}
+            </div>
+          </div>
+
+          {/* Market Intel */}
+          <div className="border-t border-steel-border pt-2.5">
+            <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
+              <BarChart3 className="w-3 h-3 text-amber" />
+              Market Intel
+            </p>
+            <div className="flex flex-col gap-1">
+              {MARKET_INTEL_TOOLS.map((item) => (
+                <NavLink key={item.to} {...item} onClick={close} />
+              ))}
+            </div>
+          </div>
+
+          {/* Buyer Tools */}
+          {showBuyerTools && (
+            <div className="border-t border-steel-border pt-2.5">
+              <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-amber" />
+                Buyer Tools
+              </p>
+              <div className="flex flex-col gap-1">
+                {BUYER_TOOLS.map((item) => (
+                  <NavLink key={item.to} {...item} onClick={close} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dealer Tools */}
+          {showDealerTools && (
+            <div className="border-t border-steel-border pt-2.5">
+              <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
+                <Building2 className="w-3 h-3 text-amber" />
+                Dealer Tools
+              </p>
+              <div className="flex flex-col gap-1">
+                {DEALER_TOOLS.map((item) => (
+                  <NavLink key={item.to} {...item} onClick={close} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Switch Role */}
+          {identity && role && role !== "admin" && (
+            <div className="border-t border-steel-border pt-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  close();
+                  clearRole();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
+                data-ocid="nav.mobile_switch_role.button"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Switch Role (currently {role === "buyer" ? "Buyer" : "Dealer"})
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* FAB button */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={open ? "Close navigation" : "Open navigation"}
+        data-ocid="nav.mobile_fab.button"
+        className="fixed bottom-4 right-4 z-50 md:hidden w-12 h-12 rounded-full bg-amber text-charcoal shadow-lg hover:bg-amber/90 active:scale-95 flex items-center justify-center transition-all duration-200"
+      >
+        <div
+          className={`transition-transform duration-200 ${open ? "rotate-90" : "rotate-0"}`}
+        >
+          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </div>
+      </button>
+    </>
+  );
+}
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
+function Layout() {
+  const { identity } = useInternetIdentity();
+  const { actor } = useActor();
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
+  const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
+
+  // Sidebar collapsed state (read from localStorage to keep layout in sync)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("atp_sidebar_collapsed") === "true";
+  });
+
+  // Listen for sidebar state changes (sidebar toggles localStorage directly)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const isCollapsed =
+        localStorage.getItem("atp_sidebar_collapsed") === "true";
+      setSidebarCollapsed(isCollapsed);
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  // One-time: ensure sidebar starts expanded if the user has never set a preference
+  useEffect(() => {
+    if (localStorage.getItem("atp_sidebar_collapsed") === null) {
+      localStorage.setItem("atp_sidebar_collapsed", "false");
+      setSidebarCollapsed(false);
+    }
+  }, []);
+
+  // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
+  const showRoleSelection =
+    !!identity &&
+    profileChecked &&
+    !showProfileSetup &&
+    !roleLoading &&
+    role === null;
+
+  // For the shared comparison route, render without nav/header/footer
+  const isSharedRoute = window.location.pathname === "/shared-comparison";
+
+  useEffect(() => {
+    if (!identity || !actor || profileChecked) return;
+    (async () => {
+      try {
+        const profile = await (actor as any).getCallerUserProfile();
+        if (!profile) setShowProfileSetup(true);
+      } catch {
+        // ignore
+      } finally {
+        setProfileChecked(true);
+      }
+    })();
+  }, [identity, actor, profileChecked]);
+
+  useEffect(() => {
+    if (!identity) {
+      setProfileChecked(false);
+      setShowProfileSetup(false);
+    }
+  }, [identity]);
+
+  // Shared comparison page gets a bare layout (no nav/auth/footer)
+  if (isSharedRoute) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Outlet />
+      </div>
+    );
+  }
+
+  const showBuyerTools = role === "buyer" || role === "admin";
+  const showDealerTools = role === "dealer" || role === "admin";
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* ── Desktop Sidebar (768px+) ── */}
+      <DesktopSidebar role={role} clearRole={clearRole} identity={identity} />
+
+      {/* ── Main content area ── */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+          sidebarCollapsed ? "md:ml-14" : "md:ml-56"
+        }`}
+      >
+        {/* Alert banner */}
+        <PriceAlertBanner />
+
+        {/* Profile setup modal (shows first, before role selection) */}
+        {showProfileSetup && (
+          <ProfileSetupModal
+            onComplete={() => {
+              setShowProfileSetup(false);
+            }}
+          />
+        )}
+
+        {/* Role selection modal (shows after profile setup is complete) */}
+        {showRoleSelection && (
+          <RoleSelectionModal
+            onSelect={(selectedRole) => {
+              setRole(selectedRole);
+            }}
+          />
+        )}
+
+        {/* Page content */}
+        <main className="flex-1">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-steel-border bg-surface mt-auto">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
+            <div className="flex items-center gap-2">
+              <ATPLogo size={28} />
+              <span>
+                © {new Date().getFullYear()} Auto Track Pro — Used Car
+                Intelligence
+              </span>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      {/* ── Mobile FAB Nav (fixed, visible only on mobile) ── */}
+      <MobileNav
+        role={role}
+        clearRole={clearRole}
+        identity={identity}
+        showBuyerTools={showBuyerTools}
+        showDealerTools={showDealerTools}
+      />
+    </div>
   );
 }
 
