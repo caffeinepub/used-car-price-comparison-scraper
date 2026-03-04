@@ -696,7 +696,8 @@ export default function DashboardPage() {
   const getDealBadge = (id: string) => {
     const ds = getDealScore(id);
     if (!ds) return null;
-    const rating = ds.dealRating as string;
+    const rating = (ds.score ?? ds.dealRating ?? "") as string;
+    if (!rating) return null;
     const colorMap: Record<string, string> = {
       great:
         "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",

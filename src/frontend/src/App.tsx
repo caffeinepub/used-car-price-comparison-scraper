@@ -21,7 +21,8 @@ import {
   Calculator,
   CalendarDays,
   Car,
-  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Flame,
   GitMerge,
@@ -37,6 +38,7 @@ import {
   Radar,
   RefreshCw,
   Search,
+  Shield,
   Signal,
   Star,
   Sun,
@@ -48,7 +50,7 @@ import {
 } from "lucide-react";
 
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState } from "react";
 import PriceAlertBanner from "./components/PriceAlertBanner";
 import { useActor } from "./hooks/useActor";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
@@ -228,7 +230,7 @@ function RoleSelectionModal({
           </h2>
           <p className="text-sm text-muted-text">
             Choose your role to personalize your experience. You can switch
-            roles anytime using the badge in the top navigation.
+            roles anytime using the badge in the sidebar.
           </p>
         </div>
 
@@ -348,7 +350,915 @@ function ProfileSetupModal({ onComplete }: { onComplete: () => void }) {
 
 // ─── Theme Toggle ─────────────────────────────────────────────────────────────
 
-function ThemeToggle() {
+function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={`flex items-center gap-2 rounded-lg border border-steel-border bg-surface hover:border-amber/40 transition-colors ${
+        collapsed ? "w-9 h-9 justify-center" : "w-full px-3 py-2"
+      }`}
+      aria-label="Toggle theme"
+      title="Toggle theme"
+      data-ocid="sidebar.theme.toggle"
+    >
+      {theme === "dark" ? (
+        <Sun className="w-4 h-4 text-muted-text shrink-0" />
+      ) : (
+        <Moon className="w-4 h-4 text-muted-text shrink-0" />
+      )}
+      {!collapsed && (
+        <span className="text-xs text-muted-text">
+          {theme === "dark" ? "Light mode" : "Dark mode"}
+        </span>
+      )}
+    </button>
+  );
+}
+
+// ─── Auth Button ──────────────────────────────────────────────────────────────
+
+function AuthButton({ collapsed = false }: { collapsed?: boolean }) {
+  const { login, clear, loginStatus, identity } = useInternetIdentity();
+  const qc = useQueryClient();
+  const isAuthenticated = !!identity;
+  const isLoggingIn = loginStatus === "logging-in";
+
+  const handleAuth = async () => {
+    if (isAuthenticated) {
+      await clear();
+      qc.clear();
+    } else {
+      try {
+        await login();
+      } catch (error: any) {
+        if (error?.message === "User is already authenticated") {
+          await clear();
+          setTimeout(() => login(), 300);
+        }
+      }
+    }
+  };
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={handleAuth}
+        disabled={isLoggingIn}
+        title={
+          isLoggingIn ? "Signing in…" : isAuthenticated ? "Sign out" : "Sign in"
+        }
+        className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-colors ${
+          isAuthenticated
+            ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
+            : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
+        } disabled:opacity-50`}
+        data-ocid="sidebar.auth.button"
+      >
+        {isAuthenticated ? (
+          <X className="w-4 h-4" />
+        ) : (
+          <Shield className="w-4 h-4" />
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleAuth}
+      disabled={isLoggingIn}
+      className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-colors border flex items-center gap-2 ${
+        isAuthenticated
+          ? "border-steel-border text-muted-text hover:border-amber/40 hover:text-foreground bg-surface"
+          : "border-amber/40 text-amber hover:bg-amber/10 bg-transparent"
+      } disabled:opacity-50`}
+      data-ocid="sidebar.auth.button"
+    >
+      <Shield className="w-4 h-4 shrink-0" />
+      {isLoggingIn ? "Signing in…" : isAuthenticated ? "Sign out" : "Sign in"}
+    </button>
+  );
+}
+
+// ─── Error Boundary ───────────────────────────────────────────────────────────
+
+class ErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+          <div className="text-amber-500 text-lg font-bold mb-2">
+            Something went wrong
+          </div>
+          <div className="text-muted-text text-sm max-w-md mb-1">
+            {this.state.error.message}
+          </div>
+          <button
+            type="button"
+            onClick={() => this.setState({ error: null })}
+            className="mt-4 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm hover:bg-amber-500/20 transition-colors"
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ─── Nav item data arrays ─────────────────────────────────────────────────────
+
+const BUYER_TOOLS = [
+  { to: "/negotiation-coach", icon: MessageSquare, label: "Negotiation Coach" },
+  { to: "/should-i-wait", icon: Clock, label: "Should I Wait?" },
+  { to: "/tco-timeline", icon: LineChart, label: "TCO Timeline" },
+  { to: "/trim-analyzer", icon: Layers, label: "Trim Analyzer" },
+  { to: "/deal-expiry", icon: Timer, label: "Deal Expiry" },
+];
+
+const DEALER_TOOLS = [
+  { to: "/dealer/pricing-radar", icon: Radar, label: "Pricing Radar" },
+  { to: "/dealer/lot-tracker", icon: Clock, label: "Lot Tracker" },
+  { to: "/dealer/demand-heatmap", icon: Flame, label: "Demand Heatmap" },
+  { to: "/dealer/turnover", icon: RefreshCw, label: "Turnover Report" },
+  {
+    to: "/dealer/price-elasticity",
+    icon: TrendingDown,
+    label: "Price Elasticity",
+  },
+];
+
+const MARKET_INTEL_TOOLS = [
+  { to: "/market-saturation", icon: Signal, label: "Market Saturation" },
+  { to: "/cross-market", icon: Globe, label: "Cross-Market Comparison" },
+  { to: "/seasonal-pricing", icon: CalendarDays, label: "Seasonal Pricing" },
+];
+
+// Mobile nav items
+const NAV_ITEMS = [
+  { to: "/", icon: BarChart2, label: "Dashboard" },
+  { to: "/add", icon: PlusCircle, label: "Add" },
+  { to: "/import", icon: Upload, label: "Import" },
+  { to: "/compare", icon: Car, label: "Compare" },
+  { to: "/market", icon: TrendingDown, label: "Market" },
+  { to: "/watchlist", icon: Heart, label: "Watchlist" },
+  { to: "/alerts", icon: Bell, label: "Alerts" },
+  { to: "/activity", icon: Activity, label: "Activity" },
+  { to: "/dealer-ratings", icon: Star, label: "Ratings" },
+];
+
+const MORE_ITEMS = [
+  { to: "/cross-search", icon: Search, label: "Cross-Search" },
+  { to: "/depreciation", icon: TrendingDown, label: "Depreciation" },
+  { to: "/duplicates", icon: GitMerge, label: "Duplicates" },
+  { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
+  { to: "/regional", icon: MapPin, label: "Regions" },
+  { to: "/saved-searches", icon: BookmarkCheck, label: "Saved Searches" },
+  { to: "/custom-alerts", icon: Zap, label: "Alert Rules" },
+];
+
+// ─── Mobile Nav Link ──────────────────────────────────────────────────────────
+
+function NavLink({
+  to,
+  icon: Icon,
+  label,
+  onClick,
+  ocid,
+}: {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  onClick?: () => void;
+  ocid?: string;
+}) {
+  const isActive =
+    window.location.pathname === to || window.location.hash === `#${to}`;
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      data-ocid={ocid}
+      className={`shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
+        isActive
+          ? "bg-amber/10 text-amber border border-amber/20"
+          : "text-muted-text hover:text-foreground hover:bg-surface"
+      }`}
+    >
+      <Icon className="w-3.5 h-3.5 shrink-0" />
+      {label}
+    </Link>
+  );
+}
+
+// ─── Desktop Sidebar ──────────────────────────────────────────────────────────
+
+interface SidebarNavItem {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  ocid: string;
+}
+
+interface SidebarSection {
+  title: string;
+  items: SidebarNavItem[];
+  color?: "amber";
+  ocid?: string;
+}
+
+function SidebarLink({
+  to,
+  icon: Icon,
+  label,
+  collapsed,
+  ocid,
+}: SidebarNavItem & { collapsed: boolean }) {
+  const navigate = useNavigate();
+  const isActive =
+    window.location.pathname === to ||
+    (to !== "/" && window.location.pathname.startsWith(to));
+
+  return (
+    <button
+      type="button"
+      onClick={() => navigate({ to })}
+      title={collapsed ? label : undefined}
+      data-ocid={ocid}
+      className={`w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${
+        collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
+      } ${
+        isActive
+          ? "bg-amber/10 text-amber border-l-2 border-amber pl-[10px]"
+          : "text-muted-text hover:text-foreground hover:bg-surface/80 border-l-2 border-transparent"
+      }`}
+    >
+      <Icon className="w-4 h-4 shrink-0" />
+      {!collapsed && (
+        <span className="text-xs font-medium truncate">{label}</span>
+      )}
+    </button>
+  );
+}
+
+function DesktopSidebar({
+  role,
+  clearRole,
+  identity,
+}: {
+  role: AppRole;
+  clearRole: () => void;
+  identity: any;
+}) {
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem("atp_sidebar_collapsed") === "true";
+  });
+
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      const next = !v;
+      localStorage.setItem("atp_sidebar_collapsed", String(next));
+      return next;
+    });
+  };
+
+  const showBuyerTools = role === "buyer" || role === "admin";
+  const showDealerTools = role === "dealer" || role === "admin";
+
+  const coreSections: SidebarSection[] = [
+    {
+      title: "Core",
+      items: [
+        {
+          to: "/",
+          icon: BarChart2,
+          label: "Dashboard",
+          ocid: "sidebar.dashboard.link",
+        },
+        {
+          to: "/add",
+          icon: PlusCircle,
+          label: "Add Listing",
+          ocid: "sidebar.add.link",
+        },
+        {
+          to: "/import",
+          icon: Upload,
+          label: "Import",
+          ocid: "sidebar.import.link",
+        },
+        {
+          to: "/compare",
+          icon: Car,
+          label: "Compare",
+          ocid: "sidebar.compare.link",
+        },
+        {
+          to: "/market",
+          icon: TrendingDown,
+          label: "Market",
+          ocid: "sidebar.market.link",
+        },
+      ],
+    },
+    {
+      title: "Tracking",
+      items: [
+        {
+          to: "/watchlist",
+          icon: Heart,
+          label: "Watchlist",
+          ocid: "sidebar.watchlist.link",
+        },
+        {
+          to: "/custom-alerts",
+          icon: Zap,
+          label: "Alert Rules",
+          ocid: "sidebar.alert_rules.link",
+        },
+        {
+          to: "/saved-searches",
+          icon: BookmarkCheck,
+          label: "Saved",
+          ocid: "sidebar.saved.link",
+        },
+        {
+          to: "/activity",
+          icon: Activity,
+          label: "Activity",
+          ocid: "sidebar.activity.link",
+        },
+      ],
+    },
+    {
+      title: "Analysis",
+      items: [
+        {
+          to: "/cross-search",
+          icon: Search,
+          label: "Cross Search",
+          ocid: "sidebar.cross_search.link",
+        },
+        {
+          to: "/depreciation",
+          icon: TrendingDown,
+          label: "Depreciation",
+          ocid: "sidebar.depreciation.link",
+        },
+        {
+          to: "/duplicates",
+          icon: GitMerge,
+          label: "Duplicates",
+          ocid: "sidebar.duplicates.link",
+        },
+        {
+          to: "/ownership-cost",
+          icon: Calculator,
+          label: "Cost Calculator",
+          ocid: "sidebar.cost_calculator.link",
+        },
+        {
+          to: "/regional",
+          icon: MapPin,
+          label: "Regions",
+          ocid: "sidebar.regions.link",
+        },
+        {
+          to: "/dealer-ratings",
+          icon: Star,
+          label: "Ratings",
+          ocid: "sidebar.ratings.link",
+        },
+      ],
+    },
+  ];
+
+  const marketIntelSection: SidebarSection = {
+    title: "Market Intel",
+    color: "amber",
+    ocid: "sidebar.market_intel.section",
+    items: [
+      {
+        to: "/market-saturation",
+        icon: Signal,
+        label: "Market Saturation",
+        ocid: "sidebar.market_saturation.link",
+      },
+      {
+        to: "/cross-market",
+        icon: Globe,
+        label: "Cross-Market",
+        ocid: "sidebar.cross_market.link",
+      },
+      {
+        to: "/seasonal-pricing",
+        icon: CalendarDays,
+        label: "Seasonal Pricing",
+        ocid: "sidebar.seasonal_pricing.link",
+      },
+    ],
+  };
+
+  const buyerToolsSection: SidebarSection = {
+    title: "Buyer Tools",
+    color: "amber",
+    ocid: "sidebar.buyer_tools.section",
+    items: [
+      {
+        to: "/negotiation-coach",
+        icon: MessageSquare,
+        label: "Negotiation Coach",
+        ocid: "sidebar.negotiation_coach.link",
+      },
+      {
+        to: "/should-i-wait",
+        icon: Clock,
+        label: "Should I Wait?",
+        ocid: "sidebar.should_i_wait.link",
+      },
+      {
+        to: "/tco-timeline",
+        icon: LineChart,
+        label: "TCO Timeline",
+        ocid: "sidebar.tco_timeline.link",
+      },
+      {
+        to: "/trim-analyzer",
+        icon: Layers,
+        label: "Trim Analyzer",
+        ocid: "sidebar.trim_analyzer.link",
+      },
+      {
+        to: "/deal-expiry",
+        icon: Timer,
+        label: "Deal Expiry",
+        ocid: "sidebar.deal_expiry.link",
+      },
+    ],
+  };
+
+  const dealerToolsSection: SidebarSection = {
+    title: "Dealer Tools",
+    color: "amber",
+    ocid: "sidebar.dealer_tools.section",
+    items: [
+      {
+        to: "/dealer/pricing-radar",
+        icon: Radar,
+        label: "Pricing Radar",
+        ocid: "sidebar.pricing_radar.link",
+      },
+      {
+        to: "/dealer/lot-tracker",
+        icon: Clock,
+        label: "Lot Tracker",
+        ocid: "sidebar.lot_tracker.link",
+      },
+      {
+        to: "/dealer/demand-heatmap",
+        icon: Flame,
+        label: "Demand Heatmap",
+        ocid: "sidebar.demand_heatmap.link",
+      },
+      {
+        to: "/dealer/turnover",
+        icon: RefreshCw,
+        label: "Turnover Report",
+        ocid: "sidebar.turnover_report.link",
+      },
+      {
+        to: "/dealer/price-elasticity",
+        icon: TrendingDown,
+        label: "Price Elasticity",
+        ocid: "sidebar.price_elasticity.link",
+      },
+    ],
+  };
+
+  const allSections = [
+    ...coreSections,
+    marketIntelSection,
+    ...(showBuyerTools ? [buyerToolsSection] : []),
+    ...(showDealerTools ? [dealerToolsSection] : []),
+  ];
+
+  return (
+    <aside
+      className={`hidden md:flex flex-col fixed top-0 left-0 h-screen z-30 bg-surface border-r border-steel-border transition-all duration-300 ease-in-out ${
+        collapsed ? "w-14" : "w-56"
+      }`}
+    >
+      {/* Logo + App name */}
+      <div
+        className={`flex items-center h-14 border-b border-steel-border shrink-0 ${
+          collapsed ? "justify-center px-2" : "px-4 gap-2.5"
+        }`}
+      >
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 shrink-0"
+          data-ocid="sidebar.dashboard.link"
+        >
+          <ATPLogo size={28} />
+          {!collapsed && (
+            <span className="font-bold text-sm text-foreground whitespace-nowrap">
+              Auto Track <span className="text-amber">Pro</span>
+            </span>
+          )}
+        </Link>
+      </div>
+
+      {/* Collapse toggle */}
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        className="absolute -right-3 top-[52px] z-10 w-6 h-6 rounded-full bg-surface border border-steel-border flex items-center justify-center hover:border-amber/40 hover:bg-amber/5 transition-colors shadow-sm"
+        data-ocid="sidebar.collapse.toggle"
+      >
+        {collapsed ? (
+          <ChevronRight className="w-3 h-3 text-muted-text" />
+        ) : (
+          <ChevronLeft className="w-3 h-3 text-muted-text" />
+        )}
+      </button>
+
+      {/* Scrollable nav area */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 space-y-0.5">
+        {allSections.map((section, si) => (
+          <div
+            key={section.title}
+            className={si > 0 ? "pt-3" : ""}
+            data-ocid={section.ocid}
+          >
+            {/* Section label */}
+            {!collapsed && (
+              <div className="px-2 pb-1.5">
+                <span
+                  className={`text-[9px] font-bold uppercase tracking-widest ${
+                    section.color === "amber"
+                      ? "text-amber/70"
+                      : "text-muted-text/60"
+                  }`}
+                >
+                  {section.title}
+                </span>
+              </div>
+            )}
+            {collapsed && si > 0 && (
+              <div className="border-t border-steel-border/40 my-1.5 mx-1" />
+            )}
+            {/* Nav items */}
+            <div className="space-y-0.5">
+              {section.items.map((item) => (
+                <SidebarLink key={item.to} {...item} collapsed={collapsed} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Bottom controls */}
+      <div className="border-t border-steel-border shrink-0 p-2 space-y-1.5">
+        {/* Role badge / switch role */}
+        {identity && role && role !== "admin" && (
+          <button
+            type="button"
+            onClick={clearRole}
+            title="Click to switch role"
+            className={`flex items-center gap-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors ${
+              collapsed ? "w-9 h-9 justify-center p-0" : "w-full px-3 py-2"
+            }`}
+            data-ocid="sidebar.role_badge.toggle"
+          >
+            {role === "buyer" ? (
+              <Car className="w-4 h-4 shrink-0" />
+            ) : (
+              <Building2 className="w-4 h-4 shrink-0" />
+            )}
+            {!collapsed && (
+              <>
+                <span className="text-xs font-semibold">
+                  {role === "buyer" ? "Buyer" : "Dealer"}
+                </span>
+                <RefreshCw className="w-3 h-3 opacity-60 ml-auto" />
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Admin badge */}
+        {identity && role === "admin" && (
+          <div
+            className={`flex items-center gap-2 rounded-lg border border-slate-500/30 text-slate-400 bg-slate-500/10 ${
+              collapsed ? "w-9 h-9 justify-center" : "w-full px-3 py-2"
+            }`}
+            title="Admin — sees all tools"
+            data-ocid="nav.admin_badge.panel"
+          >
+            <Shield className="w-4 h-4 shrink-0" />
+            {!collapsed && <span className="text-xs font-semibold">Admin</span>}
+          </div>
+        )}
+
+        {/* Theme toggle */}
+        <ThemeToggle collapsed={collapsed} />
+
+        {/* Auth button */}
+        <AuthButton collapsed={collapsed} />
+      </div>
+    </aside>
+  );
+}
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
+function Layout() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { identity } = useInternetIdentity();
+  const { actor } = useActor();
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
+  const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
+
+  // Sidebar collapsed state (read from localStorage to keep layout in sync)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("atp_sidebar_collapsed") === "true";
+  });
+
+  // Listen for sidebar state changes (sidebar toggles localStorage directly)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const isCollapsed =
+        localStorage.getItem("atp_sidebar_collapsed") === "true";
+      setSidebarCollapsed(isCollapsed);
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
+  const showRoleSelection =
+    !!identity &&
+    profileChecked &&
+    !showProfileSetup &&
+    !roleLoading &&
+    role === null;
+
+  // For the shared comparison route, render without nav/header/footer
+  const isSharedRoute = window.location.pathname === "/shared-comparison";
+
+  useEffect(() => {
+    if (!identity || !actor || profileChecked) return;
+    (async () => {
+      try {
+        const profile = await (actor as any).getCallerUserProfile();
+        if (!profile) setShowProfileSetup(true);
+      } catch {
+        // ignore
+      } finally {
+        setProfileChecked(true);
+      }
+    })();
+  }, [identity, actor, profileChecked]);
+
+  useEffect(() => {
+    if (!identity) {
+      setProfileChecked(false);
+      setShowProfileSetup(false);
+    }
+  }, [identity]);
+
+  // Shared comparison page gets a bare layout (no nav/auth/footer)
+  if (isSharedRoute) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Outlet />
+      </div>
+    );
+  }
+
+  const showBuyerTools = role === "buyer" || role === "admin";
+  const showDealerTools = role === "dealer" || role === "admin";
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* ── Desktop Sidebar (md+) ── */}
+      <DesktopSidebar role={role} clearRole={clearRole} identity={identity} />
+
+      {/* ── Main content area ── */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+          sidebarCollapsed ? "md:ml-14" : "md:ml-56"
+        }`}
+      >
+        {/* ── Mobile header (visible only on mobile) ── */}
+        <header className="md:hidden sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-steel-border">
+          <div className="w-full px-3">
+            <div className="flex items-center h-12 gap-2">
+              {/* Logo */}
+              <Link
+                to="/"
+                className="flex items-center gap-2 shrink-0"
+                data-ocid="nav.dashboard.link"
+              >
+                <ATPLogo size={30} />
+                <span className="font-bold text-sm text-foreground">
+                  Auto Track <span className="text-amber">Pro</span>
+                </span>
+              </Link>
+
+              <div className="flex-1" />
+
+              {/* Right controls — mobile only */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Mobile theme toggle inline */}
+                <MobileThemeToggle />
+                {/* Mobile auth inline */}
+                <MobileAuthButton />
+                {/* Mobile menu toggle */}
+                <button
+                  type="button"
+                  className="w-8 h-8 rounded-lg border border-steel-border bg-surface flex items-center justify-center shrink-0"
+                  onClick={() => setMobileOpen((v) => !v)}
+                  aria-label="Toggle menu"
+                >
+                  {mobileOpen ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Menu className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile nav drawer */}
+          <div
+            className={`border-t border-steel-border bg-background overflow-hidden transition-all duration-300 ease-in-out ${
+              mobileOpen ? "max-h-[1400px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="px-4 py-3 space-y-3">
+              {/* Primary nav items */}
+              <div className="grid grid-cols-2 gap-1">
+                {NAV_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    {...item}
+                    onClick={() => setMobileOpen(false)}
+                  />
+                ))}
+              </div>
+              {/* More / secondary items */}
+              <div className="border-t border-steel-border pt-2.5">
+                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5">
+                  More
+                </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {MORE_ITEMS.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      {...item}
+                      onClick={() => setMobileOpen(false)}
+                    />
+                  ))}
+                </div>
+              </div>
+              {/* Market Intel - always visible */}
+              <div className="border-t border-steel-border pt-2.5">
+                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                  <BarChart3 className="w-3 h-3 text-amber" />
+                  Market Intel
+                </p>
+                <div className="flex flex-col gap-1">
+                  {MARKET_INTEL_TOOLS.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      {...item}
+                      onClick={() => setMobileOpen(false)}
+                    />
+                  ))}
+                </div>
+              </div>
+              {showBuyerTools && (
+                <div className="border-t border-steel-border pt-2.5">
+                  <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                    <Zap className="w-3 h-3 text-amber" />
+                    Buyer Tools
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    {BUYER_TOOLS.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        {...item}
+                        onClick={() => setMobileOpen(false)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {showDealerTools && (
+                <div className="border-t border-steel-border pt-2.5">
+                  <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
+                    <Building2 className="w-3 h-3 text-amber" />
+                    Dealer Tools
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    {DEALER_TOOLS.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        {...item}
+                        onClick={() => setMobileOpen(false)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Switch role button in mobile nav */}
+              {identity && role && role !== "admin" && (
+                <div className="border-t border-steel-border pt-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      clearRole();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
+                    data-ocid="nav.mobile_switch_role.button"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Switch Role (currently{" "}
+                    {role === "buyer" ? "Buyer" : "Dealer"})
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Alert banner */}
+        <PriceAlertBanner />
+
+        {/* Profile setup modal (shows first, before role selection) */}
+        {showProfileSetup && (
+          <ProfileSetupModal
+            onComplete={() => {
+              setShowProfileSetup(false);
+            }}
+          />
+        )}
+
+        {/* Role selection modal (shows after profile setup is complete) */}
+        {showRoleSelection && (
+          <RoleSelectionModal
+            onSelect={(selectedRole) => {
+              setRole(selectedRole);
+            }}
+          />
+        )}
+
+        {/* Page content */}
+        <main className="flex-1">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-steel-border bg-surface mt-auto">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
+            <div className="flex items-center gap-2">
+              <ATPLogo size={28} />
+              <span>
+                © {new Date().getFullYear()} Auto Track Pro — Used Car
+                Intelligence
+              </span>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+// ─── Mobile-only Theme Toggle ─────────────────────────────────────────────────
+
+function MobileThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   return (
     <button
@@ -366,9 +1276,9 @@ function ThemeToggle() {
   );
 }
 
-// ─── Auth Button ──────────────────────────────────────────────────────────────
+// ─── Mobile-only Auth Button ──────────────────────────────────────────────────
 
-function AuthButton() {
+function MobileAuthButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const qc = useQueryClient();
   const isAuthenticated = !!identity;
@@ -406,495 +1316,26 @@ function AuthButton() {
   );
 }
 
-// ─── Nav Link ─────────────────────────────────────────────────────────────────
-
-function NavLink({
-  to,
-  icon: Icon,
-  label,
-  onClick,
-  ocid,
-}: {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  onClick?: () => void;
-  ocid?: string;
-}) {
-  const isActive =
-    window.location.pathname === to || window.location.hash === `#${to}`;
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      data-ocid={ocid}
-      className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
-        isActive
-          ? "bg-amber/10 text-amber border border-amber/20"
-          : "text-muted-text hover:text-foreground hover:bg-surface"
-      }`}
-    >
-      <Icon className="w-3.5 h-3.5 shrink-0" />
-      {label}
-    </Link>
-  );
-}
-
-// ─── Nav item data arrays ─────────────────────────────────────────────────────
-
-const BUYER_TOOLS = [
-  { to: "/negotiation-coach", icon: MessageSquare, label: "Negotiation Coach" },
-  { to: "/should-i-wait", icon: Clock, label: "Should I Wait?" },
-  { to: "/tco-timeline", icon: LineChart, label: "TCO Timeline" },
-  { to: "/trim-analyzer", icon: Layers, label: "Trim Analyzer" },
-  { to: "/deal-expiry", icon: Timer, label: "Deal Expiry" },
-];
-
-const DEALER_TOOLS = [
-  { to: "/dealer/pricing-radar", icon: Radar, label: "Pricing Radar" },
-  { to: "/dealer/lot-tracker", icon: Clock, label: "Lot Tracker" },
-  { to: "/dealer/demand-heatmap", icon: Flame, label: "Demand Heatmap" },
-  { to: "/dealer/turnover", icon: RefreshCw, label: "Turnover Report" },
-  {
-    to: "/dealer/price-elasticity",
-    icon: TrendingDown,
-    label: "Price Elasticity",
-  },
-];
-
-const MARKET_INTEL_TOOLS = [
-  { to: "/market-saturation", icon: Signal, label: "Market Saturation" },
-  { to: "/cross-market", icon: Globe, label: "Cross-Market Comparison" },
-  { to: "/seasonal-pricing", icon: CalendarDays, label: "Seasonal Pricing" },
-];
-
-const MORE_ITEMS = [
-  { to: "/cross-search", icon: Search, label: "Cross-Search" },
-  { to: "/depreciation", icon: TrendingDown, label: "Depreciation" },
-  { to: "/duplicates", icon: GitMerge, label: "Duplicates" },
-  { to: "/ownership-cost", icon: Calculator, label: "Cost Calc" },
-  { to: "/regional", icon: MapPin, label: "Regions" },
-  { to: "/saved-searches", icon: BookmarkCheck, label: "Saved Searches" },
-  { to: "/custom-alerts", icon: Zap, label: "Alert Rules" },
-];
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
-
-// Primary nav items shown directly in the top bar (kept to 8 to fit on laptops)
-const NAV_ITEMS = [
-  { to: "/", icon: BarChart2, label: "Dashboard" },
-  { to: "/add", icon: PlusCircle, label: "Add" },
-  { to: "/import", icon: Upload, label: "Import" },
-  { to: "/compare", icon: Car, label: "Compare" },
-  { to: "/market", icon: TrendingDown, label: "Market" },
-  { to: "/watchlist", icon: Heart, label: "Watchlist" },
-  { to: "/alerts", icon: Bell, label: "Alerts" },
-  { to: "/activity", icon: Activity, label: "Activity" },
-  { to: "/dealer-ratings", icon: Star, label: "Ratings" },
-];
-
-// ─── Desktop Dropdown ─────────────────────────────────────────────────────────
-
-function DesktopDropdown({
-  id,
-  label,
-  icon: Icon,
-  items,
-  openDropdown,
-  setOpenDropdown,
-  highlight,
-}: {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  items: { to: string; icon: React.ElementType; label: string }[];
-  openDropdown: string | null;
-  setOpenDropdown: (id: string | null) => void;
-  highlight?: boolean;
-}) {
-  const isOpen = openDropdown === id;
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpenDropdown(null);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [isOpen, setOpenDropdown]);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpenDropdown(isOpen ? null : id)}
-        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${
-          highlight
-            ? isOpen
-              ? "bg-amber/20 text-amber border border-amber/30"
-              : "text-amber hover:bg-amber/10 border border-amber/20"
-            : isOpen
-              ? "bg-surface text-foreground border border-steel-border"
-              : "text-muted-text hover:text-foreground hover:bg-surface border border-transparent"
-        }`}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        data-ocid={`nav.${id}.toggle`}
-      >
-        <Icon className="w-3.5 h-3.5 shrink-0" />
-        {label}
-        <ChevronDown
-          className={`w-3 h-3 shrink-0 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-      {isOpen && (
-        <div className="absolute top-full right-0 mt-1 bg-surface border border-steel-border rounded-xl shadow-xl py-1 z-50 min-w-[200px]">
-          {items.map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setOpenDropdown(null)}
-                className="flex items-center gap-2 px-3 py-2 text-xs text-muted-text hover:text-foreground hover:bg-amber/5 transition-colors w-full"
-                data-ocid={`nav.${id}.link`}
-              >
-                <ItemIcon className="w-3.5 h-3.5 shrink-0 text-amber/70" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Layout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const { identity } = useInternetIdentity();
-  const { actor } = useActor();
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
-  const [profileChecked, setProfileChecked] = useState(false);
-  const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
-
-  // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
-  const showRoleSelection =
-    !!identity &&
-    profileChecked &&
-    !showProfileSetup &&
-    !roleLoading &&
-    role === null;
-
-  // Role-based nav visibility
-  const showBuyerTools = role === "buyer" || role === "admin";
-  const showDealerTools = role === "dealer" || role === "admin";
-
-  // For the shared comparison route, render without nav/header/footer
-  const isSharedRoute = window.location.pathname === "/shared-comparison";
-
-  useEffect(() => {
-    if (!identity || !actor || profileChecked) return;
-    (async () => {
-      try {
-        const profile = await (actor as any).getCallerUserProfile();
-        if (!profile) setShowProfileSetup(true);
-      } catch {
-        // ignore
-      } finally {
-        setProfileChecked(true);
-      }
-    })();
-  }, [identity, actor, profileChecked]);
-
-  useEffect(() => {
-    if (!identity) {
-      setProfileChecked(false);
-      setShowProfileSetup(false);
-    }
-  }, [identity]);
-
-  // Shared comparison page gets a bare layout (no nav/auth/footer)
-  if (isSharedRoute) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Outlet />
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-steel-border">
-        <div className="max-w-screen-2xl mx-auto px-3 sm:px-5">
-          {/* ── Single row desktop nav + mobile controls ── */}
-          <div className="flex items-center h-14 gap-1">
-            {/* Logo — always shrinks to its natural size */}
-            <Link
-              to="/"
-              className="flex items-center gap-2 shrink-0 mr-2"
-              data-ocid="nav.dashboard.link"
-            >
-              <ATPLogo size={32} />
-              <span className="font-bold text-sm text-foreground hidden xl:block">
-                Auto Track <span className="text-amber">Pro</span>
-              </span>
-            </Link>
-
-            {/* ── Desktop nav (hidden on mobile) ── */}
-            <nav
-              className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0"
-              data-ocid="nav.desktop.panel"
-            >
-              {/* Primary nav links */}
-              {NAV_ITEMS.map((item) => (
-                <NavLink key={item.to} {...item} />
-              ))}
-
-              {/* Divider */}
-              <span className="w-px h-4 bg-steel-border/60 mx-1 self-center shrink-0" />
-
-              {/* More dropdown */}
-              <DesktopDropdown
-                id="more"
-                label="More"
-                icon={BarChart2}
-                items={MORE_ITEMS}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-              />
-
-              {/* Divider */}
-              <span className="w-px h-4 bg-steel-border/60 mx-1 self-center shrink-0" />
-
-              {/* Market Intel dropdown — amber highlight */}
-              <DesktopDropdown
-                id="market-intel"
-                label="Market Intel"
-                icon={BarChart3}
-                items={MARKET_INTEL_TOOLS}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-                highlight
-              />
-
-              {/* Buyer Tools dropdown (role-gated) */}
-              {showBuyerTools && (
-                <DesktopDropdown
-                  id="buyer-tools"
-                  label="Buyer Tools"
-                  icon={Zap}
-                  items={BUYER_TOOLS}
-                  openDropdown={openDropdown}
-                  setOpenDropdown={setOpenDropdown}
-                />
-              )}
-
-              {/* Dealer Tools dropdown (role-gated) */}
-              {showDealerTools && (
-                <DesktopDropdown
-                  id="dealer-tools"
-                  label="Dealer Tools"
-                  icon={Building2}
-                  items={DEALER_TOOLS}
-                  openDropdown={openDropdown}
-                  setOpenDropdown={setOpenDropdown}
-                />
-              )}
-            </nav>
-
-            {/* Spacer for mobile (pushes right controls to far right) */}
-            <div className="flex-1 lg:hidden" />
-
-            {/* Right controls — always visible */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* Role badge (shows current role; click to switch for non-admins) */}
-              {identity && role && role !== "admin" && (
-                <button
-                  type="button"
-                  onClick={() => clearRole()}
-                  title="Click to switch role"
-                  className="hidden lg:flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors"
-                  data-ocid="nav.role_badge.toggle"
-                >
-                  {role === "buyer" ? (
-                    <Car className="w-3 h-3" />
-                  ) : (
-                    <Building2 className="w-3 h-3" />
-                  )}
-                  <span>{role === "buyer" ? "Buyer" : "Dealer"}</span>
-                  <RefreshCw className="w-3 h-3 opacity-60" />
-                </button>
-              )}
-              <ThemeToggle />
-              <AuthButton />
-              {/* Mobile menu toggle */}
-              <button
-                type="button"
-                className="lg:hidden w-8 h-8 rounded-lg border border-steel-border bg-surface flex items-center justify-center shrink-0"
-                onClick={() => setMobileOpen((v) => !v)}
-                aria-label="Toggle menu"
-              >
-                {mobileOpen ? (
-                  <X className="w-4 h-4" />
-                ) : (
-                  <Menu className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile nav */}
-        {mobileOpen && (
-          <div className="lg:hidden border-t border-steel-border bg-background px-4 py-3 space-y-3">
-            {/* Primary nav items */}
-            <div className="grid grid-cols-2 gap-1">
-              {NAV_ITEMS.map((item) => (
-                <NavLink
-                  key={item.to}
-                  {...item}
-                  onClick={() => setMobileOpen(false)}
-                />
-              ))}
-            </div>
-            {/* More / secondary items */}
-            <div className="border-t border-steel-border pt-2.5">
-              <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5">
-                More
-              </p>
-              <div className="grid grid-cols-2 gap-1">
-                {MORE_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    {...item}
-                    onClick={() => setMobileOpen(false)}
-                  />
-                ))}
-              </div>
-            </div>
-            {/* Market Intel - always visible */}
-            <div className="border-t border-steel-border pt-2.5">
-              <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                <BarChart3 className="w-3 h-3 text-amber" />
-                Market Intel
-              </p>
-              <div className="flex flex-col gap-1">
-                {MARKET_INTEL_TOOLS.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    {...item}
-                    onClick={() => setMobileOpen(false)}
-                  />
-                ))}
-              </div>
-            </div>
-            {showBuyerTools && (
-              <div className="border-t border-steel-border pt-2.5">
-                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                  <Zap className="w-3 h-3 text-amber" />
-                  Buyer Tools
-                </p>
-                <div className="flex flex-col gap-1">
-                  {BUYER_TOOLS.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      {...item}
-                      onClick={() => setMobileOpen(false)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-            {showDealerTools && (
-              <div className="border-t border-steel-border pt-2.5">
-                <p className="text-xs text-muted-text font-medium uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-                  <Building2 className="w-3 h-3 text-amber" />
-                  Dealer Tools
-                </p>
-                <div className="flex flex-col gap-1">
-                  {DEALER_TOOLS.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      {...item}
-                      onClick={() => setMobileOpen(false)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-            {/* Switch role button in mobile nav */}
-            {identity && role && role !== "admin" && (
-              <div className="border-t border-steel-border pt-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    clearRole();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
-                  data-ocid="nav.mobile_switch_role.button"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Switch Role (currently {role === "buyer" ? "Buyer" : "Dealer"}
-                  )
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </header>
-
-      {/* Alert banner */}
-      <PriceAlertBanner />
-
-      {/* Profile setup modal (shows first, before role selection) */}
-      {showProfileSetup && (
-        <ProfileSetupModal
-          onComplete={() => {
-            setShowProfileSetup(false);
-          }}
-        />
-      )}
-
-      {/* Role selection modal (shows after profile setup is complete) */}
-      {showRoleSelection && (
-        <RoleSelectionModal
-          onSelect={(selectedRole) => {
-            setRole(selectedRole);
-          }}
-        />
-      )}
-
-      {/* Page content */}
-      <div className="flex-1">
-        <Outlet />
-      </div>
-
-      {/* Footer */}
-      <footer className="border-t border-steel-border bg-surface mt-auto">
-        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
-          <div className="flex items-center gap-2">
-            <ATPLogo size={28} />
-            <span>
-              © {new Date().getFullYear()} Auto Track Pro — Used Car
-              Intelligence
-            </span>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-const rootRoute = createRootRoute({ component: Layout });
+const rootRoute = createRootRoute({
+  component: Layout,
+  errorComponent: ({ error }: { error: unknown }) => (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4 text-center">
+      <div className="text-amber-500 text-lg font-bold mb-2">Page Error</div>
+      <div className="text-muted-foreground text-sm max-w-md">
+        {String(error)}
+      </div>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        className="mt-4 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm hover:bg-amber-500/20 transition-colors"
+      >
+        Reload
+      </button>
+    </div>
+  ),
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
