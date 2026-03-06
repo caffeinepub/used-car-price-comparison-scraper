@@ -18,6 +18,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import React, { useState } from "react";
+import PageHeader from "../components/PageHeader";
 import {
   useGetMarketOverview,
   useGetPriceDropListings,
@@ -75,14 +76,11 @@ export default function MarketOverviewPage() {
     <div className="min-h-screen bg-surface px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl space-y-10">
         {/* Page Header */}
-        <div>
-          <h1 className="font-display text-3xl font-bold text-amber-400 tracking-wide">
-            Market Overview
-          </h1>
-          <p className="mt-1 text-muted-text text-sm">
-            Aggregate insights across all tracked makes and models
-          </p>
-        </div>
+        <PageHeader
+          title="Market Overview"
+          description="Aggregate insights across all tracked makes and models"
+          icon={<BarChart3 className="w-6 h-6" />}
+        />
 
         {/* Most Tracked Models */}
         <section className="card-panel">

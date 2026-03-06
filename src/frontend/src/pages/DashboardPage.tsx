@@ -31,13 +31,7 @@ import {
   X,
 } from "lucide-react";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
-// Local type definition (matches backend PrivateNote)
-interface PrivateNote {
-  id: string;
-  text: string;
-  lastUpdated: bigint;
-}
+import { useEffect, useState } from "react";
 import ColumnCustomizationPanel from "../components/ColumnCustomizationPanel";
 import ConfidenceScoreBadge from "../components/ConfidenceScoreBadge";
 import DealExpiryBadge from "../components/DealExpiryBadge";
@@ -48,11 +42,12 @@ import NegotiationScoreBadge from "../components/NegotiationScoreBadge";
 import OnboardingEmptyState from "../components/OnboardingEmptyState";
 import PaginationControls from "../components/PaginationControls";
 import PriceHistoryReplayModal from "../components/PriceHistoryReplayModal";
+import QuickAccessGrid from "../components/QuickAccessGrid";
 import RecallAlertBadge from "../components/RecallAlertBadge";
 import StaleListingReminderPanel from "../components/StaleListingReminderPanel";
-import { useActor } from "../hooks/useActor";
 import { useColumnPreferences } from "../hooks/useColumnPreferences";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { usePrivateNotes } from "../hooks/usePrivateNotes";
 import {
   useAddDashboardWidget,
   useArchiveListing,
@@ -435,8 +430,6 @@ interface EditState {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { actor } = useActor();
-
   const { data: allListings = [], isLoading: listingsLoading } =
     useGetAllListings();
   const { data: stats } = useGetDashboardStats();
@@ -447,48 +440,8 @@ export default function DashboardPage() {
   const archiveListing = useArchiveListing();
   const bulkArchiveByAge = useBulkArchiveByAge();
 
-  // ── Private notes state ───────────────────────────────────────────────────
-  const [notesMap, setNotesMap] = useState<Map<string, PrivateNote>>(new Map());
-
-  useEffect(() => {
-    if (!identity || !actor) return;
-    let cancelled = false;
-    try {
-      const fn = (actor as any).getAllPrivateNotes;
-      if (typeof fn !== "function")
-        return () => {
-          cancelled = true;
-        };
-      fn.call(actor)
-        .then((notes: any[]) => {
-          if (cancelled) return;
-          setNotesMap(new Map(notes.map((n: any) => [n.id, n])));
-        })
-        .catch(() => {
-          /* silent — notes are non-critical */
-        });
-    } catch {
-      /* backend doesn't support notes yet — silent */
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [identity, actor]);
-
-  const handleNoteChange = useCallback(
-    (listingId: string, note: PrivateNote | null) => {
-      setNotesMap((prev) => {
-        const next = new Map(prev);
-        if (note === null) {
-          next.delete(listingId);
-        } else {
-          next.set(listingId, note);
-        }
-        return next;
-      });
-    },
-    [],
-  );
+  // ── Private notes — persisted in localStorage keyed by principal ──────────
+  const { notesMap, saveNote, deleteNote } = usePrivateNotes();
 
   const {
     columns,
@@ -1416,7 +1369,8 @@ export default function DashboardPage() {
                                       listingId={listing.id}
                                       note={notesMap.get(listing.id) ?? null}
                                       isAuthenticated={Boolean(identity)}
-                                      onNoteChange={handleNoteChange}
+                                      onSave={saveNote}
+                                      onDelete={deleteNote}
                                     />
                                     <button
                                       type="button"
@@ -1453,6 +1407,9 @@ export default function DashboardPage() {
             />
           </>
         )}
+
+        {/* Quick Access Feature Grid */}
+        <QuickAccessGrid />
       </div>
 
       {/* Export Panel */}

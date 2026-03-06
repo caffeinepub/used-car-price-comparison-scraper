@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import PageHeader from "../components/PageHeader";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useDeleteSavedSearch,
@@ -199,17 +200,11 @@ export default function SavedSearchesPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Search className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-          <h1 className="text-2xl font-bold text-foreground font-display tracking-wide">
-            Saved Searches
-          </h1>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Apply saved filter combinations to quickly find listings.
-        </p>
-      </div>
+      <PageHeader
+        title="Saved Searches"
+        description="Apply saved filter combinations to quickly find listings."
+        icon={<Search className="w-6 h-6" />}
+      />
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

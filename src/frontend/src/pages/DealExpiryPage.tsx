@@ -15,6 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
+import PageHeader from "../components/PageHeader";
 import { useGetDealExpiryPrediction } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -130,20 +131,11 @@ export default function DealExpiryPage() {
   return (
     <div className="max-w-screen-md mx-auto px-4 py-8 space-y-8">
       {/* Page Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <Timer className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Deal Expiry Prediction
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Estimate how many days before a good deal gets snatched up — so you
-            know when to act.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Deal Expiry Prediction"
+        description="Estimate how many days before a good deal gets snatched up — so you know when to act."
+        icon={<Timer className="w-6 h-6" />}
+      />
 
       {/* Search Form */}
       <Card className="bg-surface border-steel-border">

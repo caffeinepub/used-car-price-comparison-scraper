@@ -11,6 +11,7 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import PageHeader from "../components/PageHeader";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAddToWatchlist,
@@ -90,21 +91,12 @@ export default function WatchlistPage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber/10 border border-amber/20">
-              <Bookmark className="w-6 h-6 text-amber" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground font-rajdhani tracking-wide">
-                My Watchlist
-              </h1>
-              <p className="text-sm text-muted-text">
-                Track cars you're interested in
-              </p>
-            </div>
-          </div>
-
+        <PageHeader
+          title="My Watchlist"
+          description="Track cars you're interested in"
+          icon={<Bookmark className="w-6 h-6" />}
+        />
+        <div className="flex items-center justify-end mb-6">
           <div className="flex items-center gap-2">
             {/* Share Watchlist Button */}
             <button

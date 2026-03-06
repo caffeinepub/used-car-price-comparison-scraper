@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 import type { CrossModelResult } from "../hooks/useQueries";
 import { useCrossModelSearch } from "../hooks/useQueries";
 
@@ -218,20 +219,11 @@ export default function TrimAnalyzerPage() {
   return (
     <div className="max-w-screen-lg mx-auto px-4 py-8 space-y-8">
       {/* Page Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <Layers className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Trim-Level Value Analyzer
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Is the premium trim worth the extra cost? Compare average prices by
-            trim level based on actual market listings.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Trim-Level Value Analyzer"
+        description="Is the premium trim worth the extra cost? Compare average prices by trim level based on actual market listings."
+        icon={<Layers className="w-6 h-6" />}
+      />
 
       {/* Search */}
       <Card className="bg-surface border-steel-border">

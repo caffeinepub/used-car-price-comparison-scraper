@@ -12,6 +12,7 @@ interface RegionalBreakdown {
   avgPrice: number;
   sources: string[];
 }
+import PageHeader from "../components/PageHeader";
 import { useActor } from "../hooks/useActor";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -304,19 +305,11 @@ export default function RegionalBreakdownPage() {
     <div className="min-h-screen bg-surface px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
         {/* Page Header */}
-        <div className="flex items-start justify-between flex-wrap gap-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <MapPin className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              <h1 className="font-display text-3xl font-bold text-amber-600 dark:text-amber-400 tracking-wide">
-                Regional Breakdown
-              </h1>
-            </div>
-            <p className="text-muted-text text-sm">
-              Geographic distribution of listings by dealer state or region
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Regional Breakdown"
+          description="Geographic distribution of listings by dealer state or region"
+          icon={<MapPin className="w-6 h-6" />}
+        />
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

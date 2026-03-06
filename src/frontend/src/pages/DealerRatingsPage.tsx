@@ -6,6 +6,7 @@ import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { DealerRating } from "../backend.d";
+import PageHeader from "../components/PageHeader";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useGetAggregateDealerRating,
@@ -315,16 +316,11 @@ export default function DealerRatingsPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground font-display flex items-center gap-2">
-            <Star className="w-6 h-6 text-amber" />
-            Community Dealer Ratings
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Buyers rate their experience with specific dealers — transparent,
-            community-sourced trust scores.
-          </p>
-        </div>
+        <PageHeader
+          title="Community Dealer Ratings"
+          description="Buyers rate their experience with specific dealers — transparent, community-sourced trust scores."
+          icon={<Star className="w-6 h-6" />}
+        />
 
         {/* Search */}
         <form onSubmit={handleSearch} className="flex gap-2">

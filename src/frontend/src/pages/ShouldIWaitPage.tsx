@@ -19,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 
 // ─── Seasonal Data ────────────────────────────────────────────────────────────
 
@@ -118,20 +119,11 @@ export default function ShouldIWaitPage() {
   return (
     <div className="max-w-screen-lg mx-auto px-4 py-8 space-y-8">
       {/* Page Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <Clock className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Should I Wait?
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Seasonal price intelligence — find out if now is a good time to buy
-            or if prices are likely to drop soon.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Should I Wait?"
+        description="Seasonal price intelligence — find out if now is a good time to buy or if prices are likely to drop soon."
+        icon={<Clock className="w-6 h-6" />}
+      />
 
       {/* Input */}
       <Card className="bg-surface border-steel-border">

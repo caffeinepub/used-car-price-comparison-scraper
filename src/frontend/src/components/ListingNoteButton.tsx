@@ -14,13 +14,13 @@ import {
 import { Loader2, StickyNote, Trash2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-// Local type definition (matches backend PrivateNote)
-interface PrivateNote {
+
+// Local type definition (matches PrivateNote from usePrivateNotes)
+export interface PrivateNote {
   id: string;
   text: string;
   lastUpdated: bigint;
 }
-import { useActor } from "../hooks/useActor";
 
 const MAX_CHARS = 500;
 
@@ -46,28 +46,32 @@ export interface ListingNoteButtonProps {
   listingId: string;
   note: PrivateNote | null | undefined;
   isAuthenticated: boolean;
-  onNoteChange: (listingId: string, note: PrivateNote | null) => void;
+  /** Called when user saves a note (listingId, text) */
+  onSave: (listingId: string, text: string) => void;
+  /** Called when user deletes a note (listingId) */
+  onDelete: (listingId: string) => void;
+  /** @deprecated Use onSave/onDelete instead — kept for backward compatibility */
+  onNoteChange?: (listingId: string, note: PrivateNote | null) => void;
 }
 
 export default function ListingNoteButton({
   listingId,
   note,
   isAuthenticated,
+  onSave,
+  onDelete,
   onNoteChange,
 }: ListingNoteButtonProps) {
-  const { actor } = useActor();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sync local text state when popover opens or note changes
   useEffect(() => {
     if (open) {
       setText(note?.text ?? "");
-      setError(null);
       // Focus textarea after open animation
       requestAnimationFrame(() => {
         textareaRef.current?.focus();
@@ -79,48 +83,39 @@ export default function ListingNoteButton({
   const charsLeft = MAX_CHARS - text.length;
   const isDirty = text !== (note?.text ?? "");
 
-  const handleSave = async () => {
-    if (!actor || !isDirty || text.length === 0) return;
-    if (typeof (actor as any).savePrivateNote !== "function") {
-      setError("Notes not available yet.");
-      return;
-    }
+  const handleSave = () => {
+    if (!isDirty || text.length === 0) return;
     setIsSaving(true);
-    setError(null);
-    try {
-      await (actor as any).savePrivateNote(listingId, text);
-      // Optimistic update: create a synthetic PrivateNote
-      const updated: PrivateNote = {
-        id: listingId,
-        text,
-        lastUpdated: BigInt(Date.now() * 1_000_000),
-      };
-      onNoteChange(listingId, updated);
-      setOpen(false);
-    } catch (_err) {
-      setError("Failed to save note. Please try again.");
-    } finally {
+
+    // Brief UX spinner (localStorage is synchronous — feels instant without it)
+    setTimeout(() => {
+      onSave(listingId, text);
+      // Also call legacy callback if provided
+      if (onNoteChange) {
+        const updated: PrivateNote = {
+          id: listingId,
+          text,
+          lastUpdated: BigInt(Date.now() * 1_000_000),
+        };
+        onNoteChange(listingId, updated);
+      }
       setIsSaving(false);
-    }
+      setOpen(false);
+    }, 100);
   };
 
-  const handleDelete = async () => {
-    if (!actor) return;
-    if (typeof (actor as any).deletePrivateNote !== "function") {
-      setError("Notes not available yet.");
-      return;
-    }
+  const handleDelete = () => {
     setIsDeleting(true);
-    setError(null);
-    try {
-      await (actor as any).deletePrivateNote(listingId);
-      onNoteChange(listingId, null);
-      setOpen(false);
-    } catch (_err) {
-      setError("Failed to delete note. Please try again.");
-    } finally {
+
+    setTimeout(() => {
+      onDelete(listingId);
+      // Also call legacy callback if provided
+      if (onNoteChange) {
+        onNoteChange(listingId, null);
+      }
       setIsDeleting(false);
-    }
+      setOpen(false);
+    }, 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -230,13 +225,6 @@ export default function ListingNoteButton({
             </span>
             <span className="text-xs text-muted-foreground/60">⌘↵ to save</span>
           </div>
-
-          {/* Error */}
-          {error && (
-            <p className="text-xs text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/10 border border-red-300 dark:border-red-500/20 rounded px-2 py-1.5">
-              {error}
-            </p>
-          )}
         </div>
 
         {/* Footer actions */}

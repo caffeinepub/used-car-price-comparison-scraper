@@ -64,7 +64,10 @@ import CustomAlertFormulasPage from "./pages/CustomAlertFormulasPage";
 // Pages
 import DashboardPage from "./pages/DashboardPage";
 import DealExpiryPage from "./pages/DealExpiryPage";
+import DealerBuyerReadinessPage from "./pages/DealerBuyerReadinessPage";
 import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
+import DealerFloorPlanPage from "./pages/DealerFloorPlanPage";
+import DealerLotOptimizerPage from "./pages/DealerLotOptimizerPage";
 import DealerLotTrackerPage from "./pages/DealerLotTrackerPage";
 import DealerPriceElasticityPage from "./pages/DealerPriceElasticityPage";
 import DealerPricingRadarPage from "./pages/DealerPricingRadarPage";
@@ -77,12 +80,15 @@ import MarketSaturationPage from "./pages/MarketSaturationPage";
 import NegotiationCoachPage from "./pages/NegotiationCoachPage";
 import OwnershipCostPage from "./pages/OwnershipCostPage";
 import PriceAlertsPage from "./pages/PriceAlertsPage";
+import PriceVelocityPage from "./pages/PriceVelocityPage";
+import RegionalArbitragePage from "./pages/RegionalArbitragePage";
 import RegionalBreakdownPage from "./pages/RegionalBreakdownPage";
 import SavedSearchesPage from "./pages/SavedSearchesPage";
 import SeasonalPricingPage from "./pages/SeasonalPricingPage";
 import SharedComparisonPage from "./pages/SharedComparisonPage";
 import SharedWatchlistPage from "./pages/SharedWatchlistPage";
 import ShouldIWaitPage from "./pages/ShouldIWaitPage";
+import SupplyShockPage from "./pages/SupplyShockPage";
 import TCOTimelinePage from "./pages/TCOTimelinePage";
 import TrimAnalyzerPage from "./pages/TrimAnalyzerPage";
 import WatchlistPage from "./pages/WatchlistPage";
@@ -498,12 +504,26 @@ const DEALER_TOOLS = [
     icon: TrendingDown,
     label: "Price Elasticity",
   },
+  { to: "/dealer/floor-plan", icon: Calculator, label: "Floor Plan Calc" },
+  { to: "/dealer/lot-optimizer", icon: LayoutGrid, label: "Lot Optimizer" },
+  { to: "/dealer/buyer-readiness", icon: Zap, label: "Buyer Readiness" },
 ];
 
 const MARKET_INTEL_TOOLS = [
   { to: "/market-saturation", icon: Signal, label: "Market Saturation" },
   { to: "/cross-market", icon: Globe, label: "Cross-Market Comparison" },
   { to: "/seasonal-pricing", icon: CalendarDays, label: "Seasonal Pricing" },
+  {
+    to: "/market-intel/price-velocity",
+    icon: TrendingDown,
+    label: "Price Velocity",
+  },
+  { to: "/market-intel/supply-shock", icon: Zap, label: "Supply Shock" },
+  {
+    to: "/market-intel/regional-arbitrage",
+    icon: MapPin,
+    label: "Regional Arbitrage",
+  },
 ];
 
 // Mobile nav items
@@ -1346,6 +1366,21 @@ const dealerPriceElasticityRoute = createRoute({
   path: "/dealer/price-elasticity",
   component: DealerPriceElasticityPage,
 });
+const dealerFloorPlanRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/floor-plan",
+  component: DealerFloorPlanPage,
+});
+const dealerLotOptimizerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/lot-optimizer",
+  component: DealerLotOptimizerPage,
+});
+const dealerBuyerReadinessRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/buyer-readiness",
+  component: DealerBuyerReadinessPage,
+});
 const dealerRatingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/dealer-ratings",
@@ -1365,6 +1400,21 @@ const seasonalPricingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/seasonal-pricing",
   component: SeasonalPricingPage,
+});
+const priceVelocityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/market-intel/price-velocity",
+  component: PriceVelocityPage,
+});
+const supplyShockRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/market-intel/supply-shock",
+  component: SupplyShockPage,
+});
+const regionalArbitrageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/market-intel/regional-arbitrage",
+  component: RegionalArbitragePage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -1395,10 +1445,16 @@ const routeTree = rootRoute.addChildren([
   dealerDemandHeatmapRoute,
   dealerTurnoverRoute,
   dealerPriceElasticityRoute,
+  dealerFloorPlanRoute,
+  dealerLotOptimizerRoute,
+  dealerBuyerReadinessRoute,
   dealerRatingsRoute,
   marketSaturationRoute,
   crossMarketRoute,
   seasonalPricingRoute,
+  priceVelocityRoute,
+  supplyShockRoute,
+  regionalArbitrageRoute,
 ]);
 
 const router = createRouter({ routeTree });

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import PageHeader from "../components/PageHeader";
 import { useActor } from "../hooks/useActor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -473,19 +474,11 @@ export default function DuplicateMergePage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-amber/10 border border-amber/20 flex items-center justify-center">
-              <GitMerge className="w-5 h-5 text-amber" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">
-                Duplicate Merge
-              </h1>
-              <p className="text-sm text-muted-text">
-                Review and merge near-duplicate listings to keep your data clean
-              </p>
-            </div>
-          </div>
+          <PageHeader
+            title="Duplicate Merge"
+            description="Review and merge near-duplicate listings to keep your data clean"
+            icon={<GitMerge className="w-5 h-5" />}
+          />
 
           {!isLoading && !isError && visibleClusters.length > 0 && (
             <div className="mt-4 flex items-center gap-3 flex-wrap">

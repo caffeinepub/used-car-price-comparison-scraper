@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import PageHeader from "../components/PageHeader";
 import { useGetNegotiationScore } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -238,20 +239,11 @@ export default function NegotiationCoachPage() {
   return (
     <div className="max-w-screen-lg mx-auto px-4 py-8 space-y-8">
       {/* Page Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <MessageSquare className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Negotiation Coach
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Step-by-step scripts tailored to your leverage level — based on how
-            long the car's been listed and how much the price has dropped.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Negotiation Coach"
+        description="Step-by-step scripts tailored to your leverage level — based on how long the car's been listed and how much the price has dropped."
+        icon={<MessageSquare className="w-6 h-6" />}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── Left: Inputs ── */}

@@ -19,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 import type { DepreciationDataPoint } from "../hooks/useQueries";
 import { useDepreciationCurve } from "../hooks/useQueries";
 
@@ -208,19 +209,11 @@ export default function DepreciationCurvePage() {
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-6">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-amber/10 border border-amber/20">
-          <TrendingDown className="w-5 h-5 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-rajdhani tracking-wide text-foreground uppercase">
-            Depreciation Curve
-          </h1>
-          <p className="text-sm text-muted-text">
-            Value loss over time based on your listing data
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Depreciation Curve"
+        description="Value loss over time based on your listing data"
+        icon={<TrendingDown className="w-6 h-6" />}
+      />
 
       {/* Inputs */}
       <div className="bg-surface border border-steel-border rounded-xl p-5 space-y-4">

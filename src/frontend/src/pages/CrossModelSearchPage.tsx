@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useMemo, useState } from "react";
+import PageHeader from "../components/PageHeader";
 import type { CrossModelResult } from "../hooks/useQueries";
 import { useCrossModelSearch } from "../hooks/useQueries";
 
@@ -336,19 +337,11 @@ export default function CrossModelSearchPage() {
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-6">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-amber/10 border border-amber/20">
-          <Search className="w-5 h-5 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-rajdhani tracking-wide text-foreground uppercase">
-            Cross-Model Search
-          </h1>
-          <p className="text-sm text-muted-text">
-            Find the best deals across all makes and models within your budget
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Cross-Model Search"
+        description="Find the best deals across all makes and models within your budget"
+        icon={<Search className="w-6 h-6" />}
+      />
 
       {/* Search Form */}
       <div className="bg-surface border border-steel-border rounded-xl p-5">

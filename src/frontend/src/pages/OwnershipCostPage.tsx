@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
+import PageHeader from "../components/PageHeader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -432,19 +433,11 @@ export default function OwnershipCostPage() {
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-6">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-amber/10 border border-amber/20">
-          <Calculator className="w-5 h-5 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Ownership Cost Calculator
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Estimate total annual and multi-year costs for any vehicle
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Ownership Cost Calculator"
+        description="Estimate total annual and multi-year costs for any vehicle"
+        icon={<Calculator className="w-6 h-6" />}
+      />
 
       {/* Pre-fill notice when arriving from a listing */}
       {(search.make || search.model) && (

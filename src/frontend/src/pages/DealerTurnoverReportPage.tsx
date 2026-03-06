@@ -28,6 +28,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 import { useGetAllListings } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -230,20 +231,11 @@ export default function DealerTurnoverReportPage() {
       data-ocid="turnover.page"
     >
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <RefreshCw className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Inventory Turnover Report
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            See how fast each model moves vs. the market average. Identify fast
-            movers and stalled inventory.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Inventory Turnover Report"
+        description="See how fast each model moves vs. the market average. Identify fast movers and stalled inventory."
+        icon={<RefreshCw className="w-6 h-6" />}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

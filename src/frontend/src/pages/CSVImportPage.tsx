@@ -21,6 +21,7 @@ import type React from "react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { ExternalBlob } from "../backend";
+import PageHeader from "../components/PageHeader";
 import { useBulkCreateListings } from "../hooks/useQueries";
 
 interface ParsedRow {
@@ -235,18 +236,11 @@ export default function CSVImportPage() {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <FileText className="w-6 h-6 text-amber-400" />
-          <h1 className="text-2xl font-bold text-foreground font-display tracking-wide">
-            CSV Import
-          </h1>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Bulk import car listings from a CSV file. Required columns: make,
-          model, year, price.
-        </p>
-      </div>
+      <PageHeader
+        title="CSV Import"
+        description="Bulk import car listings from a CSV file. Required columns: make, model, year, price."
+        icon={<FileText className="w-6 h-6" />}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2 mb-6">
         {/* Drop Zone */}

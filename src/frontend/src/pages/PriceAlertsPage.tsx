@@ -5,6 +5,7 @@ import { Bell, LogIn, Plus, Trash2, TrendingDown } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import PageHeader from "../components/PageHeader";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useDeletePriceAlert,
@@ -158,18 +159,12 @@ export default function PriceAlertsPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Bell className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-          <div>
-            <h1 className="text-2xl font-bold text-foreground font-display tracking-wide">
-              Price Alerts
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Get notified when listings drop below your target price.
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        title="Price Alerts"
+        description="Get notified when listings drop below your target price."
+        icon={<Bell className="w-6 h-6" />}
+      />
+      <div className="flex items-center justify-end mb-6">
         <Button
           onClick={() => setShowForm((v) => !v)}
           className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useMemo, useState } from "react";
+import PageHeader from "../components/PageHeader";
 import { useActivityLog } from "../hooks/useQueries";
 
 interface ActivityLogEntry {
@@ -242,19 +243,11 @@ export default function ActivityLogPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-amber-400/10 border border-amber-400/20">
-            <ClipboardList className="w-6 h-6 text-amber-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground font-display tracking-wide">
-              Activity Log
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              History of all changes made to listings
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Activity Log"
+          description="History of all changes made to listings"
+          icon={<ClipboardList className="w-6 h-6" />}
+        />
 
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

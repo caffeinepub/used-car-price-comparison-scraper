@@ -28,6 +28,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 import { useGetAllListings } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -196,21 +197,11 @@ export default function CrossMarketPage() {
       data-ocid="cross_market.page"
     >
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <Globe className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Cross-Market Comparison
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Compare the same make/model/trim across all sources in your
-            listings. Find where prices are lowest and spot over-priced sources
-            at a glance.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Cross-Market Comparison"
+        description="Compare the same make/model/trim across all sources in your listings. Find where prices are lowest and spot over-priced sources at a glance."
+        icon={<Globe className="w-6 h-6" />}
+      />
 
       {/* No listings at all */}
       {activeListings.length === 0 && (

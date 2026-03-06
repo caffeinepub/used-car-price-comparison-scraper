@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 import { useGetAllListings } from "../hooks/useQueries";
 
 // ─── Seasonal Baseline ────────────────────────────────────────────────────────
@@ -284,21 +285,11 @@ export default function SeasonalPricingPage() {
       data-ocid="seasonal_pricing.page"
     >
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <CalendarDays className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Seasonal Pricing Calendar
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Historical chart showing the best months to buy each make/model.
-            Prices follow predictable seasonal patterns — use this to time your
-            purchase.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Seasonal Pricing Calendar"
+        description="Historical chart showing the best months to buy each make/model. Prices follow predictable seasonal patterns — use this to time your purchase."
+        icon={<CalendarDays className="w-6 h-6" />}
+      />
 
       {/* Filter Form */}
       <Card className="bg-surface border-steel-border">

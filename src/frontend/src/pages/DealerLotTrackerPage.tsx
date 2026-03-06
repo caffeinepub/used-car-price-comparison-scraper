@@ -18,6 +18,7 @@ import {
   Timer,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import PageHeader from "../components/PageHeader";
 import { useGetAllListings } from "../hooks/useQueries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -161,20 +162,11 @@ export default function DealerLotTrackerPage() {
       data-ocid="lot_tracker.page"
     >
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <Clock className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Days-on-Lot Tracker
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Flag stale inventory and get suggested discount amounts before
-            listings go cold.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Days-on-Lot Tracker"
+        description="Flag stale inventory and get suggested discount amounts before listings go cold."
+        icon={<Clock className="w-6 h-6" />}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

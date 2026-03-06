@@ -29,6 +29,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 import { useGetAllListings } from "../hooks/useQueries";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -251,20 +252,11 @@ export default function MarketSaturationPage() {
       data-ocid="market_saturation.page"
     >
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <Signal className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            Market Saturation
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            More listings of the same model means more negotiating leverage for
-            buyers. Use this data to know when to push hard on price.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Market Saturation"
+        description="More listings of the same model means more negotiating leverage for buyers. Use this data to know when to push hard on price."
+        icon={<Signal className="w-6 h-6" />}
+      />
 
       {/* Empty state */}
       {activeListings.length === 0 && (

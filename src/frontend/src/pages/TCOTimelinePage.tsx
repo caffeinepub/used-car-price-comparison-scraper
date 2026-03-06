@@ -18,6 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import PageHeader from "../components/PageHeader";
 
 // ─── TCO Calculation ──────────────────────────────────────────────────────────
 
@@ -136,20 +137,11 @@ export default function TCOTimelinePage() {
   return (
     <div className="max-w-screen-lg mx-auto px-4 py-8 space-y-8">
       {/* Page Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-2.5 rounded-xl bg-amber/10 border border-amber/20 shrink-0">
-          <LineChart className="w-6 h-6 text-amber" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-wide text-foreground uppercase">
-            True Cost of Ownership
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            5-year total cost projection combining depreciation, fuel,
-            insurance, and maintenance.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="True Cost of Ownership"
+        description="5-year total cost projection combining depreciation, fuel, insurance, and maintenance."
+        icon={<LineChart className="w-6 h-6" />}
+      />
 
       {/* Inputs */}
       <Card className="bg-surface border-steel-border">

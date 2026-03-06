@@ -4,6 +4,7 @@ import {
   ArrowDownCircle,
   Check,
   Download,
+  GitCompare,
   Minus,
   Share2,
   TrendingDown,
@@ -23,6 +24,7 @@ import {
 import { toast } from "sonner";
 import ComparisonExportFilterPanel from "../components/ComparisonExportFilterPanel";
 import NHTSARecallSection from "../components/NHTSARecallSection";
+import PageHeader from "../components/PageHeader";
 import PriceStatisticsPanel from "../components/PriceStatisticsPanel";
 import {
   useGetAllListings,
@@ -271,15 +273,12 @@ export default function ComparisonPage() {
       <div className="min-h-screen bg-background text-foreground">
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold font-display text-amber-700 dark:text-amber-400">
-                Price Comparison
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Compare price history and market trends by make &amp; model
-              </p>
-            </div>
+          <PageHeader
+            title="Price Comparison"
+            description="Compare price history and market trends by make & model"
+            icon={<GitCompare className="w-6 h-6" />}
+          />
+          <div className="flex items-center justify-end">
             {selectedMake && selectedModel && (
               <div className="flex items-center gap-2">
                 <button

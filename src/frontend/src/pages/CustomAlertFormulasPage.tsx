@@ -17,6 +17,7 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import PageHeader from "../components/PageHeader";
 // Local type definitions (match backend types)
 interface AlertCondition {
   field: string;
@@ -482,22 +483,11 @@ export default function CustomAlertFormulasPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-screen-2xl mx-auto px-4 py-8 space-y-8">
         {/* Page header */}
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Custom Alert Formulas
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Build multi-condition rules that flag matching listings
-                automatically
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Custom Alert Formulas"
+          description="Build multi-condition rules that flag matching listings automatically"
+          icon={<Zap className="w-5 h-5" />}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* ── Formula Builder ── */}
