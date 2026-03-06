@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Car,
   Clock,
+  DollarSign,
   Flame,
   GitMerge,
   Globe,
@@ -40,6 +41,7 @@ import {
   Signal,
   Star,
   Sun,
+  Target,
   Timer,
   TrendingDown,
   Upload,
@@ -69,6 +71,7 @@ import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
 import DealerFloorPlanPage from "./pages/DealerFloorPlanPage";
 import DealerLotOptimizerPage from "./pages/DealerLotOptimizerPage";
 import DealerLotTrackerPage from "./pages/DealerLotTrackerPage";
+import DealerMotivationPage from "./pages/DealerMotivationPage";
 import DealerPriceElasticityPage from "./pages/DealerPriceElasticityPage";
 import DealerPricingRadarPage from "./pages/DealerPricingRadarPage";
 import DealerRatingsPage from "./pages/DealerRatingsPage";
@@ -85,12 +88,14 @@ import RegionalArbitragePage from "./pages/RegionalArbitragePage";
 import RegionalBreakdownPage from "./pages/RegionalBreakdownPage";
 import SavedSearchesPage from "./pages/SavedSearchesPage";
 import SeasonalPricingPage from "./pages/SeasonalPricingPage";
+import SellerUrgencyPage from "./pages/SellerUrgencyPage";
 import SharedComparisonPage from "./pages/SharedComparisonPage";
 import SharedWatchlistPage from "./pages/SharedWatchlistPage";
 import ShouldIWaitPage from "./pages/ShouldIWaitPage";
 import SupplyShockPage from "./pages/SupplyShockPage";
 import TCOTimelinePage from "./pages/TCOTimelinePage";
 import TrimAnalyzerPage from "./pages/TrimAnalyzerPage";
+import WalkAwayPricePage from "./pages/WalkAwayPricePage";
 import WatchlistPage from "./pages/WatchlistPage";
 
 const queryClient = new QueryClient({
@@ -492,6 +497,9 @@ const BUYER_TOOLS = [
   { to: "/tco-timeline", icon: LineChart, label: "TCO Timeline" },
   { to: "/trim-analyzer", icon: BarChart2, label: "Trim Analyzer" },
   { to: "/deal-expiry", icon: Timer, label: "Deal Expiry" },
+  { to: "/buyer/dealer-motivation", icon: Target, label: "Dealer Motivation" },
+  { to: "/buyer/walk-away-price", icon: DollarSign, label: "Walk-Away Price" },
+  { to: "/buyer/seller-urgency", icon: Flame, label: "Seller Urgency" },
 ];
 
 const DEALER_TOOLS = [
@@ -1341,6 +1349,21 @@ const dealExpiryRoute = createRoute({
   path: "/deal-expiry",
   component: DealExpiryPage,
 });
+const dealerMotivationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/buyer/dealer-motivation",
+  component: DealerMotivationPage,
+});
+const walkAwayPriceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/buyer/walk-away-price",
+  component: WalkAwayPricePage,
+});
+const sellerUrgencyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/buyer/seller-urgency",
+  component: SellerUrgencyPage,
+});
 const dealerPricingRadarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/dealer/pricing-radar",
@@ -1440,6 +1463,9 @@ const routeTree = rootRoute.addChildren([
   tcoTimelineRoute,
   trimAnalyzerRoute,
   dealExpiryRoute,
+  dealerMotivationRoute,
+  walkAwayPriceRoute,
+  sellerUrgencyRoute,
   dealerPricingRadarRoute,
   dealerLotTrackerRoute,
   dealerDemandHeatmapRoute,

@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Car,
   Clock,
+  DollarSign,
   Flame,
   GitMerge,
   Globe,
@@ -23,6 +24,7 @@ import {
   Search,
   Signal,
   Star,
+  Target,
   Timer,
   TrendingDown,
   Upload,
@@ -232,6 +234,24 @@ const BUYER_TOOLS_ITEMS: NavItem[] = [
     icon: Timer,
     label: "Deal Expiry",
     description: "How long before it's gone",
+  },
+  {
+    to: "/buyer/dealer-motivation",
+    icon: Target,
+    label: "Dealer Motivation",
+    description: "How motivated is the dealer?",
+  },
+  {
+    to: "/buyer/walk-away-price",
+    icon: DollarSign,
+    label: "Walk-Away Price",
+    description: "Know exactly when to walk",
+  },
+  {
+    to: "/buyer/seller-urgency",
+    icon: Flame,
+    label: "Seller Urgency",
+    description: "Detect motivated sellers",
   },
 ];
 

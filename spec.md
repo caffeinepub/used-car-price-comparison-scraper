@@ -1,32 +1,28 @@
 # Auto Track Pro
 
 ## Current State
-Auto Track Pro is a full-stack used car intelligence platform. The Market Intel section currently contains three tools: Market Saturation, Cross-Market Comparison, and Seasonal Pricing Calendar — accessible via the nav drawer on mobile and bottom tab bar on desktop.
-
-Routes already registered: `/market-saturation`, `/cross-market`, `/seasonal-pricing`.
-
-The `MARKET_INTEL_TOOLS` array in `App.tsx` lists these three tools and powers the nav drawer section. The `QuickAccessGrid` component also references these.
+Version 95 is live in production. The app has a full suite of Buyer Tools (5 tools), Dealer Tools (8 tools), and Market Intel (6 tools). Navigation uses a mobile bottom tab bar + slide-up drawer and a desktop header bar. Buyer Tools are gated to users with "buyer" or "admin" role.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Price Velocity Tracker** (`/market-intel/price-velocity`) — shows how fast prices are dropping or rising for a make/model over 7/14/30 days; signals if a model is in freefall or stabilizing; line chart of price velocity over time with direction badges (Falling Fast / Falling / Stable / Rising / Rising Fast)
-- **Supply Shock Detector** (`/market-intel/supply-shock`) — detects when a make/model's listing volume suddenly spikes or drops relative to baseline; shows a bar chart of weekly listing counts per model with shock indicators (Spike / Drop / Normal); alerts when a market shift is detected
-- **Regional Arbitrage Finder** (`/market-intel/regional-arbitrage`) — identifies models priced significantly cheaper in one region vs another; table of make/model combos with cheapest region, most expensive region, price gap, and a "Worth the Drive?" indicator based on gap size
-- Three new routes in `App.tsx` for the above pages
-- Add the three new tools to `MARKET_INTEL_TOOLS` array in `App.tsx` and `QuickAccessGrid`
+- **Dealer Motivation Score** (`/buyer/dealer-motivation`) — Inputs: dealer name, days listed, price drop count, price drop total %, month-end proximity (days until end of month). Output: composite motivation score (0–100), color-coded tier (Low / Moderate / High / Very High), and an actionable negotiation tip per tier. Secondary insight cards: Days-on-Lot factor, Price Drop factor, Month-End Pressure factor.
+- **Walk-Away Price Calculator** (`/buyer/walk-away-price`) — Inputs: listed price, average market price (or auto-derive from a make/model selector), desired discount %, max acceptable price, negotiation style (aggressive/balanced/conservative). Output: recommended walk-away price, opening offer suggestion, counter-offer range, and a "Do Not Pay More Than" threshold. Visual gauge showing where the listed price sits relative to market.
+- **Seller Urgency Detector** (`/buyer/seller-urgency`) — Inputs: listing entries (make, model, year, original price, current price, date first listed, number of price drops). Output: urgency score per listing (0–100), urgency tier badge (Cold / Warm / Hot / Burning), days-on-market calculation, total price drop %, and a recommended opening offer. Sortable table of assessed listings with color-coded rows.
+- All three pages added to `BUYER_TOOLS` array in `App.tsx` and `BUYER_TOOLS_ITEMS` array in `QuickAccessGrid.tsx`.
+- All three routes registered in `App.tsx` route tree.
+- All three pages linked in the nav drawer Buyer Tools section.
 
 ### Modify
-- `App.tsx` — register 3 new routes, add 3 items to `MARKET_INTEL_TOOLS`
-- `QuickAccessGrid.tsx` — add the 3 new Market Intel tools to its market intel section
+- `App.tsx` — import the 3 new page components, add routes, add to `BUYER_TOOLS` nav array.
+- `QuickAccessGrid.tsx` — add 3 new entries to `BUYER_TOOLS_ITEMS`.
 
 ### Remove
-- Nothing removed
+- Nothing removed.
 
 ## Implementation Plan
-1. Create `PriceVelocityPage.tsx` — make/model selector, 7/14/30-day toggle, line chart of simulated price velocity data derived from listings, direction badge, summary table of top movers
-2. Create `SupplyShockPage.tsx` — bar chart of weekly listing volume per model, shock threshold calculation, spike/drop/normal badge per model, alert banner for detected shocks
-3. Create `RegionalArbitragePage.tsx` — table with make/model, cheapest region, most expensive region, price gap ($), gap %, "Worth Drive?" badge (Yes/Maybe/No based on gap threshold)
-4. Register `/market-intel/price-velocity`, `/market-intel/supply-shock`, `/market-intel/regional-arbitrage` routes in `App.tsx`
-5. Add new tools to `MARKET_INTEL_TOOLS` and `QuickAccessGrid`
-6. All pages include `PageHeader` with Back to Dashboard and X close button (consistent with v93+)
+1. Create `DealerMotivationPage.tsx` — composite score calculator with factor breakdown cards and negotiation tips.
+2. Create `WalkAwayPricePage.tsx` — price calculator with opening offer, counter range, walk-away threshold, and visual price gauge.
+3. Create `SellerUrgencyPage.tsx` — multi-listing urgency table with score, tier badges, drop %, and recommended offers.
+4. Register 3 new routes in `App.tsx` and add to `BUYER_TOOLS` array.
+5. Add 3 new entries to `BUYER_TOOLS_ITEMS` in `QuickAccessGrid.tsx`.
