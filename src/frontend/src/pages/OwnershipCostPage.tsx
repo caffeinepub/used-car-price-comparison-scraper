@@ -5,12 +5,13 @@ import {
   DollarSign,
   Fuel,
   Info,
+  RefreshCw,
   Shield,
   TrendingUp,
   Wrench,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PageHeader from "../components/PageHeader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -364,38 +365,85 @@ const inputCls =
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+const DEFAULT_INPUTS: CalcInputs = {
+  make: "Toyota",
+  model: "Camry",
+  year: CURRENT_YEAR - 3,
+  purchasePrice: 25000,
+  currentMileage: 50000,
+  fuelType: "Gas",
+  annualMiles: 12000,
+  loanAmount: 20000,
+  loanRate: 6.5,
+  loanTerm: 60,
+};
+
 export default function OwnershipCostPage() {
   const search = useSearch({ strict: false }) as Record<string, string>;
 
   const [inputs, setInputs] = useState<CalcInputs>({
-    make: search.make ?? "Toyota",
-    model: search.model ?? "Camry",
-    year: search.year ? Number(search.year) : CURRENT_YEAR - 3,
-    purchasePrice: search.price ? Number(search.price) : 25000,
-    currentMileage: search.mileage ? Number(search.mileage) : 50000,
-    fuelType: "Gas",
-    annualMiles: 12000,
-    loanAmount: 20000,
-    loanRate: 6.5,
-    loanTerm: 60,
+    ...DEFAULT_INPUTS,
+    ...(search.make ? { make: search.make } : {}),
+    ...(search.model ? { model: search.model } : {}),
+    ...(search.year ? { year: Number(search.year) } : {}),
+    ...(search.price ? { purchasePrice: Number(search.price) } : {}),
+    ...(search.mileage ? { currentMileage: Number(search.mileage) } : {}),
   });
+
+  // String-based raw inputs so backspacing to empty doesn't force 0
+  const [loanAmountRaw, setLoanAmountRaw] = useState<string>(
+    String(inputs.loanAmount),
+  );
+  const [loanRateRaw, setLoanRateRaw] = useState<string>(
+    String(inputs.loanRate),
+  );
+
+  // Committed inputs used for calculation
+  const [committedInputs, setCommittedInputs] = useState<CalcInputs>(inputs);
 
   // Re-apply query params if they change (e.g. navigating from a listing)
   useEffect(() => {
-    setInputs((prev) => ({
-      ...prev,
+    const updated = {
+      ...DEFAULT_INPUTS,
       ...(search.make ? { make: search.make } : {}),
       ...(search.model ? { model: search.model } : {}),
       ...(search.year ? { year: Number(search.year) } : {}),
       ...(search.price ? { purchasePrice: Number(search.price) } : {}),
       ...(search.mileage ? { currentMileage: Number(search.mileage) } : {}),
-    }));
+    };
+    setInputs(updated);
+    setCommittedInputs(updated);
+    setLoanAmountRaw(String(updated.loanAmount));
+    setLoanRateRaw(String(updated.loanRate));
   }, [search.make, search.model, search.year, search.price, search.mileage]);
 
-  const set = <K extends keyof CalcInputs>(key: K, value: CalcInputs[K]) =>
-    setInputs((prev) => ({ ...prev, [key]: value }));
+  const set = useCallback(
+    <K extends keyof CalcInputs>(key: K, value: CalcInputs[K]) => {
+      setInputs((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
+  );
 
-  const results = useMemo(() => calcAll(inputs), [inputs]);
+  const handleCalculate = () => {
+    const finalLoanAmount = loanAmountRaw === "" ? 0 : Number(loanAmountRaw);
+    const finalLoanRate = loanRateRaw === "" ? 0 : Number(loanRateRaw);
+    const finalInputs = {
+      ...inputs,
+      loanAmount: finalLoanAmount,
+      loanRate: finalLoanRate,
+    };
+    setInputs(finalInputs);
+    setCommittedInputs(finalInputs);
+  };
+
+  const handleClear = () => {
+    setInputs(DEFAULT_INPUTS);
+    setCommittedInputs(DEFAULT_INPUTS);
+    setLoanAmountRaw(String(DEFAULT_INPUTS.loanAmount));
+    setLoanRateRaw(String(DEFAULT_INPUTS.loanRate));
+  };
+
+  const results = useMemo(() => calcAll(committedInputs), [committedInputs]);
 
   const breakdownSegments: BreakdownSegment[] = [
     {
@@ -597,10 +645,12 @@ export default function OwnershipCostPage() {
                 <input
                   id="oc-loan-amount"
                   type="number"
-                  value={inputs.loanAmount}
-                  onChange={(e) => set("loanAmount", Number(e.target.value))}
+                  value={loanAmountRaw}
+                  onChange={(e) => setLoanAmountRaw(e.target.value)}
+                  placeholder="0"
                   min={0}
                   step={500}
+                  data-ocid="ownership_cost.loan_amount.input"
                   className={inputCls}
                 />
               </InputField>
@@ -612,11 +662,13 @@ export default function OwnershipCostPage() {
                 <input
                   id="oc-loan-rate"
                   type="number"
-                  value={inputs.loanRate}
-                  onChange={(e) => set("loanRate", Number(e.target.value))}
+                  value={loanRateRaw}
+                  onChange={(e) => setLoanRateRaw(e.target.value)}
+                  placeholder="0"
                   min={0}
                   max={30}
                   step={0.1}
+                  data-ocid="ownership_cost.loan_rate.input"
                   className={inputCls}
                 />
               </InputField>
@@ -642,6 +694,28 @@ export default function OwnershipCostPage() {
               </InputField>
             </div>
           </section>
+
+          {/* Calculate / Clear buttons */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleCalculate}
+              data-ocid="ownership_cost.calculate.submit_button"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber text-black font-semibold text-sm hover:bg-amber/90 transition-colors"
+            >
+              <Calculator className="w-4 h-4" />
+              Calculate
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              data-ocid="ownership_cost.clear.button"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-muted border border-steel-border text-muted-foreground font-semibold text-sm hover:bg-muted/80 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Clear
+            </button>
+          </div>
 
           {/* Assumptions reference */}
           <div className="rounded-lg bg-muted border border-steel-border/50 px-4 py-3">

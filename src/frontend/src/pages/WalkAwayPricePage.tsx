@@ -12,7 +12,9 @@ import { Slider } from "@/components/ui/slider";
 import {
   AlertTriangle,
   ArrowRight,
+  Calculator,
   DollarSign,
+  RefreshCw,
   TrendingDown,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -207,20 +209,71 @@ function PriceGauge({
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
+const DEFAULT_WAP = {
+  listedPrice: 28000,
+  marketPriceInput: "",
+  targetDiscount: 8,
+  style: "balanced" as NegStyle,
+  maxBudgetInput: "",
+};
+
 export default function WalkAwayPricePage() {
-  const [listedPrice, setListedPrice] = useState<number>(28000);
+  // Raw string inputs so backspace clears to empty (not reverts to min)
+  const [listedPriceRaw, setListedPriceRaw] = useState<string>("28000");
   const [marketPriceInput, setMarketPriceInput] = useState<string>("");
   const [targetDiscount, setTargetDiscount] = useState<number>(8);
   const [style, setStyle] = useState<NegStyle>("balanced");
   const [maxBudgetInput, setMaxBudgetInput] = useState<string>("");
 
-  const marketPrice = marketPriceInput ? Number(marketPriceInput) : null;
-  const maxBudget = maxBudgetInput ? Number(maxBudgetInput) : null;
+  // Committed values used for calculation
+  const [committedListedPrice, setCommittedListedPrice] =
+    useState<number>(28000);
+  const [committedMarketPrice, setCommittedMarketPrice] = useState<
+    number | null
+  >(null);
+  const [committedMaxBudget, setCommittedMaxBudget] = useState<number | null>(
+    null,
+  );
+  const [committedDiscount, setCommittedDiscount] = useState<number>(8);
+  const [committedStyle, setCommittedStyle] = useState<NegStyle>("balanced");
+  const listedPrice = committedListedPrice;
+  const marketPrice = committedMarketPrice;
+  const maxBudget = committedMaxBudget;
+
+  const handleCalculate = () => {
+    const lp = listedPriceRaw === "" ? 0 : Math.max(0, Number(listedPriceRaw));
+    const mp = marketPriceInput ? Number(marketPriceInput) : null;
+    const mb = maxBudgetInput ? Number(maxBudgetInput) : null;
+    setCommittedListedPrice(lp);
+    setCommittedMarketPrice(mp);
+    setCommittedMaxBudget(mb);
+    setCommittedDiscount(targetDiscount);
+    setCommittedStyle(style);
+  };
+
+  const handleClear = () => {
+    setListedPriceRaw("28000");
+    setMarketPriceInput("");
+    setMaxBudgetInput("");
+    setTargetDiscount(DEFAULT_WAP.targetDiscount);
+    setStyle(DEFAULT_WAP.style);
+    setCommittedListedPrice(DEFAULT_WAP.listedPrice);
+    setCommittedMarketPrice(null);
+    setCommittedMaxBudget(null);
+    setCommittedDiscount(DEFAULT_WAP.targetDiscount);
+    setCommittedStyle(DEFAULT_WAP.style);
+  };
 
   const { openingOffer, targetPrice, walkAway, effectiveMarket } = useMemo(
     () =>
-      computePrices(listedPrice, marketPrice, targetDiscount, style, maxBudget),
-    [listedPrice, marketPrice, targetDiscount, style, maxBudget],
+      computePrices(
+        listedPrice,
+        marketPrice,
+        committedDiscount,
+        committedStyle,
+        maxBudget,
+      ),
+    [listedPrice, marketPrice, committedDiscount, committedStyle, maxBudget],
   );
 
   const styleConfig = STYLE_CONFIG[style];
@@ -263,14 +316,13 @@ export default function WalkAwayPricePage() {
                   <input
                     id="wap-listed"
                     type="number"
-                    value={listedPrice}
-                    onChange={(e) =>
-                      setListedPrice(Math.max(500, Number(e.target.value)))
-                    }
-                    min={500}
+                    value={listedPriceRaw}
+                    onChange={(e) => setListedPriceRaw(e.target.value)}
+                    placeholder="e.g. 28000"
+                    min={0}
                     max={500000}
                     data-ocid="walk_away.listed_price.input"
-                    className="w-full pl-7 pr-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors"
+                    className="w-full pl-7 pr-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-amber/50 transition-colors"
                   />
                 </div>
               </div>
@@ -396,6 +448,27 @@ export default function WalkAwayPricePage() {
               </div>
             </CardContent>
           </Card>
+          {/* Calculate / Clear buttons */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleCalculate}
+              data-ocid="walk_away.calculate.submit_button"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber text-black font-semibold text-sm hover:bg-amber/90 transition-colors"
+            >
+              <Calculator className="w-4 h-4" />
+              Calculate
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              data-ocid="walk_away.clear.button"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-muted border border-steel-border text-muted-foreground font-semibold text-sm hover:bg-muted/80 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Clear
+            </button>
+          </div>
         </div>
 
         {/* ── Right: Results ── */}

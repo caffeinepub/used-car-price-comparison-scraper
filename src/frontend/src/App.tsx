@@ -170,17 +170,32 @@ function useAppRole(): {
   const { actor, isFetching } = useActor();
   const [role, setRoleState] = useState<AppRole>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const checkedRef = useRef(false);
+  // Track which principal we last resolved, so switching users always re-runs the check
+  const resolvedPrincipalRef = useRef<string | null>(null);
 
   const principalId = identity?.getPrincipal().toString() ?? null;
 
   useEffect(() => {
-    if (!identity || !actor || isFetching) return;
-    if (checkedRef.current) return;
-    checkedRef.current = true;
+    // Reset everything when signed out
+    if (!identity) {
+      setRoleState(null);
+      resolvedPrincipalRef.current = null;
+      return;
+    }
+
+    if (!actor || isFetching) return;
+
+    // Skip if we already resolved for this exact principal
+    if (resolvedPrincipalRef.current === principalId) return;
+
+    // Mark this principal as being resolved before the async work so we don't
+    // double-fire if the effect re-runs while the promise is in flight
+    resolvedPrincipalRef.current = principalId;
 
     (async () => {
       setIsLoading(true);
+      // Reset role immediately so UI doesn't flash the previous user's role
+      setRoleState(null);
       try {
         const isAdmin = await actor.isCallerAdmin();
         if (isAdmin) {
@@ -198,13 +213,6 @@ function useAppRole(): {
     })();
   }, [identity, actor, isFetching, principalId]);
 
-  useEffect(() => {
-    if (!identity) {
-      setRoleState(null);
-      checkedRef.current = false;
-    }
-  }, [identity]);
-
   const setRole = (newRole: "buyer" | "dealer") => {
     if (principalId) setStoredRole(principalId, newRole);
     setRoleState(newRole);
@@ -213,7 +221,9 @@ function useAppRole(): {
   const clearRole = () => {
     if (principalId) localStorage.removeItem(`atp_role_${principalId}`);
     setRoleState(null);
-    checkedRef.current = false;
+    // Don't clear resolvedPrincipalRef — same user is just switching role,
+    // so we don't need to re-run the admin check. The role modal will show
+    // because role is now null.
   };
 
   return { role, isLoading, setRole, clearRole };
@@ -1064,9 +1074,13 @@ function Layout() {
   // Pre-login role picker state
   const [showPreLoginModal, setShowPreLoginModal] = useState(false);
   const pendingRole = useRef<"buyer" | "dealer" | null>(null);
+  // Track which principal the profile check ran for, so switching users re-checks
+  const profileCheckedForRef = useRef<string | null>(null);
 
   // Nav drawer state — shared between NavBar, BottomTabBar, and NavDrawer
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const currentPrincipalId = identity?.getPrincipal().toString() ?? null;
 
   // Show role selection only after profile is set up (or profile exists) and role is not yet chosen
   const showRoleSelection =
@@ -1089,19 +1103,40 @@ function Layout() {
   }, [identity, setRole]);
 
   useEffect(() => {
-    if (!identity || !actor || profileChecked) return;
+    // Reset profile state when signed out
+    if (!identity) {
+      setProfileChecked(false);
+      setShowProfileSetup(false);
+      profileCheckedForRef.current = null;
+      // Also discard any pending role from the pre-login modal so it doesn't
+      // accidentally apply to the next user who signs in
+      pendingRole.current = null;
+      return;
+    }
+
+    if (!actor) return;
+
+    // Re-run profile check when a different principal signs in
+    if (profileCheckedForRef.current === currentPrincipalId) return;
+    profileCheckedForRef.current = currentPrincipalId;
+
+    // Reset profile state for the new user before checking
+    setProfileChecked(false);
+    setShowProfileSetup(false);
+
     (async () => {
       try {
         const profile = await (actor as any).getCallerUserProfile();
         if (!profile) setShowProfileSetup(true);
       } catch {
-        // ignore
+        // ignore — treat as profile exists so we don't block the UI
       } finally {
         setProfileChecked(true);
       }
     })();
-  }, [identity, actor, profileChecked]);
+  }, [identity, actor, currentPrincipalId]);
 
+  // Legacy effect kept for safety — ensure profile flags clear on sign-out
   useEffect(() => {
     if (!identity) {
       setProfileChecked(false);

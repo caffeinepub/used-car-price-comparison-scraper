@@ -340,7 +340,7 @@ function MyWidgetsSection({ listings }: MyWidgetsSectionProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <LayoutDashboard className="w-5 h-5 text-amber-400" />
-          <h2 className="text-lg font-semibold text-foreground">My Widgets</h2>
+          <h2 className="text-lg font-semibold text-foreground">Widgets</h2>
           {widgets.length > 0 && (
             <span className="text-xs text-muted-foreground bg-surface px-2 py-0.5 rounded-full border border-steel-border">
               {widgets.length}/8
