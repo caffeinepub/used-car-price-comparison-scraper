@@ -53,6 +53,7 @@ import type React from "react";
 import { Component, useEffect, useRef, useState } from "react";
 import PriceAlertBanner from "./components/PriceAlertBanner";
 import { useActor } from "./hooks/useActor";
+import { AppRoleContext } from "./hooks/useAppRoleContext";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { ThemeContext, useTheme, useThemeState } from "./hooks/useTheme";
 
@@ -172,6 +173,9 @@ function useAppRole(): {
   const [isLoading, setIsLoading] = useState(false);
   // Track which principal we last resolved, so switching users always re-runs the check
   const resolvedPrincipalRef = useRef<string | null>(null);
+  // Track whether setRole was called explicitly (e.g. from pre-login picker or role modal)
+  // so the async effect doesn't overwrite it
+  const explicitRoleSetRef = useRef<string | null>(null);
 
   const principalId = identity?.getPrincipal().toString() ?? null;
 
@@ -180,6 +184,7 @@ function useAppRole(): {
     if (!identity) {
       setRoleState(null);
       resolvedPrincipalRef.current = null;
+      explicitRoleSetRef.current = null;
       return;
     }
 
@@ -202,11 +207,18 @@ function useAppRole(): {
           setRoleState("admin");
           return;
         }
+        // If the user already chose a role via the pre-login modal or role selection,
+        // don't overwrite it — just use what's already in localStorage for this principal
         const stored = principalId ? getStoredRole(principalId) : null;
-        setRoleState(stored);
+        // Only apply stored role if no explicit role was set during this login session
+        if (explicitRoleSetRef.current !== principalId) {
+          setRoleState(stored);
+        }
       } catch {
-        const stored = principalId ? getStoredRole(principalId) : null;
-        setRoleState(stored);
+        if (explicitRoleSetRef.current !== principalId) {
+          const stored = principalId ? getStoredRole(principalId) : null;
+          setRoleState(stored);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -214,12 +226,22 @@ function useAppRole(): {
   }, [identity, actor, isFetching, principalId]);
 
   const setRole = (newRole: "buyer" | "dealer") => {
-    if (principalId) setStoredRole(principalId, newRole);
+    if (principalId) {
+      setStoredRole(principalId, newRole);
+      // Mark that an explicit role was set for this principal so the async
+      // effect (which runs slightly after login) doesn't overwrite it with
+      // a stale stored value from a previous session
+      explicitRoleSetRef.current = principalId;
+    }
     setRoleState(newRole);
   };
 
   const clearRole = () => {
-    if (principalId) localStorage.removeItem(`atp_role_${principalId}`);
+    if (principalId) {
+      localStorage.removeItem(`atp_role_${principalId}`);
+      // Clear the explicit-set marker so the role modal shows again
+      explicitRoleSetRef.current = null;
+    }
     setRoleState(null);
     // Don't clear resolvedPrincipalRef — same user is just switching role,
     // so we don't need to re-run the admin check. The role modal will show
@@ -1161,95 +1183,97 @@ function Layout() {
   const showDealerTools = role === "dealer" || role === "admin";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Fixed top header ── */}
-      <AppHeader
-        role={role}
-        clearRole={clearRole}
-        identity={identity}
-        onSignInClick={handleSignInClick}
-      />
+    <AppRoleContext.Provider value={role}>
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* ── Fixed top header ── */}
+        <AppHeader
+          role={role}
+          clearRole={clearRole}
+          identity={identity}
+          onSignInClick={handleSignInClick}
+        />
 
-      {/* ── Main content area (offset for fixed header height = 56px / pt-14) ── */}
-      <div className="flex-1 flex flex-col min-w-0 pt-14">
-        {/* ── Sticky NavBar — desktop only (sits right below the header in the flow) ── */}
-        <div className="sticky top-14 z-20 hidden md:block">
-          <NavBar
-            showBuyerTools={showBuyerTools}
-            showDealerTools={showDealerTools}
-            onOpenDrawer={() => setDrawerOpen(true)}
-          />
+        {/* ── Main content area (offset for fixed header height = 56px / pt-14) ── */}
+        <div className="flex-1 flex flex-col min-w-0 pt-14">
+          {/* ── Sticky NavBar — desktop only (sits right below the header in the flow) ── */}
+          <div className="sticky top-14 z-20 hidden md:block">
+            <NavBar
+              showBuyerTools={showBuyerTools}
+              showDealerTools={showDealerTools}
+              onOpenDrawer={() => setDrawerOpen(true)}
+            />
+          </div>
+
+          {/* Alert banner */}
+          <PriceAlertBanner />
+
+          {/* Pre-login role picker (shown before Internet Identity flow) */}
+          {showPreLoginModal && (
+            <PreLoginRoleModal
+              onSelect={async (role) => {
+                pendingRole.current = role;
+                setShowPreLoginModal(false);
+                try {
+                  await login();
+                } catch {
+                  pendingRole.current = null;
+                }
+              }}
+              onClose={() => setShowPreLoginModal(false)}
+            />
+          )}
+
+          {/* Profile setup modal (shows first, before role selection) */}
+          {showProfileSetup && (
+            <ProfileSetupModal
+              onComplete={() => {
+                setShowProfileSetup(false);
+              }}
+            />
+          )}
+
+          {/* Role selection modal (shows after profile setup is complete, for users who didn't use pre-login picker) */}
+          {showRoleSelection && (
+            <RoleSelectionModal
+              onSelect={(selectedRole) => {
+                setRole(selectedRole);
+              }}
+            />
+          )}
+
+          {/* Page content — add pb-16 on mobile for bottom tab bar */}
+          <main className="flex-1 pb-16 md:pb-0">
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t border-steel-border bg-surface mt-auto mb-16 md:mb-0">
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
+              <div className="flex items-center gap-2">
+                <ATPLogo size={28} />
+                <span>
+                  © {new Date().getFullYear()} Auto Track Pro — Used Car
+                  Intelligence
+                </span>
+              </div>
+            </div>
+          </footer>
         </div>
 
-        {/* Alert banner */}
-        <PriceAlertBanner />
+        {/* ── Mobile bottom tab bar ── */}
+        <BottomTabBar onMenuOpen={() => setDrawerOpen(true)} />
 
-        {/* Pre-login role picker (shown before Internet Identity flow) */}
-        {showPreLoginModal && (
-          <PreLoginRoleModal
-            onSelect={async (role) => {
-              pendingRole.current = role;
-              setShowPreLoginModal(false);
-              try {
-                await login();
-              } catch {
-                pendingRole.current = null;
-              }
-            }}
-            onClose={() => setShowPreLoginModal(false)}
-          />
-        )}
-
-        {/* Profile setup modal (shows first, before role selection) */}
-        {showProfileSetup && (
-          <ProfileSetupModal
-            onComplete={() => {
-              setShowProfileSetup(false);
-            }}
-          />
-        )}
-
-        {/* Role selection modal (shows after profile setup is complete, for users who didn't use pre-login picker) */}
-        {showRoleSelection && (
-          <RoleSelectionModal
-            onSelect={(selectedRole) => {
-              setRole(selectedRole);
-            }}
-          />
-        )}
-
-        {/* Page content — add pb-16 on mobile for bottom tab bar */}
-        <main className="flex-1 pb-16 md:pb-0">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-steel-border bg-surface mt-auto mb-16 md:mb-0">
-          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-text">
-            <div className="flex items-center gap-2">
-              <ATPLogo size={28} />
-              <span>
-                © {new Date().getFullYear()} Auto Track Pro — Used Car
-                Intelligence
-              </span>
-            </div>
-          </div>
-        </footer>
+        {/* ── Nav Drawer — shared between mobile (full-screen slide-up) and desktop (right panel) ── */}
+        <NavDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          showBuyerTools={showBuyerTools}
+          showDealerTools={showDealerTools}
+        />
       </div>
-
-      {/* ── Mobile bottom tab bar ── */}
-      <BottomTabBar onMenuOpen={() => setDrawerOpen(true)} />
-
-      {/* ── Nav Drawer — shared between mobile (full-screen slide-up) and desktop (right panel) ── */}
-      <NavDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        showBuyerTools={showBuyerTools}
-        showDealerTools={showDealerTools}
-      />
-    </div>
+    </AppRoleContext.Provider>
   );
 }
 

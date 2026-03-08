@@ -31,8 +31,7 @@ import {
   Zap,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useAppRoleContext } from "../hooks/useAppRoleContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,30 +40,6 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   description?: string;
-}
-
-// ─── Role Derivation ──────────────────────────────────────────────────────────
-
-function useQuickRole(): "buyer" | "dealer" | "admin" | null {
-  const { identity } = useInternetIdentity();
-  const [role, setRole] = useState<"buyer" | "dealer" | "admin" | null>(null);
-
-  useEffect(() => {
-    if (!identity) {
-      setRole(null);
-      return;
-    }
-    const principalId = identity.getPrincipal().toString();
-    const stored = localStorage.getItem(`atp_role_${principalId}`);
-    if (stored === "buyer" || stored === "dealer") {
-      setRole(stored);
-    } else {
-      // Try admin detection via actor — fall back to stored for now
-      setRole(null);
-    }
-  }, [identity]);
-
-  return role;
 }
 
 // ─── Feature Sections ─────────────────────────────────────────────────────────
@@ -370,7 +345,7 @@ function SectionHeader({
 // ─── Quick Access Grid ────────────────────────────────────────────────────────
 
 export default function QuickAccessGrid() {
-  const role = useQuickRole();
+  const role = useAppRoleContext();
 
   const showBuyerTools = role === "buyer" || role === "admin";
   const showDealerTools = role === "dealer" || role === "admin";
