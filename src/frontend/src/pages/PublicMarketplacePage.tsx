@@ -180,21 +180,24 @@ export default function PublicMarketplacePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!actor) {
-      setListings(SAMPLE_LISTINGS);
-      setLoading(false);
-      return;
-    }
-    (actor as any)
-      .getPublicMarketplaceListings()
-      .then((data: MktListing[]) => {
-        setListings(data.length > 0 ? data : SAMPLE_LISTINGS);
-        setLoading(false);
-      })
-      .catch(() => {
+    const fetchListings = async () => {
+      try {
+        if (
+          actor &&
+          typeof (actor as any).getPublicMarketplaceListings === "function"
+        ) {
+          const data = await (actor as any).getPublicMarketplaceListings();
+          setListings(data.length > 0 ? data : SAMPLE_LISTINGS);
+        } else {
+          setListings(SAMPLE_LISTINGS);
+        }
+      } catch {
         setListings(SAMPLE_LISTINGS);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchListings();
   }, [actor]);
 
   const filtered = listings.filter((l) => {
@@ -218,7 +221,7 @@ export default function PublicMarketplacePage() {
     if (!inquiryListing) return;
     setSubmitting(true);
     try {
-      if (actor) {
+      if (actor && typeof (actor as any).submitInquiry === "function") {
         await (actor as any).submitInquiry(inquiryListing.id, inquiryForm);
       }
       setInquirySent(true);

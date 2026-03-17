@@ -71,32 +71,28 @@ export default function DealerStorefrontPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!actor) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const principal = Principal.fromText(dealerPrincipalStr);
-      (actor as any)
-        .getDealerStorefront(principal)
-        .then(
-          (result: { profile: DealerProfile[]; listings: MktListing[] }) => {
-            setProfile(result.profile.length > 0 ? result.profile[0] : null);
-            setListings(result.listings);
-            setLoading(false);
-          },
-        )
-        .catch(() => setLoading(false));
-    } catch {
-      setLoading(false);
-    }
+    const fetchStorefront = async () => {
+      try {
+        const principal = Principal.fromText(dealerPrincipalStr);
+        if (actor && typeof (actor as any).getDealerStorefront === "function") {
+          const result = await (actor as any).getDealerStorefront(principal);
+          setProfile(result.profile.length > 0 ? result.profile[0] : null);
+          setListings(result.listings);
+        }
+      } catch {
+        // Invalid principal or actor unavailable — show empty storefront
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStorefront();
   }, [actor, dealerPrincipalStr]);
 
   const handleSubmit = async () => {
     if (!inquiryListing) return;
     setSubmitting(true);
     try {
-      if (actor) {
+      if (actor && typeof (actor as any).submitInquiry === "function") {
         await (actor as any).submitInquiry(inquiryListing.id, form);
       }
       setSent(true);

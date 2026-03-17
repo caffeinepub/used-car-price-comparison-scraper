@@ -181,33 +181,35 @@ export default function MarketplaceListingDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!actor) {
-      const found = SAMPLE_LISTINGS.find((l) => l.id === id);
-      setListing(found || null);
-      setLoading(false);
-      return;
-    }
-    (actor as any)
-      .getPublicMarketplaceListings()
-      .then((all: MktListing[]) => {
-        const found =
-          all.find((l) => l.id === id) ||
-          SAMPLE_LISTINGS.find((l) => l.id === id) ||
-          null;
-        setListing(found);
-        setLoading(false);
-      })
-      .catch(() => {
+    const fetchListing = async () => {
+      try {
+        if (
+          actor &&
+          typeof (actor as any).getPublicMarketplaceListings === "function"
+        ) {
+          const all = await (actor as any).getPublicMarketplaceListings();
+          const found =
+            all.find((l: MktListing) => l.id === id) ||
+            SAMPLE_LISTINGS.find((l) => l.id === id) ||
+            null;
+          setListing(found);
+        } else {
+          setListing(SAMPLE_LISTINGS.find((l) => l.id === id) || null);
+        }
+      } catch {
         setListing(SAMPLE_LISTINGS.find((l) => l.id === id) || null);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchListing();
   }, [actor, id]);
 
   const handleSubmit = async () => {
     if (!listing) return;
     setSubmitting(true);
     try {
-      if (actor) {
+      if (actor && typeof (actor as any).submitInquiry === "function") {
         await (actor as any).submitInquiry(listing.id, form);
       }
       setSent(true);
