@@ -13,10 +13,11 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
+import { useAppRoleContext } from "../hooks/useAppRoleContext";
 
 export default function DealerProfilePage() {
   const navigate = useNavigate();
-  const role = localStorage.getItem("atp_role");
+  const role = useAppRoleContext();
   const { actor } = useActor();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);

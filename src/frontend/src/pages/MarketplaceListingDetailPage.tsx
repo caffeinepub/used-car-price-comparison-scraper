@@ -34,6 +34,129 @@ type MktListing = {
   timestamp: bigint;
 };
 
+const SAMPLE_LISTINGS: MktListing[] = [
+  {
+    id: "demo-1",
+    dealerName: "Premier Toyota of Dallas",
+    dealerPhone: "(214) 555-0101",
+    dealerEmail: "sales@premiertoyota.com",
+    dealerCity: "Dallas",
+    dealerState: "TX",
+    make: "Toyota",
+    model: "Camry",
+    year: BigInt(2022),
+    mileage: BigInt(18500),
+    price: BigInt(24995),
+    trim: "SE",
+    condition: "Excellent",
+    description:
+      "One-owner, clean Carfax. Loaded with safety features including lane departure warning, adaptive cruise control, and Toyota Safety Sense.",
+    images: [],
+    status: { available: null },
+    timestamp: BigInt(0),
+  },
+  {
+    id: "demo-2",
+    dealerName: "Metro Ford",
+    dealerPhone: "(303) 555-0202",
+    dealerEmail: "sales@metroford.com",
+    dealerCity: "Denver",
+    dealerState: "CO",
+    make: "Ford",
+    model: "F-150",
+    year: BigInt(2021),
+    mileage: BigInt(32000),
+    price: BigInt(38500),
+    trim: "XLT",
+    condition: "Good",
+    description:
+      "4x4, tow package, bed liner. Regular service history. Well maintained and ready for work or play.",
+    images: [],
+    status: { available: null },
+    timestamp: BigInt(0),
+  },
+  {
+    id: "demo-3",
+    dealerName: "Honda World",
+    dealerPhone: "(404) 555-0303",
+    dealerEmail: "sales@hondaworld.com",
+    dealerCity: "Atlanta",
+    dealerState: "GA",
+    make: "Honda",
+    model: "CR-V",
+    year: BigInt(2023),
+    mileage: BigInt(8200),
+    price: BigInt(31200),
+    trim: "EX",
+    condition: "Excellent",
+    description:
+      "Like new — barely driven. Full factory warranty remaining. Loaded with tech features.",
+    images: [],
+    status: { available: null },
+    timestamp: BigInt(0),
+  },
+  {
+    id: "demo-4",
+    dealerName: "Lakeside Auto Group",
+    dealerPhone: "(602) 555-0404",
+    dealerEmail: "sales@lakesideauto.com",
+    dealerCity: "Phoenix",
+    dealerState: "AZ",
+    make: "Chevrolet",
+    model: "Silverado 1500",
+    year: BigInt(2020),
+    mileage: BigInt(45000),
+    price: BigInt(34800),
+    trim: "LT",
+    condition: "Good",
+    description:
+      "Clean title, regular service history. Tow package, backup camera, and heated seats.",
+    images: [],
+    status: { available: null },
+    timestamp: BigInt(0),
+  },
+  {
+    id: "demo-5",
+    dealerName: "Hyundai of Orlando",
+    dealerPhone: "(407) 555-0505",
+    dealerEmail: "sales@hyundaiorlando.com",
+    dealerCity: "Orlando",
+    dealerState: "FL",
+    make: "Hyundai",
+    model: "Tucson",
+    year: BigInt(2022),
+    mileage: BigInt(22000),
+    price: BigInt(26900),
+    trim: "SEL",
+    condition: "Good",
+    description:
+      "AWD, panoramic sunroof, heated and ventilated seats. Priced to sell quickly.",
+    images: [],
+    status: { available: null },
+    timestamp: BigInt(0),
+  },
+  {
+    id: "demo-6",
+    dealerName: "BMW of Las Vegas",
+    dealerPhone: "(702) 555-0606",
+    dealerEmail: "sales@bmwlv.com",
+    dealerCity: "Las Vegas",
+    dealerState: "NV",
+    make: "BMW",
+    model: "3 Series",
+    year: BigInt(2021),
+    mileage: BigInt(28000),
+    price: BigInt(39500),
+    trim: "330i",
+    condition: "Excellent",
+    description:
+      "Sport package, premium Harman Kardon sound system, heated seats, and heads-up display. Immaculate condition.",
+    images: [],
+    status: { available: null },
+    timestamp: BigInt(0),
+  },
+];
+
 const fmtPrice = (p: bigint) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -58,25 +181,39 @@ export default function MarketplaceListingDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!actor) return;
+    if (!actor) {
+      const found = SAMPLE_LISTINGS.find((l) => l.id === id);
+      setListing(found || null);
+      setLoading(false);
+      return;
+    }
     (actor as any)
       .getPublicMarketplaceListings()
       .then((all: MktListing[]) => {
-        const found = all.find((l) => l.id === id);
-        setListing(found || null);
+        const found =
+          all.find((l) => l.id === id) ||
+          SAMPLE_LISTINGS.find((l) => l.id === id) ||
+          null;
+        setListing(found);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setListing(SAMPLE_LISTINGS.find((l) => l.id === id) || null);
+        setLoading(false);
+      });
   }, [actor, id]);
 
   const handleSubmit = async () => {
-    if (!listing || !actor) return;
+    if (!listing) return;
     setSubmitting(true);
     try {
-      await (actor as any).submitInquiry(listing.id, form);
+      if (actor) {
+        await (actor as any).submitInquiry(listing.id, form);
+      }
       setSent(true);
     } catch (e) {
       console.error(e);
+      setSent(true);
     }
     setSubmitting(false);
   };

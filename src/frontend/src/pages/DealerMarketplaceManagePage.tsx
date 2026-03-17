@@ -12,6 +12,7 @@ import {
   TabsTrigger,
 } from "../components/ui/tabs";
 import { useActor } from "../hooks/useActor";
+import { useAppRoleContext } from "../hooks/useAppRoleContext";
 
 type MktListing = {
   id: string;
@@ -46,7 +47,7 @@ const fmtPrice = (p: bigint) =>
 
 export default function DealerMarketplaceManagePage() {
   const navigate = useNavigate();
-  const role = localStorage.getItem("atp_role");
+  const role = useAppRoleContext();
   const { actor } = useActor();
   const [listings, setListings] = useState<MktListing[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);

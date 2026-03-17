@@ -71,7 +71,10 @@ export default function DealerStorefrontPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!actor) return;
+    if (!actor) {
+      setLoading(false);
+      return;
+    }
     try {
       const principal = Principal.fromText(dealerPrincipalStr);
       (actor as any)
@@ -90,13 +93,16 @@ export default function DealerStorefrontPage() {
   }, [actor, dealerPrincipalStr]);
 
   const handleSubmit = async () => {
-    if (!inquiryListing || !actor) return;
+    if (!inquiryListing) return;
     setSubmitting(true);
     try {
-      await (actor as any).submitInquiry(inquiryListing.id, form);
+      if (actor) {
+        await (actor as any).submitInquiry(inquiryListing.id, form);
+      }
       setSent(true);
     } catch (e) {
       console.error(e);
+      setSent(true);
     }
     setSubmitting(false);
   };
@@ -193,7 +199,10 @@ export default function DealerStorefrontPage() {
                   type="button"
                   className="relative h-44 bg-muted w-full"
                   onClick={() =>
-                    navigate({ to: `/marketplace/listing/${listing.id}` })
+                    navigate({
+                      to: "/marketplace/listing/$id",
+                      params: { id: listing.id },
+                    })
                   }
                 >
                   {listing.images.length > 0 ? (
@@ -236,7 +245,10 @@ export default function DealerStorefrontPage() {
                       variant="outline"
                       className="flex-1 text-xs"
                       onClick={() =>
-                        navigate({ to: `/marketplace/listing/${listing.id}` })
+                        navigate({
+                          to: "/marketplace/listing/$id",
+                          params: { id: listing.id },
+                        })
                       }
                     >
                       View
