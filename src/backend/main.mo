@@ -22,9 +22,6 @@ actor {
   include MixinAuthorization(accessControlState);
 
   // ── Migration: retain old shared listings variable to avoid discard error ──
-  // The old backend had a single global `listings: Map<Text, OldListingData>`.
-  // We keep this declaration with the compatible old type so the implicit stable
-  // variable is preserved rather than silently dropped.
   public type OldListingData = {
     id : Text;
     make : Text;
@@ -329,6 +326,103 @@ actor {
     count : Nat;
   };
 
+  // ── Marketplace Types ──
+  public type MarketplaceStatus = { #available; #sold };
+
+  public type MarketplaceListing = {
+    id : Text;
+    dealerPrincipal : Principal;
+    dealerName : Text;
+    dealerPhone : Text;
+    dealerEmail : Text;
+    dealerCity : Text;
+    dealerState : Text;
+    make : Text;
+    model : Text;
+    year : Nat;
+    mileage : Nat;
+    price : Nat;
+    trim : Text;
+    condition : Text;
+    description : Text;
+    images : [Storage.ExternalBlob];
+    status : MarketplaceStatus;
+    timestamp : Time.Time;
+  };
+
+  public type CreateMarketplaceListingInput = {
+    make : Text;
+    model : Text;
+    year : Nat;
+    mileage : Nat;
+    price : Nat;
+    trim : Text;
+    condition : Text;
+    description : Text;
+    images : [Storage.ExternalBlob];
+    dealerPhone : Text;
+    dealerEmail : Text;
+    dealerCity : Text;
+    dealerState : Text;
+  };
+
+  public type UpdateMarketplaceListingInput = {
+    make : Text;
+    model : Text;
+    year : Nat;
+    mileage : Nat;
+    price : Nat;
+    trim : Text;
+    condition : Text;
+    description : Text;
+    images : [Storage.ExternalBlob];
+    dealerPhone : Text;
+    dealerEmail : Text;
+    dealerCity : Text;
+    dealerState : Text;
+  };
+
+  public type DealerProfile = {
+    principal : Principal;
+    dealerName : Text;
+    phone : Text;
+    email : Text;
+    city : Text;
+    state : Text;
+    bio : Text;
+  };
+
+  public type SaveDealerProfileInput = {
+    dealerName : Text;
+    phone : Text;
+    email : Text;
+    city : Text;
+    state : Text;
+    bio : Text;
+  };
+
+  public type Inquiry = {
+    id : Text;
+    listingId : Text;
+    buyerName : Text;
+    buyerEmail : Text;
+    buyerPhone : Text;
+    message : Text;
+    timestamp : Time.Time;
+  };
+
+  public type CreateInquiryInput = {
+    buyerName : Text;
+    buyerEmail : Text;
+    buyerPhone : Text;
+    message : Text;
+  };
+
+  public type DealerStorefrontResult = {
+    profile : ?DealerProfile;
+    listings : [MarketplaceListing];
+  };
+
   let userListings = Map.empty<Principal, Map.Map<Text, CarListing>>();
   let userWatchlist = Map.empty<Principal, List.List<WatchlistEntry>>();
   let userPriceAlerts = Map.empty<Principal, List.List<PriceAlert>>();
@@ -343,6 +437,13 @@ actor {
   let watchlistShareTokens = Map.empty<Text, Principal>();
   let userCounters = Map.empty<Principal, Map.Map<Text, Nat>>();
   let dealerRatings = Map.empty<Text, List.List<DealerRating>>();
+
+  // Marketplace state
+  let marketplaceListings = Map.empty<Text, MarketplaceListing>();
+  let dealerProfiles = Map.empty<Principal, DealerProfile>();
+  let listingInquiries = Map.empty<Text, List.List<Inquiry>>();
+  var marketplaceCounter : Nat = 0;
+  var inquiryCounter : Nat = 0;
 
   func getCallerListings(caller : Principal) : Map.Map<Text, CarListing> {
     switch (userListings.get(caller)) {
@@ -475,5 +576,224 @@ actor {
       };
     };
   };
-};
 
+  // --- Marketplace Listings -------------------------------------------
+
+  public shared ({ caller }) func createMarketplaceListing(input : CreateMarketplaceListingInput) : async MarketplaceListing {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Must be signed in to list vehicles");
+    };
+    marketplaceCounter += 1;
+    let id = "mkt-" # marketplaceCounter.toText();
+    let dealerName = switch (dealerProfiles.get(caller)) {
+      case (?p) { p.dealerName };
+      case (null) { "" };
+    };
+    let listing : MarketplaceListing = {
+      id;
+      dealerPrincipal = caller;
+      dealerName;
+      dealerPhone = input.dealerPhone;
+      dealerEmail = input.dealerEmail;
+      dealerCity = input.dealerCity;
+      dealerState = input.dealerState;
+      make = input.make;
+      model = input.model;
+      year = input.year;
+      mileage = input.mileage;
+      price = input.price;
+      trim = input.trim;
+      condition = input.condition;
+      description = input.description;
+      images = input.images;
+      status = #available;
+      timestamp = Time.now();
+    };
+    marketplaceListings.add(id, listing);
+    listing;
+  };
+
+  public shared ({ caller }) func updateMarketplaceListing(id : Text, input : UpdateMarketplaceListingInput) : async ?MarketplaceListing {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    switch (marketplaceListings.get(id)) {
+      case (null) { null };
+      case (?existing) {
+        if (existing.dealerPrincipal != caller) {
+          Runtime.trap("Unauthorized: You can only edit your own listings");
+        };
+        let updated : MarketplaceListing = {
+          id = existing.id;
+          dealerPrincipal = existing.dealerPrincipal;
+          dealerName = existing.dealerName;
+          dealerPhone = input.dealerPhone;
+          dealerEmail = input.dealerEmail;
+          dealerCity = input.dealerCity;
+          dealerState = input.dealerState;
+          make = input.make;
+          model = input.model;
+          year = input.year;
+          mileage = input.mileage;
+          price = input.price;
+          trim = input.trim;
+          condition = input.condition;
+          description = input.description;
+          images = input.images;
+          status = existing.status;
+          timestamp = existing.timestamp;
+        };
+        marketplaceListings.add(id, updated);
+        ?updated;
+      };
+    };
+  };
+
+  public shared ({ caller }) func setMarketplaceListingStatus(id : Text, status : MarketplaceStatus) : async ?MarketplaceListing {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    switch (marketplaceListings.get(id)) {
+      case (null) { null };
+      case (?existing) {
+        if (existing.dealerPrincipal != caller) {
+          Runtime.trap("Unauthorized: You can only update your own listings");
+        };
+        let updated : MarketplaceListing = {
+          id = existing.id;
+          dealerPrincipal = existing.dealerPrincipal;
+          dealerName = existing.dealerName;
+          dealerPhone = existing.dealerPhone;
+          dealerEmail = existing.dealerEmail;
+          dealerCity = existing.dealerCity;
+          dealerState = existing.dealerState;
+          make = existing.make;
+          model = existing.model;
+          year = existing.year;
+          mileage = existing.mileage;
+          price = existing.price;
+          trim = existing.trim;
+          condition = existing.condition;
+          description = existing.description;
+          images = existing.images;
+          status;
+          timestamp = existing.timestamp;
+        };
+        marketplaceListings.add(id, updated);
+        ?updated;
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteMarketplaceListing(id : Text) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    switch (marketplaceListings.get(id)) {
+      case (null) { false };
+      case (?existing) {
+        if (existing.dealerPrincipal != caller) {
+          Runtime.trap("Unauthorized: You can only delete your own listings");
+        };
+        ignore(marketplaceListings.remove(id));
+        true;
+      };
+    };
+  };
+
+  public query func getPublicMarketplaceListings() : async [MarketplaceListing] {
+    marketplaceListings.toArray().vals().map(func(kv) { kv.1 }).toArray();
+  };
+
+  public query ({ caller }) func getMyMarketplaceListings() : async [MarketplaceListing] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    marketplaceListings.toArray().vals()
+      .filter(func(kv) { kv.1.dealerPrincipal == caller })
+      .map(func(kv) { kv.1 })
+      .toArray();
+  };
+
+  public query func getDealerStorefront(dealerPrincipal : Principal) : async DealerStorefrontResult {
+    let profile = dealerProfiles.get(dealerPrincipal);
+    let dealerListings = marketplaceListings.toArray().vals()
+      .filter(func(kv) { kv.1.dealerPrincipal == dealerPrincipal })
+      .map(func(kv) { kv.1 })
+      .toArray();
+    { profile; listings = dealerListings };
+  };
+
+  public shared func submitInquiry(listingId : Text, input : CreateInquiryInput) : async ?Inquiry {
+    switch (marketplaceListings.get(listingId)) {
+      case (null) { null };
+      case (?_) {
+        inquiryCounter += 1;
+        let id = "inq-" # inquiryCounter.toText();
+        let inquiry : Inquiry = {
+          id;
+          listingId;
+          buyerName = input.buyerName;
+          buyerEmail = input.buyerEmail;
+          buyerPhone = input.buyerPhone;
+          message = input.message;
+          timestamp = Time.now();
+        };
+        let lst = switch (listingInquiries.get(listingId)) {
+          case (?l) { l };
+          case (null) {
+            let l = List.empty<Inquiry>();
+            listingInquiries.add(listingId, l);
+            l;
+          };
+        };
+        lst.add(inquiry);
+        ?inquiry;
+      };
+    };
+  };
+
+  public query ({ caller }) func getMyInquiries() : async [Inquiry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    var result = List.empty<Inquiry>();
+    for (kv in marketplaceListings.toArray().vals()) {
+      if (kv.1.dealerPrincipal == caller) {
+        switch (listingInquiries.get(kv.0)) {
+          case (null) {};
+          case (?inquiries) {
+            for (inq in inquiries.toArray().vals()) {
+              result.add(inq);
+            };
+          };
+        };
+      };
+    };
+    result.toArray();
+  };
+
+  public shared ({ caller }) func saveDealerProfile(input : SaveDealerProfileInput) : async DealerProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    let profile : DealerProfile = {
+      principal = caller;
+      dealerName = input.dealerName;
+      phone = input.phone;
+      email = input.email;
+      city = input.city;
+      state = input.state;
+      bio = input.bio;
+    };
+    dealerProfiles.add(caller, profile);
+    profile;
+  };
+
+  public query ({ caller }) func getMyDealerProfile() : async ?DealerProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    dealerProfiles.get(caller);
+  };
+};

@@ -261,6 +261,27 @@ const DEALER_TOOLS_ITEMS: NavItem[] = [
     label: "Price Elasticity",
     description: "Value retention by trim",
   },
+  {
+    to: "/dealer/marketplace",
+    icon: Building2,
+    label: "My Listings",
+    description: "Manage marketplace listings",
+  },
+  {
+    to: "/dealer/profile",
+    icon: Building2,
+    label: "My Profile",
+    description: "Your dealer storefront",
+  },
+];
+
+const MARKETPLACE_ITEMS = [
+  {
+    to: "/marketplace",
+    icon: Building2,
+    label: "Browse Marketplace",
+    description: "Search all dealer listings",
+  },
 ];
 
 // ─── Feature Card ─────────────────────────────────────────────────────────────
@@ -425,6 +446,20 @@ export default function QuickAccessGrid() {
             </div>
           </div>
         )}
+
+        {/* Marketplace */}
+        <div>
+          <SectionHeader icon={Building2} label="Marketplace" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {MARKETPLACE_ITEMS.map((item, i) => (
+              <FeatureCard
+                key={item.to}
+                item={item}
+                ocid={`quick_access.marketplace.card.${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
 
         {/* Dealer Tools (role-gated) */}
         {showDealerTools && (

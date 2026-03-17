@@ -72,19 +72,26 @@ import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
 import DealerFloorPlanPage from "./pages/DealerFloorPlanPage";
 import DealerLotOptimizerPage from "./pages/DealerLotOptimizerPage";
 import DealerLotTrackerPage from "./pages/DealerLotTrackerPage";
+import DealerMarketplaceEditListingPage from "./pages/DealerMarketplaceEditListingPage";
+import DealerMarketplaceManagePage from "./pages/DealerMarketplaceManagePage";
+import DealerMarketplaceNewListingPage from "./pages/DealerMarketplaceNewListingPage";
 import DealerMotivationPage from "./pages/DealerMotivationPage";
 import DealerPriceElasticityPage from "./pages/DealerPriceElasticityPage";
 import DealerPricingRadarPage from "./pages/DealerPricingRadarPage";
+import DealerProfilePage from "./pages/DealerProfilePage";
 import DealerRatingsPage from "./pages/DealerRatingsPage";
+import DealerStorefrontPage from "./pages/DealerStorefrontPage";
 import DealerTurnoverReportPage from "./pages/DealerTurnoverReportPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
 import DuplicateMergePage from "./pages/DuplicateMergePage";
 import MarketOverviewPage from "./pages/MarketOverviewPage";
 import MarketSaturationPage from "./pages/MarketSaturationPage";
+import MarketplaceListingDetailPage from "./pages/MarketplaceListingDetailPage";
 import NegotiationCoachPage from "./pages/NegotiationCoachPage";
 import OwnershipCostPage from "./pages/OwnershipCostPage";
 import PriceAlertsPage from "./pages/PriceAlertsPage";
 import PriceVelocityPage from "./pages/PriceVelocityPage";
+import PublicMarketplacePage from "./pages/PublicMarketplacePage";
 import RegionalArbitragePage from "./pages/RegionalArbitragePage";
 import RegionalBreakdownPage from "./pages/RegionalBreakdownPage";
 import SavedSearchesPage from "./pages/SavedSearchesPage";
@@ -547,6 +554,8 @@ const DEALER_TOOLS = [
   { to: "/dealer/floor-plan", icon: Calculator, label: "Floor Plan Calc" },
   { to: "/dealer/lot-optimizer", icon: LayoutGrid, label: "Lot Optimizer" },
   { to: "/dealer/buyer-readiness", icon: Zap, label: "Buyer Readiness" },
+  { to: "/dealer/marketplace", icon: Car, label: "My Listings" },
+  { to: "/dealer/profile", icon: Building2, label: "My Profile" },
 ];
 
 const MARKET_INTEL_TOOLS = [
@@ -577,6 +586,7 @@ const NAV_ITEMS = [
   { to: "/alerts", icon: Bell, label: "Alerts" },
   { to: "/activity", icon: Activity, label: "Activity" },
   { to: "/dealer-ratings", icon: Star, label: "Ratings" },
+  { to: "/marketplace", icon: Building2, label: "Marketplace" },
 ];
 
 const MORE_ITEMS = [
@@ -1499,6 +1509,48 @@ const regionalArbitrageRoute = createRoute({
   component: RegionalArbitragePage,
 });
 
+const marketplaceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/marketplace",
+  component: PublicMarketplacePage,
+});
+
+const marketplaceListingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/marketplace/listing/$id",
+  component: MarketplaceListingDetailPage,
+});
+
+const dealerStorefrontRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/storefront/$dealerPrincipal",
+  component: DealerStorefrontPage,
+});
+
+const dealerMarketplaceManageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/marketplace",
+  component: DealerMarketplaceManagePage,
+});
+
+const dealerMarketplaceNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/marketplace/new",
+  component: DealerMarketplaceNewListingPage,
+});
+
+const dealerMarketplaceEditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/marketplace/edit/$id",
+  component: DealerMarketplaceEditListingPage,
+});
+
+const dealerProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/profile",
+  component: DealerProfilePage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addRoute,
@@ -1540,6 +1592,13 @@ const routeTree = rootRoute.addChildren([
   priceVelocityRoute,
   supplyShockRoute,
   regionalArbitrageRoute,
+  marketplaceRoute,
+  marketplaceListingRoute,
+  dealerStorefrontRoute,
+  dealerMarketplaceManageRoute,
+  dealerMarketplaceNewRoute,
+  dealerMarketplaceEditRoute,
+  dealerProfileRoute,
 ]);
 
 const router = createRouter({ routeTree });

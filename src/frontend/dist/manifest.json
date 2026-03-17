@@ -1,0 +1,23 @@
+{
+  "name": "Auto Track Pro",
+  "short_name": "Auto Track Pro",
+  "description": "Used car price intelligence — compare prices, track deals, and find the best value.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1C1C2E",
+  "theme_color": "#1C1C2E",
+  "icons": [
+    {
+      "src": "/assets/generated/atp-touch-icon.dim_180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/generated/atp-app-icon.dim_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

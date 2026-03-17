@@ -1,0 +1,269 @@
+import { useNavigate } from "@tanstack/react-router";
+import type React from "react";
+import { useEffect, useState } from "react";
+import PageHeader from "../components/PageHeader";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import { useActor } from "../hooks/useActor";
+
+export default function DealerMarketplaceNewListingPage() {
+  const navigate = useNavigate();
+  const role = localStorage.getItem("atp_role");
+  const { actor } = useActor();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    make: "",
+    model: "",
+    year: "",
+    mileage: "",
+    price: "",
+    trim: "",
+    condition: "Used",
+    description: "",
+    dealerPhone: "",
+    dealerEmail: "",
+    dealerCity: "",
+    dealerState: "",
+    imageUrls: "",
+  });
+
+  useEffect(() => {
+    if (!actor) return;
+    (actor as any)
+      .getMyDealerProfile()
+      .then((result: unknown[]) => {
+        const p = result.length > 0 ? (result[0] as any) : null;
+        if (p) {
+          setForm((f) => ({
+            ...f,
+            dealerPhone: p.phone,
+            dealerEmail: p.email,
+            dealerCity: p.city,
+            dealerState: p.state,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, [actor]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actor) return;
+    setSaving(true);
+    try {
+      const images = form.imageUrls
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((url) => ({ url, mimeType: "image/jpeg", size: BigInt(0) }));
+      await (actor as any).createMarketplaceListing({
+        make: form.make,
+        model: form.model,
+        year: BigInt(form.year || 0),
+        mileage: BigInt(form.mileage || 0),
+        price: BigInt(form.price || 0),
+        trim: form.trim,
+        condition: form.condition,
+        description: form.description,
+        images,
+        dealerPhone: form.dealerPhone,
+        dealerEmail: form.dealerEmail,
+        dealerCity: form.dealerCity,
+        dealerState: form.dealerState,
+      });
+      navigate({ to: "/dealer/marketplace" });
+    } catch (e) {
+      console.error(e);
+    }
+    setSaving(false);
+  };
+
+  if (role !== "dealer") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl font-semibold mb-2">Dealer Access Required</p>
+          <Button onClick={() => navigate({ to: "/" })}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const set =
+    (field: string) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) =>
+      setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <PageHeader
+        title="Add Marketplace Listing"
+        description="List a vehicle for sale on the public marketplace"
+      />
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Vehicle Info</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Make *</Label>
+              <Input
+                required
+                value={form.make}
+                onChange={set("make")}
+                placeholder="Toyota"
+              />
+            </div>
+            <div>
+              <Label>Model *</Label>
+              <Input
+                required
+                value={form.model}
+                onChange={set("model")}
+                placeholder="Camry"
+              />
+            </div>
+            <div>
+              <Label>Year *</Label>
+              <Input
+                required
+                type="number"
+                value={form.year}
+                onChange={set("year")}
+                placeholder="2021"
+              />
+            </div>
+            <div>
+              <Label>Mileage *</Label>
+              <Input
+                required
+                type="number"
+                value={form.mileage}
+                onChange={set("mileage")}
+                placeholder="35000"
+              />
+            </div>
+            <div>
+              <Label>Price ($) *</Label>
+              <Input
+                required
+                type="number"
+                value={form.price}
+                onChange={set("price")}
+                placeholder="24999"
+              />
+            </div>
+            <div>
+              <Label>Trim</Label>
+              <Input
+                value={form.trim}
+                onChange={set("trim")}
+                placeholder="SE"
+              />
+            </div>
+            <div>
+              <Label>Condition</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                value={form.condition}
+                onChange={set("condition")}
+              >
+                <option>New</option>
+                <option>Used</option>
+                <option>Certified Pre-Owned</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <Label>Description</Label>
+              <Textarea
+                rows={3}
+                value={form.description}
+                onChange={set("description")}
+                placeholder="Describe the vehicle..."
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Photos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Label>Photo URLs (comma-separated)</Label>
+            <Textarea
+              rows={2}
+              value={form.imageUrls}
+              onChange={set("imageUrls")}
+              placeholder="https://example.com/car1.jpg, https://example.com/car2.jpg"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter direct image URLs separated by commas.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Your Contact Info</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Phone</Label>
+              <Input value={form.dealerPhone} onChange={set("dealerPhone")} />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={form.dealerEmail}
+                onChange={set("dealerEmail")}
+              />
+            </div>
+            <div>
+              <Label>City</Label>
+              <Input value={form.dealerCity} onChange={set("dealerCity")} />
+            </div>
+            <div>
+              <Label>State</Label>
+              <Input value={form.dealerState} onChange={set("dealerState")} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={() => navigate({ to: "/dealer/marketplace" })}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={saving}
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-black"
+          >
+            {saving ? "Publishing..." : "Publish Listing"}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
