@@ -1,29 +1,27 @@
 # Auto Track Pro
 
 ## Current State
-Dealers can view buyer inquiries in their marketplace management dashboard (`/dealer/marketplace`) under an Inquiries tab. However, dealers cannot reply to these messages — they can only read them.
+Full dealer marketplace with listing management, inquiry inbox with reply system, dealer profile, bulk import, VIN decoder, and photo upload. No analytics dashboard exists yet.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Reply functionality on each inquiry: dealers can type and send a reply message
-- Reply thread view: each inquiry shows the original buyer message and all dealer replies in a conversation-style thread
-- Buyer-facing reply view: buyers can see dealer replies when they view their sent inquiry (stored locally or via backend)
-- Reply state stored per inquiry in frontend state (and persisted via localStorage keyed by principal for now, since backend doesn't need regeneration)
-- Unread reply indicator: new replies highlighted for the dealer
-- Lead status tags on each inquiry: New, Contacted, Negotiating, Sold, Lost — dealer can update per inquiry
+- DealerAnalyticsDashboard page at /dealer/analytics with three sections:
+  1. Storefront Performance Stats: per-listing views, inquiries, saves with trend indicators
+  2. Conversion Rate Tracker: inquiries vs listings sold, conversion % per listing and overall
+  3. Revenue and Margin Report: total sold value, avg margin per vehicle, best/worst segments
+- Route dealerAnalyticsRoute in App.tsx
+- Analytics Dashboard card in QuickAccessGrid dealer section
 
 ### Modify
-- Dealer Inquiries tab: expand each inquiry row to show a reply thread and reply input box
-- Inquiry data model (frontend): extend to include `replies[]` array and `status` field
+- App.tsx: add /dealer/analytics route
+- QuickAccessGrid.tsx: add card
 
 ### Remove
-- Nothing removed
+- Nothing
 
 ## Implementation Plan
-1. Extend the inquiry data model in frontend to include replies array and lead status
-2. Create `useInquiryReplies` hook that persists inquiry replies and status in localStorage keyed by dealer principal
-3. Update Dealer Marketplace Inquiries tab to show expandable conversation threads with reply input
-4. Add lead status badge/selector (New, Contacted, Negotiating, Sold, Lost) per inquiry
-5. Add reply count badge on inquiry rows
-6. Ensure Back to Dashboard and X close are present
+1. Create DealerAnalyticsDashboard.tsx with all three sections
+2. Use dealer listings/inquiry localStorage data to compute real metrics with realistic fallbacks
+3. Wire route in App.tsx
+4. Add card in QuickAccessGrid.tsx

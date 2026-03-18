@@ -67,6 +67,7 @@ import CustomAlertFormulasPage from "./pages/CustomAlertFormulasPage";
 // Pages
 import DashboardPage from "./pages/DashboardPage";
 import DealExpiryPage from "./pages/DealExpiryPage";
+import DealerAnalyticsDashboardPage from "./pages/DealerAnalyticsDashboardPage";
 import DealerBuyerReadinessPage from "./pages/DealerBuyerReadinessPage";
 import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
 import DealerFloorPlanPage from "./pages/DealerFloorPlanPage";
@@ -1553,6 +1554,11 @@ const dealerProfileRoute = createRoute({
   component: DealerProfilePage,
 });
 
+const dealerAnalyticsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/analytics",
+  component: DealerAnalyticsDashboardPage,
+});
 const dealerInventoryImportRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/dealer/inventory-import",
@@ -1607,6 +1613,7 @@ const routeTree = rootRoute.addChildren([
   dealerMarketplaceNewRoute,
   dealerMarketplaceEditRoute,
   dealerProfileRoute,
+  dealerAnalyticsRoute,
   dealerInventoryImportRoute,
 ]);
 

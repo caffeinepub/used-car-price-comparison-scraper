@@ -279,6 +279,12 @@ const DEALER_TOOLS_ITEMS: NavItem[] = [
     label: "Bulk Import",
     description: "Import inventory via CSV",
   },
+  {
+    to: "/dealer/analytics",
+    icon: BarChart2,
+    label: "Analytics Dashboard",
+    description: "Views, conversions & revenue",
+  },
 ];
 
 const MARKETPLACE_ITEMS = [
