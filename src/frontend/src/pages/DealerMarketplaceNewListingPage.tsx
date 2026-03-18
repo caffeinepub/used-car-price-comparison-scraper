@@ -29,7 +29,8 @@ export default function DealerMarketplaceNewListingPage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
   const roleLoading = useRoleLoading();
-  const { isInitializing } = useInternetIdentity();
+  const { identity, isInitializing } = useInternetIdentity();
+  const principalId = identity?.getPrincipal().toString();
   const { actor } = useActor();
   const { createListing, isIdentityReady } = useMarketplaceStore();
   const [saving, setSaving] = useState(false);
@@ -57,6 +58,22 @@ export default function DealerMarketplaceNewListingPage() {
     dealerCity: "",
     dealerState: "",
   });
+
+  // Read stored role from localStorage as immediate fallback
+  const ANON = "2vxsx-fae";
+  const storedRole =
+    principalId && principalId !== ANON && principalId !== "anonymous"
+      ? localStorage.getItem(`atp_role_${principalId}`)
+      : null;
+
+  // Also check atp_pending_role as a third fallback (set before II login popup)
+  const pendingRoleRaw = localStorage.getItem("atp_pending_role");
+  const pendingRoleFallback =
+    pendingRoleRaw === "buyer" || pendingRoleRaw === "dealer"
+      ? pendingRoleRaw
+      : null;
+
+  const effectiveRole = role ?? storedRole ?? pendingRoleFallback;
 
   useEffect(() => {
     if (!actor) return;
@@ -163,8 +180,9 @@ export default function DealerMarketplaceNewListingPage() {
     setSaving(false);
   };
 
-  // Show loading state while identity is initializing or role is still resolving
-  if (isInitializing || roleLoading || role === null) {
+  // Show spinner while identity is loading, OR while role is loading and we
+  // can't infer the role yet from any localStorage source
+  if (isInitializing || (roleLoading && !effectiveRole)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -175,7 +193,7 @@ export default function DealerMarketplaceNewListingPage() {
     );
   }
 
-  if (role !== "dealer") {
+  if (effectiveRole !== "dealer") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

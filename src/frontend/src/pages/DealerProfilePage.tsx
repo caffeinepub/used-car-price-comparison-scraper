@@ -21,7 +21,8 @@ export default function DealerProfilePage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
   const roleLoading = useRoleLoading();
-  const { isInitializing } = useInternetIdentity();
+  const { identity, isInitializing } = useInternetIdentity();
+  const principalId = identity?.getPrincipal().toString();
   const { actor } = useActor();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -33,6 +34,14 @@ export default function DealerProfilePage() {
     state: "",
     bio: "",
   });
+
+  // Read stored role directly from localStorage as immediate fallback
+  const ANON = "2vxsx-fae";
+  const storedRole =
+    principalId && principalId !== ANON && principalId !== "anonymous"
+      ? localStorage.getItem(`atp_role_${principalId}`)
+      : null;
+  const effectiveRole = role ?? storedRole;
 
   useEffect(() => {
     if (!actor) return;
@@ -67,8 +76,8 @@ export default function DealerProfilePage() {
     setSaving(false);
   };
 
-  // Wait for identity/role to fully resolve before showing access wall
-  if (isInitializing || roleLoading || role === null) {
+  // Only show full-page spinner if identity auth itself isn't done yet
+  if (isInitializing || (!identity && roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -79,7 +88,7 @@ export default function DealerProfilePage() {
     );
   }
 
-  if (role !== "dealer") {
+  if (effectiveRole !== "dealer") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

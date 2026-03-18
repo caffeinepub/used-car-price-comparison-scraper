@@ -796,4 +796,64 @@ actor {
     };
     dealerProfiles.get(caller);
   };
+
+  public shared ({ caller }) func addDashboardWidget(make : Text, model : Text, customLabel : ?Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    let existing = switch (userDashboardWidgets.get(caller)) {
+      case (null) { [] };
+      case (?lst) { lst.toArray() };
+    };
+    if (existing.size() >= 8) { return 0 };
+    let id = nextId(caller, "widget");
+    let widget : DashboardWidget = {
+      id;
+      make;
+      model;
+      customLabel;
+      createdAt = Time.now();
+    };
+    let lst = switch (userDashboardWidgets.get(caller)) {
+      case (null) {
+        let l = List.empty<DashboardWidget>();
+        userDashboardWidgets.add(caller, l);
+        l;
+      };
+      case (?l) { l };
+    };
+    lst.add(widget);
+    id;
+  };
+
+  public query ({ caller }) func getDashboardWidgets() : async [DashboardWidget] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      return [];
+    };
+    switch (userDashboardWidgets.get(caller)) {
+      case (null) { [] };
+      case (?lst) { lst.toArray() };
+    };
+  };
+
+  public shared ({ caller }) func removeDashboardWidget(id : Nat) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized");
+    };
+    switch (userDashboardWidgets.get(caller)) {
+      case (null) { false };
+      case (?lst) {
+        let newLst = List.empty<DashboardWidget>();
+        var found = false;
+        for (w in lst.toArray().vals()) {
+          if (w.id == id) { found := true } else { newLst.add(w) };
+        };
+        if (found) {
+          userDashboardWidgets.add(caller, newLst);
+        };
+        found;
+      };
+    };
+  };
+
 };

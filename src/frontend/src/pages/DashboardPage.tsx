@@ -45,6 +45,7 @@ import PriceHistoryReplayModal from "../components/PriceHistoryReplayModal";
 import QuickAccessGrid from "../components/QuickAccessGrid";
 import RecallAlertBadge from "../components/RecallAlertBadge";
 import StaleListingReminderPanel from "../components/StaleListingReminderPanel";
+import { ALL_MAKES, CAR_MAKES_MODELS } from "../data/carMakesModels";
 import { useColumnPreferences } from "../hooks/useColumnPreferences";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { usePrivateNotes } from "../hooks/usePrivateNotes";
@@ -57,8 +58,6 @@ import {
   useGetAllListings,
   useGetDashboardStats,
   useGetDealScores,
-  useGetDistinctMakes,
-  useGetDistinctModels,
   useGetPriceTrend,
   useGetStaleListings,
   useRemoveDashboardWidget,
@@ -131,8 +130,8 @@ function WidgetCard({
         type="button"
         onClick={() => onRemove(widget.id)}
         disabled={isRemoving}
-        className="absolute top-3 right-3 w-6 h-6 rounded-full bg-surface border border-steel-border text-muted-foreground hover:text-red-400 hover:border-red-400/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-xs disabled:opacity-50"
-        title="Remove widget"
+        className="absolute top-3 right-3 w-6 h-6 rounded-full bg-surface border border-steel-border text-muted-foreground hover:text-red-400 hover:border-red-400/50 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all text-xs disabled:opacity-50"
+        title="Delete widget"
       >
         <X className="w-3 h-3" />
       </button>
@@ -194,8 +193,8 @@ function AddWidgetForm({ onAdd, isAdding, onCancel }: AddWidgetFormProps) {
   const [model, setModel] = useState("");
   const [label, setLabel] = useState("");
 
-  const { data: makes = [] } = useGetDistinctMakes();
-  const { data: models = [] } = useGetDistinctModels(make);
+  const makes = ALL_MAKES;
+  const models = make ? (CAR_MAKES_MODELS[make] ?? []) : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

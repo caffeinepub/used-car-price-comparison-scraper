@@ -59,6 +59,7 @@ import { ThemeContext, useTheme, useThemeState } from "./hooks/useTheme";
 
 import ActivityLogPage from "./pages/ActivityLogPage";
 import AddListingPage from "./pages/AddListingPage";
+import BestDayToBuyPage from "./pages/BestDayToBuyPage";
 import CSVImportPage from "./pages/CSVImportPage";
 import ComparisonPage from "./pages/ComparisonPage";
 import CrossMarketPage from "./pages/CrossMarketPage";
@@ -86,10 +87,12 @@ import DealerStorefrontPage from "./pages/DealerStorefrontPage";
 import DealerTurnoverReportPage from "./pages/DealerTurnoverReportPage";
 import DepreciationCurvePage from "./pages/DepreciationCurvePage";
 import DuplicateMergePage from "./pages/DuplicateMergePage";
+import LemonRiskScorePage from "./pages/LemonRiskScorePage";
 import MarketOverviewPage from "./pages/MarketOverviewPage";
 import MarketSaturationPage from "./pages/MarketSaturationPage";
 import MarketplaceListingDetailPage from "./pages/MarketplaceListingDetailPage";
 import NegotiationCoachPage from "./pages/NegotiationCoachPage";
+import OutTheDoorEstimatorPage from "./pages/OutTheDoorEstimatorPage";
 import OwnershipCostPage from "./pages/OwnershipCostPage";
 import PriceAlertsPage from "./pages/PriceAlertsPage";
 import PriceVelocityPage from "./pages/PriceVelocityPage";
@@ -199,25 +202,29 @@ function useAppRole(): {
 
     if (!actor || isFetching) return;
 
-    // Skip if we already resolved for this exact principal
+    // Check for a pending role BEFORE the dedup guard so that signing back in
+    // as a different role with the same principal always applies the new choice.
+    // localStorage survives any II redirect/popup flow; sessionStorage does not.
+    const pendingRoleKey = "atp_pending_role";
+    const pendingRoleVal = localStorage.getItem(pendingRoleKey) as
+      | "buyer"
+      | "dealer"
+      | null;
+    if (pendingRoleVal === "buyer" || pendingRoleVal === "dealer") {
+      localStorage.removeItem(pendingRoleKey);
+      setStoredRole(principalId!, pendingRoleVal);
+      explicitRoleSetRef.current = principalId;
+      // Reset the dedup ref so this principal's role is fully re-resolved
+      resolvedPrincipalRef.current = null;
+      setRoleState(pendingRoleVal);
+    }
+
+    // Skip if we already fully resolved for this exact principal
     if (resolvedPrincipalRef.current === principalId) return;
 
     // Mark this principal as being resolved before the async work so we don't
     // double-fire if the effect re-runs while the promise is in flight
     resolvedPrincipalRef.current = principalId;
-
-    // Check sessionStorage for a pending role selected before login (set in App.tsx pre-login modal)
-    // This is the most reliable bridge across the async login gap
-    const sessionPendingRole = sessionStorage.getItem("atp_pending_role") as
-      | "buyer"
-      | "dealer"
-      | null;
-    if (sessionPendingRole === "buyer" || sessionPendingRole === "dealer") {
-      sessionStorage.removeItem("atp_pending_role");
-      setStoredRole(principalId!, sessionPendingRole);
-      explicitRoleSetRef.current = principalId;
-      setRoleState(sessionPendingRole);
-    }
 
     (async () => {
       setIsLoading(true);
@@ -557,6 +564,13 @@ const BUYER_TOOLS = [
   { to: "/buyer/dealer-motivation", icon: Target, label: "Dealer Motivation" },
   { to: "/buyer/walk-away-price", icon: DollarSign, label: "Walk-Away Price" },
   { to: "/buyer/seller-urgency", icon: Flame, label: "Seller Urgency" },
+  { to: "/buyer/out-the-door", icon: DollarSign, label: "Out-the-Door Price" },
+  { to: "/buyer/lemon-risk", icon: Bell, label: "Lemon Risk Score" },
+  {
+    to: "/buyer/best-day-to-buy",
+    icon: CalendarDays,
+    label: "Best Day to Buy",
+  },
 ];
 
 const DEALER_TOOLS = [
@@ -1156,7 +1170,7 @@ function Layout() {
       // Also discard any pending role from the pre-login modal so it doesn't
       // accidentally apply to the next user who signs in
       pendingRole.current = null;
-      sessionStorage.removeItem("atp_pending_role");
+      localStorage.removeItem("atp_pending_role");
       return;
     }
 
@@ -1235,13 +1249,13 @@ function Layout() {
             <PreLoginRoleModal
               onSelect={async (role) => {
                 pendingRole.current = role;
-                sessionStorage.setItem("atp_pending_role", role);
+                localStorage.setItem("atp_pending_role", role);
                 setShowPreLoginModal(false);
                 try {
                   await login();
                 } catch {
                   pendingRole.current = null;
-                  sessionStorage.removeItem("atp_pending_role");
+                  localStorage.removeItem("atp_pending_role");
                 }
               }}
               onClose={() => setShowPreLoginModal(false)}
@@ -1448,6 +1462,21 @@ const sellerUrgencyRoute = createRoute({
   path: "/buyer/seller-urgency",
   component: SellerUrgencyPage,
 });
+const outTheDoorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/buyer/out-the-door",
+  component: OutTheDoorEstimatorPage,
+});
+const lemonRiskRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/buyer/lemon-risk",
+  component: LemonRiskScorePage,
+});
+const bestDayToBuyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/buyer/best-day-to-buy",
+  component: BestDayToBuyPage,
+});
 const dealerPricingRadarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/dealer/pricing-radar",
@@ -1603,6 +1632,9 @@ const routeTree = rootRoute.addChildren([
   dealerMotivationRoute,
   walkAwayPriceRoute,
   sellerUrgencyRoute,
+  outTheDoorRoute,
+  lemonRiskRoute,
+  bestDayToBuyRoute,
   dealerPricingRadarRoute,
   dealerLotTrackerRoute,
   dealerDemandHeatmapRoute,

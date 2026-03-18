@@ -353,6 +353,22 @@ export default function DealerMarketplaceManagePage() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [, forceUpdate] = useState(0);
 
+  // Read stored role from localStorage as immediate fallback
+  const ANON = "2vxsx-fae";
+  const storedRole =
+    principalId && principalId !== ANON && principalId !== "anonymous"
+      ? localStorage.getItem(`atp_role_${principalId}`)
+      : null;
+
+  // Also check atp_pending_role as a third fallback (set before II login popup)
+  const pendingRoleRaw = localStorage.getItem("atp_pending_role");
+  const pendingRoleFallback =
+    pendingRoleRaw === "buyer" || pendingRoleRaw === "dealer"
+      ? pendingRoleRaw
+      : null;
+
+  const effectiveRole = role ?? storedRole ?? pendingRoleFallback;
+
   // Re-fetch whenever principalId resolves (handles async identity load)
   const fetchData = useCallback(() => {
     setListings(getMyListings());
@@ -361,19 +377,17 @@ export default function DealerMarketplaceManagePage() {
   }, [getMyListings, getMyInquiries]);
 
   useEffect(() => {
-    // Only fetch once identity is fully loaded (non-anonymous principal)
-    // isInitializing can become false before identity is fully resolved,
-    // so also check that principalId is a real (non-anonymous) principal.
     const anonPrincipal = "2vxsx-fae";
     const isReady =
       !isInitializing &&
       principalId &&
       principalId !== "anonymous" &&
-      principalId !== anonPrincipal;
+      principalId !== anonPrincipal &&
+      effectiveRole === "dealer";
     if (isReady) {
       fetchData();
     }
-  }, [fetchData, isInitializing, principalId]);
+  }, [fetchData, isInitializing, principalId, effectiveRole]);
 
   const toggleStatus = (listing: MktListing) => {
     setToggling(listing.id);
@@ -390,8 +404,9 @@ export default function DealerMarketplaceManagePage() {
     setListings((prev) => prev.filter((l) => l.id !== id));
   };
 
-  // Show loading while identity initializes
-  if (isInitializing || roleLoading || role === null) {
+  // Show spinner while identity is loading, OR while role is loading and we
+  // can't infer the role yet from any localStorage source
+  if (isInitializing || (roleLoading && !effectiveRole)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -402,7 +417,7 @@ export default function DealerMarketplaceManagePage() {
     );
   }
 
-  if (role !== "dealer") {
+  if (effectiveRole !== "dealer") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

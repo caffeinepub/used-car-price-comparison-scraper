@@ -228,6 +228,24 @@ const BUYER_TOOLS_ITEMS: NavItem[] = [
     label: "Seller Urgency",
     description: "Detect motivated sellers",
   },
+  {
+    to: "/buyer/out-the-door",
+    icon: Calculator,
+    label: "Out-the-Door Price",
+    description: "True cost including all fees",
+  },
+  {
+    to: "/buyer/lemon-risk",
+    icon: Bell,
+    label: "Lemon Risk Score",
+    description: "NHTSA complaint & recall check",
+  },
+  {
+    to: "/buyer/best-day-to-buy",
+    icon: CalendarDays,
+    label: "Best Day to Buy",
+    description: "Time your purchase perfectly",
+  },
 ];
 
 const DEALER_TOOLS_ITEMS: NavItem[] = [
