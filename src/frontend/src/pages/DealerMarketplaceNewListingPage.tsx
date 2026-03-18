@@ -16,6 +16,7 @@ import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
 import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
 
 interface PhotoImage {
@@ -27,11 +28,13 @@ interface PhotoImage {
 export default function DealerMarketplaceNewListingPage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
+  const { identity, isInitializing } = useInternetIdentity();
   const { actor } = useActor();
-  const marketplaceStore = useMarketplaceStore();
+  const { createListing } = useMarketplaceStore();
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState<PhotoImage[]>([]);
   const [dealerName, setDealerName] = useState("My Dealership");
+  const [successMsg, setSuccessMsg] = useState("");
 
   // VIN decoder state
   const [vin, setVin] = useState("");
@@ -112,9 +115,16 @@ export default function DealerMarketplaceNewListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const principalId = identity?.getPrincipal().toString();
+    if (!principalId || principalId === "2vxsx-fae") {
+      // 2vxsx-fae is the anonymous principal
+      return;
+    }
+
     setSaving(true);
     try {
-      marketplaceStore.createListing({
+      createListing({
         make: form.make,
         model: form.model,
         year: BigInt(form.year || 0),
@@ -130,18 +140,34 @@ export default function DealerMarketplaceNewListingPage() {
         dealerCity: form.dealerCity,
         dealerState: form.dealerState,
       });
-      navigate({ to: "/dealer/marketplace" });
-    } catch (e) {
-      console.error(e);
+      setSuccessMsg("Listing published successfully!");
+      setTimeout(() => navigate({ to: "/dealer/marketplace" }), 800);
+    } catch (err) {
+      console.error(err);
     }
     setSaving(false);
   };
+
+  // Show loading state while identity is initializing
+  if (isInitializing || role === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (role !== "dealer") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl font-semibold mb-2">Dealer Access Required</p>
+          <p className="text-muted-foreground mb-4">
+            Please sign in as a dealer to add listings.
+          </p>
           <Button onClick={() => navigate({ to: "/" })}>
             Back to Dashboard
           </Button>
@@ -149,6 +175,8 @@ export default function DealerMarketplaceNewListingPage() {
       </div>
     );
   }
+
+  const isSignedIn = identity && !identity.getPrincipal().isAnonymous();
 
   const set =
     (field: string) =>
@@ -165,6 +193,19 @@ export default function DealerMarketplaceNewListingPage() {
         title="Add Marketplace Listing"
         description="List a vehicle for sale on the public marketplace"
       />
+
+      {!isSignedIn && (
+        <div className="mt-4 rounded-md border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
+          You must be signed in as a dealer to publish listings.
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="mt-4 rounded-md border border-green-500/50 bg-green-500/10 px-4 py-3 text-sm text-green-600 dark:text-green-400">
+          {successMsg}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         {/* VIN Decoder */}
         <Card>
@@ -366,11 +407,17 @@ export default function DealerMarketplaceNewListingPage() {
           </Button>
           <Button
             type="submit"
-            disabled={saving}
-            className="flex-1 bg-amber-500 hover:bg-amber-600 text-black"
+            disabled={saving || !isSignedIn}
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-black disabled:opacity-50"
             data-ocid="new_listing.submit_button"
           >
-            {saving ? "Publishing..." : "Publish Listing"}
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Publishing...
+              </>
+            ) : (
+              "Publish Listing"
+            )}
           </Button>
         </div>
       </form>

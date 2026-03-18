@@ -11,6 +11,7 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import PageHeader from "../components/PageHeader";
 import { Badge } from "../components/ui/badge";
@@ -340,9 +341,10 @@ function InquiryCard({
 export default function DealerMarketplaceManagePage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
-  const { identity } = useInternetIdentity();
+  const { identity, isInitializing } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toString();
-  const marketplaceStore = useMarketplaceStore();
+  const { getMyListings, getMyInquiries, setListingStatus, deleteListing } =
+    useMarketplaceStore();
   const inquiryReplies = useInquiryReplies(principalId);
   const [listings, setListings] = useState<MktListing[]>([]);
   const [inquiries, setInquiries] = useState<MktInquiry[]>([]);
@@ -350,30 +352,46 @@ export default function DealerMarketplaceManagePage() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [, forceUpdate] = useState(0);
 
+  // Re-fetch whenever principalId resolves (handles async identity load)
   const fetchData = useCallback(() => {
-    setListings(marketplaceStore.getMyListings());
-    setInquiries(marketplaceStore.getMyInquiries());
+    setListings(getMyListings());
+    setInquiries(getMyInquiries());
     setLoading(false);
-  }, [marketplaceStore]);
+  }, [getMyListings, getMyInquiries]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Only fetch once identity is loaded
+    if (!isInitializing) {
+      fetchData();
+    }
+  }, [fetchData, isInitializing]);
 
   const toggleStatus = (listing: MktListing) => {
     setToggling(listing.id);
     const newStatus =
       "available" in listing.status ? { sold: null } : { available: null };
-    marketplaceStore.setListingStatus(listing.id, newStatus);
+    setListingStatus(listing.id, newStatus);
     fetchData();
     setToggling(null);
   };
 
-  const deleteListing = (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm("Delete this listing?")) return;
-    marketplaceStore.deleteListing(id);
+    deleteListing(id);
     setListings((prev) => prev.filter((l) => l.id !== id));
   };
+
+  // Show loading while identity initializes
+  if (isInitializing || role === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (role !== "dealer") {
     return (
@@ -439,7 +457,8 @@ export default function DealerMarketplaceManagePage() {
                 className="text-center py-10 text-muted-foreground"
                 data-ocid="listings.loading_state"
               >
-                Loading...
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                Loading listings...
               </div>
             ) : listings.length === 0 ? (
               <div
@@ -448,6 +467,9 @@ export default function DealerMarketplaceManagePage() {
               >
                 <Car className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                 <p className="font-semibold mb-2">No listings yet</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your first vehicle to start selling on the marketplace.
+                </p>
                 <Button
                   className="bg-amber-500 hover:bg-amber-600 text-black"
                   onClick={() => navigate({ to: "/dealer/marketplace/new" })}
@@ -529,7 +551,7 @@ export default function DealerMarketplaceManagePage() {
                           size="sm"
                           variant="outline"
                           className="text-red-500 hover:text-red-600"
-                          onClick={() => deleteListing(listing.id)}
+                          onClick={() => handleDelete(listing.id)}
                           data-ocid={`listings.delete_button.${idx + 1}`}
                         >
                           <Trash2 className="h-3 w-3" />

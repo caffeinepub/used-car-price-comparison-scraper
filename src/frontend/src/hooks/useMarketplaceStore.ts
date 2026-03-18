@@ -210,6 +210,7 @@ export function useMarketplaceStore() {
   }, [principalId]);
 
   return {
+    principalId,
     getAllPublicListings,
     getMyListings,
     getListing,
