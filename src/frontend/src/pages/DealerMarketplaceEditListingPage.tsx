@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import type React from "react";
 import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
+import PhotoUploader from "../components/PhotoUploader";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -14,12 +15,19 @@ import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
 
+interface PhotoImage {
+  url: string;
+  mimeType: string;
+  size: bigint;
+}
+
 export default function DealerMarketplaceEditListingPage() {
   const navigate = useNavigate();
   const { id } = useParams({ strict: false }) as { id: string };
   const { actor } = useActor();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [images, setImages] = useState<PhotoImage[]>([]);
   const [form, setForm] = useState({
     make: "",
     model: "",
@@ -33,7 +41,6 @@ export default function DealerMarketplaceEditListingPage() {
     dealerEmail: "",
     dealerCity: "",
     dealerState: "",
-    imageUrls: "",
   });
 
   useEffect(() => {
@@ -56,8 +63,16 @@ export default function DealerMarketplaceEditListingPage() {
             dealerEmail: listing.dealerEmail,
             dealerCity: listing.dealerCity,
             dealerState: listing.dealerState,
-            imageUrls: listing.images.map((img: any) => img.url).join(", "),
           });
+          // Pre-load existing images
+          const existingImages: PhotoImage[] = (listing.images || []).map(
+            (img: any) => ({
+              url: img.url,
+              mimeType: img.mimeType || "image/jpeg",
+              size: img.size || BigInt(0),
+            }),
+          );
+          setImages(existingImages);
         }
         setLoading(false);
       })
@@ -69,11 +84,6 @@ export default function DealerMarketplaceEditListingPage() {
     if (!actor) return;
     setSaving(true);
     try {
-      const images = form.imageUrls
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((url) => ({ url, mimeType: "image/jpeg", size: BigInt(0) }));
       await (actor as any).updateMarketplaceListing(id, {
         make: form.make,
         model: form.model,
@@ -191,12 +201,7 @@ export default function DealerMarketplaceEditListingPage() {
             <CardTitle className="text-base">Photos</CardTitle>
           </CardHeader>
           <CardContent>
-            <Label>Photo URLs (comma-separated)</Label>
-            <Textarea
-              rows={2}
-              value={form.imageUrls}
-              onChange={set("imageUrls")}
-            />
+            <PhotoUploader images={images} onChange={setImages} />
           </CardContent>
         </Card>
 

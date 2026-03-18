@@ -1,7 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
+import PhotoUploader from "../components/PhotoUploader";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -15,11 +17,24 @@ import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
 import { useAppRoleContext } from "../hooks/useAppRoleContext";
 
+interface PhotoImage {
+  url: string;
+  mimeType: string;
+  size: bigint;
+}
+
 export default function DealerMarketplaceNewListingPage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
   const { actor } = useActor();
   const [saving, setSaving] = useState(false);
+  const [images, setImages] = useState<PhotoImage[]>([]);
+
+  // VIN decoder state
+  const [vin, setVin] = useState("");
+  const [vinLoading, setVinLoading] = useState(false);
+  const [vinError, setVinError] = useState("");
+
   const [form, setForm] = useState({
     make: "",
     model: "",
@@ -33,7 +48,6 @@ export default function DealerMarketplaceNewListingPage() {
     dealerEmail: "",
     dealerCity: "",
     dealerState: "",
-    imageUrls: "",
   });
 
   useEffect(() => {
@@ -55,16 +69,46 @@ export default function DealerMarketplaceNewListingPage() {
       .catch(() => {});
   }, [actor]);
 
+  const decodeVin = async () => {
+    if (vin.length !== 17) return;
+    setVinLoading(true);
+    setVinError("");
+    try {
+      const res = await fetch(
+        `https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`,
+      );
+      const data = await res.json();
+      const results: { Variable: string; Value: string }[] = data.Results || [];
+      const get = (name: string) =>
+        results.find((r) => r.Variable === name)?.Value || "";
+
+      const make = get("Make");
+      const model = get("Model");
+      const year = get("Model Year");
+      const trim = get("Trim");
+
+      if (!make && !model) {
+        setVinError("VIN not recognized. Please check and try again.");
+      } else {
+        setForm((f) => ({
+          ...f,
+          make: make || f.make,
+          model: model || f.model,
+          year: year || f.year,
+          trim: trim || f.trim,
+        }));
+      }
+    } catch {
+      setVinError("Failed to decode VIN. Please try again.");
+    }
+    setVinLoading(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!actor) return;
     setSaving(true);
     try {
-      const images = form.imageUrls
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((url) => ({ url, mimeType: "image/jpeg", size: BigInt(0) }));
       await (actor as any).createMarketplaceListing({
         make: form.make,
         model: form.model,
@@ -116,6 +160,56 @@ export default function DealerMarketplaceNewListingPage() {
         description="List a vehicle for sale on the public marketplace"
       />
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        {/* VIN Decoder */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">VIN Decoder</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label htmlFor="vin-input">VIN (optional)</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  id="vin-input"
+                  value={vin}
+                  onChange={(e) => {
+                    setVin(e.target.value.toUpperCase());
+                    setVinError("");
+                  }}
+                  placeholder="Enter 17-character VIN"
+                  maxLength={17}
+                  className="font-mono tracking-wider"
+                  data-ocid="new_listing.vin.input"
+                />
+                <Button
+                  type="button"
+                  disabled={vin.length !== 17 || vinLoading}
+                  onClick={decodeVin}
+                  className="shrink-0 bg-amber-500 hover:bg-amber-600 text-black"
+                  data-ocid="new_listing.vin.decode_button"
+                >
+                  {vinLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Decode VIN"
+                  )}
+                </Button>
+              </div>
+              {vinError && (
+                <p
+                  className="text-xs text-destructive mt-1"
+                  data-ocid="new_listing.vin.error_state"
+                >
+                  {vinError}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Auto-fills make, model, year, and trim from NHTSA database.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Vehicle Info</CardTitle>
@@ -128,6 +222,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.make}
                 onChange={set("make")}
                 placeholder="Toyota"
+                data-ocid="new_listing.make.input"
               />
             </div>
             <div>
@@ -137,6 +232,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.model}
                 onChange={set("model")}
                 placeholder="Camry"
+                data-ocid="new_listing.model.input"
               />
             </div>
             <div>
@@ -147,6 +243,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.year}
                 onChange={set("year")}
                 placeholder="2021"
+                data-ocid="new_listing.year.input"
               />
             </div>
             <div>
@@ -157,6 +254,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.mileage}
                 onChange={set("mileage")}
                 placeholder="35000"
+                data-ocid="new_listing.mileage.input"
               />
             </div>
             <div>
@@ -167,6 +265,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.price}
                 onChange={set("price")}
                 placeholder="24999"
+                data-ocid="new_listing.price.input"
               />
             </div>
             <div>
@@ -175,6 +274,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.trim}
                 onChange={set("trim")}
                 placeholder="SE"
+                data-ocid="new_listing.trim.input"
               />
             </div>
             <div>
@@ -183,6 +283,7 @@ export default function DealerMarketplaceNewListingPage() {
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                 value={form.condition}
                 onChange={set("condition")}
+                data-ocid="new_listing.condition.select"
               >
                 <option>New</option>
                 <option>Used</option>
@@ -196,6 +297,7 @@ export default function DealerMarketplaceNewListingPage() {
                 value={form.description}
                 onChange={set("description")}
                 placeholder="Describe the vehicle..."
+                data-ocid="new_listing.description.textarea"
               />
             </div>
           </CardContent>
@@ -206,16 +308,7 @@ export default function DealerMarketplaceNewListingPage() {
             <CardTitle className="text-base">Photos</CardTitle>
           </CardHeader>
           <CardContent>
-            <Label>Photo URLs (comma-separated)</Label>
-            <Textarea
-              rows={2}
-              value={form.imageUrls}
-              onChange={set("imageUrls")}
-              placeholder="https://example.com/car1.jpg, https://example.com/car2.jpg"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Enter direct image URLs separated by commas.
-            </p>
+            <PhotoUploader images={images} onChange={setImages} />
           </CardContent>
         </Card>
 
@@ -253,6 +346,7 @@ export default function DealerMarketplaceNewListingPage() {
             variant="outline"
             className="flex-1"
             onClick={() => navigate({ to: "/dealer/marketplace" })}
+            data-ocid="new_listing.cancel_button"
           >
             Cancel
           </Button>
@@ -260,6 +354,7 @@ export default function DealerMarketplaceNewListingPage() {
             type="submit"
             disabled={saving}
             className="flex-1 bg-amber-500 hover:bg-amber-600 text-black"
+            data-ocid="new_listing.submit_button"
           >
             {saving ? "Publishing..." : "Publish Listing"}
           </Button>

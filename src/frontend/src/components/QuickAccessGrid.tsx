@@ -273,6 +273,12 @@ const DEALER_TOOLS_ITEMS: NavItem[] = [
     label: "My Profile",
     description: "Your dealer storefront",
   },
+  {
+    to: "/dealer/inventory-import",
+    icon: Upload,
+    label: "Bulk Import",
+    description: "Import inventory via CSV",
+  },
 ];
 
 const MARKETPLACE_ITEMS = [

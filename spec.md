@@ -1,65 +1,27 @@
-# Auto Track Pro — Dealer Marketplace
+# Auto Track Pro
 
 ## Current State
-
-Auto Track Pro is a full-stack role-based car analytics and price comparison platform with Motoko backend and React frontend. The backend has:
-- Per-user isolated car listings (private, for analytics)
-- Blob storage (blob-storage component installed)
-- Authorization/role system (Buyer/Dealer roles)
-- Watchlist, alerts, saved searches, notes, activity log
-
-The frontend has:
-- 42 routes for analytics, buyer tools, dealer tools, market intel
-- PageHeader component with Back to Dashboard / X on all pages
-- Role-gated nav (Buyer Tools vs Dealer Tools)
-- Public routes: `/shared-comparison`, `/shared-watchlist/:token`
-
-**No marketplace features exist yet.** There are no public listing pages, dealer storefronts, inquiry flows, or marketplace-specific data types in the backend.
+Dealers can add marketplace listings with photos only via comma-separated image URLs. There is no direct file upload capability. The dealer listing forms (New and Edit) have a plain textarea for image URLs. The CSV import page exists for buyer-side listing import but there is no dedicated dealer inventory bulk import flow. The New Listing form requires dealers to manually fill in make/model/year/trim fields — no VIN decode.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `MarketplaceListing` backend type: id, dealerPrincipal, dealerName, dealerPhone, dealerEmail, dealerCity, dealerState, make, model, year, mileage, price, trim, condition, description, images (ExternalBlob[]), status (available/sold), timestamp
-- `Inquiry` backend type: id, listingId, buyerName, buyerEmail, buyerPhone, message, timestamp
-- `DealerProfile` backend type: principal, dealerName, phone, email, city, state, bio, logoUrl
-- Backend endpoints:
-  - `createMarketplaceListing(input)` — dealer only, creates a public listing
-  - `updateMarketplaceListing(id, input)` — dealer only, edits own listing
-  - `setMarketplaceListingStatus(id, status)` — dealer marks sold/available
-  - `deleteMarketplaceListing(id)` — dealer removes own listing
-  - `getPublicMarketplaceListings()` — no auth, returns all available + sold listings
-  - `getDealerStorefront(dealerPrincipal)` — no auth, returns dealer profile + their listings
-  - `getMyMarketplaceListings()` — dealer views their own listings
-  - `submitInquiry(listingId, input)` — no auth, buyer submits inquiry
-  - `getMyInquiries()` — dealer views inquiries on their listings
-  - `saveDealerProfile(input)` — dealer saves/updates their public profile
-  - `getMyDealerProfile()` — dealer retrieves their profile
-- Frontend pages:
-  - `/marketplace` — public browse/search page, no login required, shows all listings with search/filter by make/model/price/region/condition. Deal score badges, recall alerts. Contact button per listing.
-  - `/marketplace/listing/:id` — public listing detail page with full photos, specs, contact form
-  - `/storefront/:dealerPrincipal` — public dealer storefront: dealer profile, all their active listings, contact info
-  - `/dealer/marketplace` — dealer's private management page: their listings, add new listing with photo upload, mark sold/available, view inquiries
-  - `/dealer/marketplace/new` — dealer listing submission form with photo upload
-  - `/dealer/marketplace/edit/:id` — dealer listing edit form
-  - `/dealer/profile` — dealer saves their public storefront profile (name, phone, email, city, state, bio)
-- Nav updates: Add "Marketplace" to primary nav for all users (public); add "My Listings" to Dealer Tools nav
-- QuickAccessGrid: Add marketplace cards
+- **Photo upload UI** on DealerMarketplaceNewListingPage and DealerMarketplaceEditListingPage: replace the image URL textarea with a drag-and-drop / click-to-browse file uploader. Use base64 data URLs for uploaded images (stored as the url field in the image object). Support multiple photos per listing with preview thumbnails, ability to remove individual photos, and a progress indicator.
+- **Dealer Bulk Inventory Import page** (`/dealer/inventory-import`): a dedicated dealer CSV import page that imports vehicles directly as marketplace listings (not buyer-side listings). Uses the `createMarketplaceListing` actor call. CSV columns: make, model, year, price, mileage, trim, condition, description, dealerPhone, dealerEmail, dealerCity, dealerState. Includes drag-and-drop zone, paste area, preview table, template download, and import button. Add this page to the Dealer Tools nav/QuickAccessGrid.
+- **VIN decoder on New Listing form**: add a VIN input field at the top of the Vehicle Info card. When a dealer enters a 17-character VIN and clicks "Decode VIN", make a fetch call to `https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/{VIN}?format=json` and auto-fill make, model, year, trim from the response. Show a loading state and error feedback.
 
 ### Modify
-- `App.tsx` — add 6 new routes
-- Nav arrays — add Marketplace (public) and My Listings (dealer)
-- QuickAccessGrid — add marketplace section
+- DealerMarketplaceNewListingPage: add VIN decoder at top, replace URL textarea with photo uploader.
+- DealerMarketplaceEditListingPage: replace URL textarea with photo uploader showing existing images.
+- QuickAccessGrid and nav drawer: add "Bulk Import" entry under Dealer Tools section.
+- App.tsx routes: add route for `/dealer/inventory-import`.
 
 ### Remove
-- Nothing removed
+- The plain "Photo URLs (comma-separated)" textarea from new/edit listing forms.
 
 ## Implementation Plan
-
-1. Backend: Add MarketplaceListing, Inquiry, DealerProfile types; implement all 11 marketplace endpoints with proper principal-scoping
-2. Frontend `/marketplace`: Search/filter UI, listing cards with deal score + recall badge + contact button, no-auth access
-3. Frontend `/marketplace/listing/:id`: Full listing detail with photo carousel, specs table, inquiry form
-4. Frontend `/storefront/:dealerPrincipal`: Dealer profile header, listing grid, contact info
-5. Frontend `/dealer/marketplace`: Management table — add/edit/delete listings, mark sold/available, view inquiries tab
-6. Frontend `/dealer/marketplace/new` and `/edit/:id`: Listing form with photo upload using blob-storage
-7. Frontend `/dealer/profile`: Dealer profile form
-8. Wire nav and QuickAccessGrid for new routes
+1. Create a reusable `PhotoUploader` component that accepts current images and onChange callback. Supports click-to-browse, drag-and-drop, multiple files, base64 preview thumbnails, remove button per photo.
+2. Update `DealerMarketplaceNewListingPage` to include VIN decoder field + Decode button at top, and replace image URL textarea with `PhotoUploader`.
+3. Update `DealerMarketplaceEditListingPage` to replace image URL textarea with `PhotoUploader`, pre-loading existing image URLs as current images.
+4. Create `DealerInventoryImportPage` at `/dealer/inventory-import` — mirrors CSVImportPage structure but calls `createMarketplaceListing` for each row and includes dealer-specific columns.
+5. Add route in App.tsx and entry in QuickAccessGrid / nav drawer under Dealer Tools.

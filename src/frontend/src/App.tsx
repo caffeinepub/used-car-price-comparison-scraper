@@ -70,6 +70,7 @@ import DealExpiryPage from "./pages/DealExpiryPage";
 import DealerBuyerReadinessPage from "./pages/DealerBuyerReadinessPage";
 import DealerDemandHeatmapPage from "./pages/DealerDemandHeatmapPage";
 import DealerFloorPlanPage from "./pages/DealerFloorPlanPage";
+import DealerInventoryImportPage from "./pages/DealerInventoryImportPage";
 import DealerLotOptimizerPage from "./pages/DealerLotOptimizerPage";
 import DealerLotTrackerPage from "./pages/DealerLotTrackerPage";
 import DealerMarketplaceEditListingPage from "./pages/DealerMarketplaceEditListingPage";
@@ -556,6 +557,7 @@ const DEALER_TOOLS = [
   { to: "/dealer/buyer-readiness", icon: Zap, label: "Buyer Readiness" },
   { to: "/dealer/marketplace", icon: Car, label: "My Listings" },
   { to: "/dealer/profile", icon: Building2, label: "My Profile" },
+  { to: "/dealer/inventory-import", icon: Upload, label: "Bulk Import" },
 ];
 
 const MARKET_INTEL_TOOLS = [
@@ -1551,6 +1553,12 @@ const dealerProfileRoute = createRoute({
   component: DealerProfilePage,
 });
 
+const dealerInventoryImportRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dealer/inventory-import",
+  component: DealerInventoryImportPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addRoute,
@@ -1599,6 +1607,7 @@ const routeTree = rootRoute.addChildren([
   dealerMarketplaceNewRoute,
   dealerMarketplaceEditRoute,
   dealerProfileRoute,
+  dealerInventoryImportRoute,
 ]);
 
 const router = createRouter({ routeTree });
