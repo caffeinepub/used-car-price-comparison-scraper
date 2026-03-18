@@ -274,23 +274,23 @@ export default function DealerBuyerReadinessPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-4 flex items-center gap-3">
-          <Flame className="w-7 h-7 text-red-400 shrink-0" />
-          <div>
+        <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center">
+          <Flame className="w-7 h-7 text-red-400" />
+          <div className="flex flex-col items-center text-center w-full">
             <p className="text-2xl font-bold text-red-400">{hotCount}</p>
             <p className="text-xs text-muted-text">Hot — Ready to Buy</p>
           </div>
         </div>
-        <div className="bg-amber-400/5 border border-amber-400/20 rounded-xl p-4 flex items-center gap-3">
-          <ThermometerSun className="w-7 h-7 text-amber-400 shrink-0" />
-          <div>
+        <div className="bg-amber-400/5 border border-amber-400/20 rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center">
+          <ThermometerSun className="w-7 h-7 text-amber-400" />
+          <div className="flex flex-col items-center text-center w-full">
             <p className="text-2xl font-bold text-amber-400">{warmCount}</p>
             <p className="text-xs text-muted-text">Warm — Considering</p>
           </div>
         </div>
-        <div className="bg-blue-400/5 border border-blue-400/20 rounded-xl p-4 flex items-center gap-3">
-          <Snowflake className="w-7 h-7 text-blue-400 shrink-0" />
-          <div>
+        <div className="bg-blue-400/5 border border-blue-400/20 rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center">
+          <Snowflake className="w-7 h-7 text-blue-400" />
+          <div className="flex flex-col items-center text-center w-full">
             <p className="text-2xl font-bold text-blue-400">{coldCount}</p>
             <p className="text-xs text-muted-text">Cold — Low Intent</p>
           </div>
