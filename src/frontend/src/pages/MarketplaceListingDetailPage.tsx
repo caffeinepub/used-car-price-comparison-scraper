@@ -12,31 +12,13 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { useActor } from "../hooks/useActor";
-
-type MktListing = {
-  id: string;
-  dealerName: string;
-  dealerPhone: string;
-  dealerEmail: string;
-  dealerCity: string;
-  dealerState: string;
-  make: string;
-  model: string;
-  year: bigint;
-  mileage: bigint;
-  price: bigint;
-  trim: string;
-  condition: string;
-  description: string;
-  images: Array<{ url: string; mimeType: string; size: bigint }>;
-  status: Record<string, null>;
-  timestamp: bigint;
-};
+import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
+import type { MktListing } from "../hooks/useMarketplaceStore";
 
 const SAMPLE_LISTINGS: MktListing[] = [
   {
     id: "demo-1",
+    dealerId: "demo",
     dealerName: "Premier Toyota of Dallas",
     dealerPhone: "(214) 555-0101",
     dealerEmail: "sales@premiertoyota.com",
@@ -57,6 +39,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-2",
+    dealerId: "demo",
     dealerName: "Metro Ford",
     dealerPhone: "(303) 555-0202",
     dealerEmail: "sales@metroford.com",
@@ -77,6 +60,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-3",
+    dealerId: "demo",
     dealerName: "Honda World",
     dealerPhone: "(404) 555-0303",
     dealerEmail: "sales@hondaworld.com",
@@ -97,6 +81,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-4",
+    dealerId: "demo",
     dealerName: "Lakeside Auto Group",
     dealerPhone: "(602) 555-0404",
     dealerEmail: "sales@lakesideauto.com",
@@ -117,6 +102,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-5",
+    dealerId: "demo",
     dealerName: "Hyundai of Orlando",
     dealerPhone: "(407) 555-0505",
     dealerEmail: "sales@hyundaiorlando.com",
@@ -137,6 +123,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-6",
+    dealerId: "demo",
     dealerName: "BMW of Las Vegas",
     dealerPhone: "(702) 555-0606",
     dealerEmail: "sales@bmwlv.com",
@@ -167,7 +154,7 @@ const fmtPrice = (p: bigint) =>
 export default function MarketplaceListingDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams({ strict: false }) as { id: string };
-  const { actor } = useActor();
+  const marketplaceStore = useMarketplaceStore();
   const [listing, setListing] = useState<MktListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageIdx, setImageIdx] = useState(0);
@@ -181,42 +168,19 @@ export default function MarketplaceListingDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchListing = async () => {
-      try {
-        if (
-          actor &&
-          typeof (actor as any).getPublicMarketplaceListings === "function"
-        ) {
-          const all = await (actor as any).getPublicMarketplaceListings();
-          const found =
-            all.find((l: MktListing) => l.id === id) ||
-            SAMPLE_LISTINGS.find((l) => l.id === id) ||
-            null;
-          setListing(found);
-        } else {
-          setListing(SAMPLE_LISTINGS.find((l) => l.id === id) || null);
-        }
-      } catch {
-        setListing(SAMPLE_LISTINGS.find((l) => l.id === id) || null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchListing();
-  }, [actor, id]);
+    const found =
+      marketplaceStore.getListing(id) ||
+      SAMPLE_LISTINGS.find((l) => l.id === id) ||
+      null;
+    setListing(found);
+    setLoading(false);
+  }, [id, marketplaceStore.getListing]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!listing) return;
     setSubmitting(true);
-    try {
-      if (actor && typeof (actor as any).submitInquiry === "function") {
-        await (actor as any).submitInquiry(listing.id, form);
-      }
-      setSent(true);
-    } catch (e) {
-      console.error(e);
-      setSent(true);
-    }
+    marketplaceStore.submitInquiry(listing.id, form);
+    setSent(true);
     setSubmitting(false);
   };
 

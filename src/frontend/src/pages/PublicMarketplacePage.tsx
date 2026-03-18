@@ -13,31 +13,14 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { useActor } from "../hooks/useActor";
-
-type MktListing = {
-  id: string;
-  dealerName: string;
-  dealerPhone: string;
-  dealerEmail: string;
-  dealerCity: string;
-  dealerState: string;
-  make: string;
-  model: string;
-  year: bigint;
-  mileage: bigint;
-  price: bigint;
-  trim: string;
-  condition: string;
-  description: string;
-  images: Array<{ url: string; mimeType: string; size: bigint }>;
-  status: Record<string, null>;
-  timestamp: bigint;
-};
+import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
+import type { MktListing } from "../hooks/useMarketplaceStore";
 
 const SAMPLE_LISTINGS: MktListing[] = [
   {
     id: "demo-1",
+    dealerId: "demo",
     dealerName: "Premier Toyota of Dallas",
     dealerPhone: "(214) 555-0101",
     dealerEmail: "sales@premiertoyota.com",
@@ -57,6 +40,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-2",
+    dealerId: "demo",
     dealerName: "Metro Ford",
     dealerPhone: "(303) 555-0202",
     dealerEmail: "sales@metroford.com",
@@ -76,6 +60,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-3",
+    dealerId: "demo",
     dealerName: "Honda World",
     dealerPhone: "(404) 555-0303",
     dealerEmail: "sales@hondaworld.com",
@@ -95,6 +80,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-4",
+    dealerId: "demo",
     dealerName: "Lakeside Auto Group",
     dealerPhone: "(602) 555-0404",
     dealerEmail: "sales@lakesideauto.com",
@@ -114,6 +100,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-5",
+    dealerId: "demo",
     dealerName: "Hyundai of Orlando",
     dealerPhone: "(407) 555-0505",
     dealerEmail: "sales@hyundaiorlando.com",
@@ -133,6 +120,7 @@ const SAMPLE_LISTINGS: MktListing[] = [
   },
   {
     id: "demo-6",
+    dealerId: "demo",
     dealerName: "BMW of Las Vegas",
     dealerPhone: "(702) 555-0606",
     dealerEmail: "sales@bmwlv.com",
@@ -161,7 +149,8 @@ const fmtPrice = (p: bigint) =>
 
 export default function PublicMarketplacePage() {
   const navigate = useNavigate();
-  const { actor } = useActor();
+  const role = useAppRoleContext();
+  const marketplaceStore = useMarketplaceStore();
   const [listings, setListings] = useState<MktListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchMake, setSearchMake] = useState("");
@@ -180,25 +169,10 @@ export default function PublicMarketplacePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        if (
-          actor &&
-          typeof (actor as any).getPublicMarketplaceListings === "function"
-        ) {
-          const data = await (actor as any).getPublicMarketplaceListings();
-          setListings(data.length > 0 ? data : SAMPLE_LISTINGS);
-        } else {
-          setListings(SAMPLE_LISTINGS);
-        }
-      } catch {
-        setListings(SAMPLE_LISTINGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchListings();
-  }, [actor]);
+    const data = marketplaceStore.getAllPublicListings();
+    setListings(data.length > 0 ? data : SAMPLE_LISTINGS);
+    setLoading(false);
+  }, [marketplaceStore.getAllPublicListings]);
 
   const filtered = listings.filter((l) => {
     if (searchMake && !l.make.toLowerCase().includes(searchMake.toLowerCase()))
@@ -220,15 +194,8 @@ export default function PublicMarketplacePage() {
   const handleSubmitInquiry = async () => {
     if (!inquiryListing) return;
     setSubmitting(true);
-    try {
-      if (actor && typeof (actor as any).submitInquiry === "function") {
-        await (actor as any).submitInquiry(inquiryListing.id, inquiryForm);
-      }
-      setInquirySent(true);
-    } catch (e) {
-      console.error(e);
-      setInquirySent(true);
-    }
+    marketplaceStore.submitInquiry(inquiryListing.id, inquiryForm);
+    setInquirySent(true);
     setSubmitting(false);
   };
 
@@ -268,13 +235,16 @@ export default function PublicMarketplacePage() {
           >
             Dashboard
           </Button>
-          <Button
-            size="sm"
-            className="bg-amber-500 hover:bg-amber-600 text-black"
-            onClick={() => navigate({ to: "/dealer/marketplace/new" })}
-          >
-            List Your Vehicle
-          </Button>
+          {role === "dealer" && (
+            <Button
+              size="sm"
+              className="bg-amber-500 hover:bg-amber-600 text-black"
+              onClick={() => navigate({ to: "/dealer/marketplace/new" })}
+              data-ocid="marketplace.list_vehicle_button"
+            >
+              List Your Vehicle
+            </Button>
+          )}
         </div>
       </header>
 

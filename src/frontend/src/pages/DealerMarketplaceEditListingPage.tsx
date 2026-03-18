@@ -13,7 +13,7 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { useActor } from "../hooks/useActor";
+import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
 
 interface PhotoImage {
   url: string;
@@ -24,7 +24,7 @@ interface PhotoImage {
 export default function DealerMarketplaceEditListingPage() {
   const navigate = useNavigate();
   const { id } = useParams({ strict: false }) as { id: string };
-  const { actor } = useActor();
+  const marketplaceStore = useMarketplaceStore();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState<PhotoImage[]>([]);
@@ -37,6 +37,7 @@ export default function DealerMarketplaceEditListingPage() {
     trim: "",
     condition: "Used",
     description: "",
+    dealerName: "",
     dealerPhone: "",
     dealerEmail: "",
     dealerCity: "",
@@ -44,47 +45,39 @@ export default function DealerMarketplaceEditListingPage() {
   });
 
   useEffect(() => {
-    if (!actor) return;
-    (actor as any)
-      .getMyMarketplaceListings()
-      .then((data: any[]) => {
-        const listing = data.find((l: any) => l.id === id);
-        if (listing) {
-          setForm({
-            make: listing.make,
-            model: listing.model,
-            year: String(Number(listing.year)),
-            mileage: String(Number(listing.mileage)),
-            price: String(Number(listing.price)),
-            trim: listing.trim,
-            condition: listing.condition,
-            description: listing.description,
-            dealerPhone: listing.dealerPhone,
-            dealerEmail: listing.dealerEmail,
-            dealerCity: listing.dealerCity,
-            dealerState: listing.dealerState,
-          });
-          // Pre-load existing images
-          const existingImages: PhotoImage[] = (listing.images || []).map(
-            (img: any) => ({
-              url: img.url,
-              mimeType: img.mimeType || "image/jpeg",
-              size: img.size || BigInt(0),
-            }),
-          );
-          setImages(existingImages);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [actor, id]);
+    const listing = marketplaceStore.getListing(id);
+    if (listing) {
+      setForm({
+        make: listing.make,
+        model: listing.model,
+        year: String(Number(listing.year)),
+        mileage: String(Number(listing.mileage)),
+        price: String(Number(listing.price)),
+        trim: listing.trim,
+        condition: listing.condition,
+        description: listing.description,
+        dealerName: listing.dealerName,
+        dealerPhone: listing.dealerPhone,
+        dealerEmail: listing.dealerEmail,
+        dealerCity: listing.dealerCity,
+        dealerState: listing.dealerState,
+      });
+      setImages(
+        (listing.images || []).map((img) => ({
+          url: img.url,
+          mimeType: img.mimeType || "image/jpeg",
+          size: img.size || BigInt(0),
+        })),
+      );
+    }
+    setLoading(false);
+  }, [id, marketplaceStore.getListing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) return;
     setSaving(true);
     try {
-      await (actor as any).updateMarketplaceListing(id, {
+      marketplaceStore.updateListing(id, {
         make: form.make,
         model: form.model,
         year: BigInt(form.year || 0),
@@ -93,6 +86,7 @@ export default function DealerMarketplaceEditListingPage() {
         trim: form.trim,
         condition: form.condition,
         description: form.description,
+        dealerName: form.dealerName,
         images,
         dealerPhone: form.dealerPhone,
         dealerEmail: form.dealerEmail,
@@ -210,6 +204,10 @@ export default function DealerMarketplaceEditListingPage() {
             <CardTitle className="text-base">Contact Info</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <Label>Dealership Name</Label>
+              <Input value={form.dealerName} onChange={set("dealerName")} />
+            </div>
             <div>
               <Label>Phone</Label>
               <Input value={form.dealerPhone} onChange={set("dealerPhone")} />

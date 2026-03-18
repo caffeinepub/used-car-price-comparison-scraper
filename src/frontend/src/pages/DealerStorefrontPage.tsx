@@ -1,4 +1,3 @@
-import { Principal } from "@icp-sdk/core/principal";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Building2, Car, Mail, MapPin, Phone } from "lucide-react";
 import React, { useState, useEffect } from "react";
@@ -14,35 +13,8 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { useActor } from "../hooks/useActor";
-
-type MktListing = {
-  id: string;
-  dealerName: string;
-  dealerPhone: string;
-  dealerEmail: string;
-  dealerCity: string;
-  dealerState: string;
-  make: string;
-  model: string;
-  year: bigint;
-  mileage: bigint;
-  price: bigint;
-  trim: string;
-  condition: string;
-  images: Array<{ url: string; mimeType: string; size: bigint }>;
-  status: Record<string, null>;
-  timestamp: bigint;
-};
-
-type DealerProfile = {
-  dealerName: string;
-  phone: string;
-  email: string;
-  city: string;
-  state: string;
-  bio: string;
-};
+import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
+import type { MktListing } from "../hooks/useMarketplaceStore";
 
 const fmtPrice = (p: bigint) =>
   new Intl.NumberFormat("en-US", {
@@ -56,8 +28,7 @@ export default function DealerStorefrontPage() {
   const { dealerPrincipal: dealerPrincipalStr } = useParams({
     strict: false,
   }) as { dealerPrincipal: string };
-  const { actor } = useActor();
-  const [profile, setProfile] = useState<DealerProfile | null>(null);
+  const marketplaceStore = useMarketplaceStore();
   const [listings, setListings] = useState<MktListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [inquiryListing, setInquiryListing] = useState<MktListing | null>(null);
@@ -71,35 +42,17 @@ export default function DealerStorefrontPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchStorefront = async () => {
-      try {
-        const principal = Principal.fromText(dealerPrincipalStr);
-        if (actor && typeof (actor as any).getDealerStorefront === "function") {
-          const result = await (actor as any).getDealerStorefront(principal);
-          setProfile(result.profile.length > 0 ? result.profile[0] : null);
-          setListings(result.listings);
-        }
-      } catch {
-        // Invalid principal or actor unavailable — show empty storefront
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStorefront();
-  }, [actor, dealerPrincipalStr]);
+    if (dealerPrincipalStr) {
+      setListings(marketplaceStore.getListingsByDealer(dealerPrincipalStr));
+    }
+    setLoading(false);
+  }, [dealerPrincipalStr, marketplaceStore.getListingsByDealer]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!inquiryListing) return;
     setSubmitting(true);
-    try {
-      if (actor && typeof (actor as any).submitInquiry === "function") {
-        await (actor as any).submitInquiry(inquiryListing.id, form);
-      }
-      setSent(true);
-    } catch (e) {
-      console.error(e);
-      setSent(true);
-    }
+    marketplaceStore.submitInquiry(inquiryListing.id, form);
+    setSent(true);
     setSubmitting(false);
   };
 
@@ -108,6 +61,14 @@ export default function DealerStorefrontPage() {
     setSent(false);
     setForm({ buyerName: "", buyerEmail: "", buyerPhone: "", message: "" });
   };
+
+  // Derive dealer info from listings
+  const firstListing = listings[0];
+  const dealerName = firstListing?.dealerName || "Dealer Storefront";
+  const dealerCity = firstListing?.dealerCity;
+  const dealerState = firstListing?.dealerState;
+  const dealerPhone = firstListing?.dealerPhone;
+  const dealerEmail = firstListing?.dealerEmail;
 
   if (loading)
     return (
@@ -136,38 +97,31 @@ export default function DealerStorefrontPage() {
                 <Building2 className="h-8 w-8 text-amber-500" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold">
-                  {profile?.dealerName || "Dealer Storefront"}
-                </h1>
-                {(profile?.city || profile?.state) && (
+                <h1 className="text-2xl font-bold">{dealerName}</h1>
+                {(dealerCity || dealerState) && (
                   <div className="flex items-center gap-1 text-muted-foreground mt-1">
                     <MapPin className="h-4 w-4" />
                     <span>
-                      {profile.city}
-                      {profile.state ? `, ${profile.state}` : ""}
+                      {dealerCity}
+                      {dealerState ? `, ${dealerState}` : ""}
                     </span>
                   </div>
                 )}
-                {profile?.bio && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {profile.bio}
-                  </p>
-                )}
                 <div className="flex gap-4 mt-3">
-                  {profile?.phone && (
+                  {dealerPhone && (
                     <a
-                      href={`tel:${profile.phone}`}
+                      href={`tel:${dealerPhone}`}
                       className="flex items-center gap-1 text-sm text-amber-500 hover:underline"
                     >
-                      <Phone className="h-3 w-3" /> {profile.phone}
+                      <Phone className="h-3 w-3" /> {dealerPhone}
                     </a>
                   )}
-                  {profile?.email && (
+                  {dealerEmail && (
                     <a
-                      href={`mailto:${profile.email}`}
+                      href={`mailto:${dealerEmail}`}
                       className="flex items-center gap-1 text-sm text-amber-500 hover:underline"
                     >
-                      <Mail className="h-3 w-3" /> {profile.email}
+                      <Mail className="h-3 w-3" /> {dealerEmail}
                     </a>
                   )}
                 </div>

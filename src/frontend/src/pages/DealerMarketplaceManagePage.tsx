@@ -30,33 +30,10 @@ import {
   TabsTrigger,
 } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
-import { useActor } from "../hooks/useActor";
 import { useAppRoleContext } from "../hooks/useAppRoleContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-
-type MktListing = {
-  id: string;
-  make: string;
-  model: string;
-  year: bigint;
-  mileage: bigint;
-  price: bigint;
-  trim: string;
-  condition: string;
-  images: Array<{ url: string; mimeType: string; size: bigint }>;
-  status: Record<string, null>;
-  timestamp: bigint;
-};
-
-type Inquiry = {
-  id: string;
-  listingId: string;
-  buyerName: string;
-  buyerEmail: string;
-  buyerPhone: string;
-  message: string;
-  timestamp: bigint;
-};
+import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
+import type { MktInquiry, MktListing } from "../hooks/useMarketplaceStore";
 
 type LeadStatus = "New" | "Contacted" | "Negotiating" | "Sold" | "Lost";
 
@@ -167,7 +144,7 @@ function InquiryCard({
   inquiryReplies,
   onUpdate,
 }: {
-  inq: Inquiry;
+  inq: MktInquiry;
   related: MktListing | undefined;
   inquiryReplies: ReturnType<typeof useInquiryReplies>;
   onUpdate: () => void;
@@ -216,7 +193,6 @@ function InquiryCard({
 
   return (
     <Card className="overflow-hidden transition-all" data-ocid="inquiry.card">
-      {/* Header row — always visible */}
       <CardContent className="p-4">
         <button
           type="button"
@@ -224,7 +200,6 @@ function InquiryCard({
           onClick={() => setExpanded((v) => !v)}
           data-ocid="inquiry.toggle"
         >
-          {/* Unread dot */}
           <div className="relative mt-1 flex-shrink-0">
             <MessageCircle className="h-5 w-5 text-muted-foreground" />
             {isNew && (
@@ -267,10 +242,8 @@ function InquiryCard({
           </div>
         </button>
 
-        {/* Expanded conversation */}
         {expanded && (
           <div className="mt-4 space-y-3">
-            {/* Lead status selector */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground font-medium">
                 Lead Status:
@@ -300,12 +273,10 @@ function InquiryCard({
               </Select>
             </div>
 
-            {/* Thread */}
             <div
               ref={threadRef}
               className="max-h-72 overflow-y-auto space-y-2 pr-1"
             >
-              {/* Buyer's original message */}
               <div className="flex justify-start">
                 <div className="max-w-[80%] rounded-2xl rounded-tl-sm px-4 py-2.5 bg-muted">
                   <p className="text-xs text-muted-foreground font-medium mb-1">
@@ -320,7 +291,6 @@ function InquiryCard({
                 </div>
               </div>
 
-              {/* Dealer replies */}
               {replies.map((reply) => (
                 <div key={reply.id} className="flex justify-end">
                   <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-4 py-2.5 bg-amber-500">
@@ -336,7 +306,6 @@ function InquiryCard({
               ))}
             </div>
 
-            {/* Reply composer */}
             <div className="flex gap-2 pt-2 border-t border-border">
               <Textarea
                 placeholder="Type your reply..."
@@ -371,57 +340,39 @@ function InquiryCard({
 export default function DealerMarketplaceManagePage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
-  const { actor } = useActor();
   const { identity } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toString();
+  const marketplaceStore = useMarketplaceStore();
   const inquiryReplies = useInquiryReplies(principalId);
   const [listings, setListings] = useState<MktListing[]>([]);
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [inquiries, setInquiries] = useState<MktInquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [, forceUpdate] = useState(0);
 
-  const fetchData = useCallback(async () => {
-    if (!actor) return;
-    try {
-      const [listingsData, inquiriesData] = await Promise.all([
-        (actor as any).getMyMarketplaceListings(),
-        (actor as any).getMyInquiries(),
-      ]);
-      setListings(listingsData);
-      setInquiries(inquiriesData);
-    } catch (e) {
-      console.error(e);
-    }
+  const fetchData = useCallback(() => {
+    setListings(marketplaceStore.getMyListings());
+    setInquiries(marketplaceStore.getMyInquiries());
     setLoading(false);
-  }, [actor]);
+  }, [marketplaceStore]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const toggleStatus = async (listing: MktListing) => {
-    if (!actor) return;
+  const toggleStatus = (listing: MktListing) => {
     setToggling(listing.id);
     const newStatus =
       "available" in listing.status ? { sold: null } : { available: null };
-    try {
-      await (actor as any).setMarketplaceListingStatus(listing.id, newStatus);
-      await fetchData();
-    } catch (e) {
-      console.error(e);
-    }
+    marketplaceStore.setListingStatus(listing.id, newStatus);
+    fetchData();
     setToggling(null);
   };
 
-  const deleteListing = async (id: string) => {
-    if (!actor || !confirm("Delete this listing?")) return;
-    try {
-      await (actor as any).deleteMarketplaceListing(id);
-      setListings((prev) => prev.filter((l) => l.id !== id));
-    } catch (e) {
-      console.error(e);
-    }
+  const deleteListing = (id: string) => {
+    if (!confirm("Delete this listing?")) return;
+    marketplaceStore.deleteListing(id);
+    setListings((prev) => prev.filter((l) => l.id !== id));
   };
 
   if (role !== "dealer") {

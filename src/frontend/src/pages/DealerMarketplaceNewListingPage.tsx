@@ -16,6 +16,7 @@ import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
 import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
 
 interface PhotoImage {
   url: string;
@@ -27,8 +28,10 @@ export default function DealerMarketplaceNewListingPage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
   const { actor } = useActor();
+  const marketplaceStore = useMarketplaceStore();
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState<PhotoImage[]>([]);
+  const [dealerName, setDealerName] = useState("My Dealership");
 
   // VIN decoder state
   const [vin, setVin] = useState("");
@@ -57,12 +60,15 @@ export default function DealerMarketplaceNewListingPage() {
       .then((result: unknown[]) => {
         const p = result.length > 0 ? (result[0] as any) : null;
         if (p) {
+          if (p.dealerName || p.storeName || p.name) {
+            setDealerName(p.dealerName || p.storeName || p.name);
+          }
           setForm((f) => ({
             ...f,
-            dealerPhone: p.phone,
-            dealerEmail: p.email,
-            dealerCity: p.city,
-            dealerState: p.state,
+            dealerPhone: p.phone || "",
+            dealerEmail: p.email || "",
+            dealerCity: p.city || "",
+            dealerState: p.state || "",
           }));
         }
       })
@@ -106,10 +112,9 @@ export default function DealerMarketplaceNewListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) return;
     setSaving(true);
     try {
-      await (actor as any).createMarketplaceListing({
+      marketplaceStore.createListing({
         make: form.make,
         model: form.model,
         year: BigInt(form.year || 0),
@@ -119,6 +124,7 @@ export default function DealerMarketplaceNewListingPage() {
         condition: form.condition,
         description: form.description,
         images,
+        dealerName,
         dealerPhone: form.dealerPhone,
         dealerEmail: form.dealerEmail,
         dealerCity: form.dealerCity,
@@ -317,6 +323,14 @@ export default function DealerMarketplaceNewListingPage() {
             <CardTitle className="text-base">Your Contact Info</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <Label>Dealership Name</Label>
+              <Input
+                value={dealerName}
+                onChange={(e) => setDealerName(e.target.value)}
+                placeholder="My Dealership"
+              />
+            </div>
             <div>
               <Label>Phone</Label>
               <Input value={form.dealerPhone} onChange={set("dealerPhone")} />
