@@ -27,6 +27,7 @@ import {
   YAxis,
 } from "recharts";
 import PageHeader from "../components/PageHeader";
+import { ALL_MAKES, CAR_MAKES_MODELS } from "../data/carMakesModels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -147,7 +148,7 @@ const MODEL_DATA: MoverEntry[] = [
   },
   {
     make: "Chevrolet",
-    model: "Silverado",
+    model: "Silverado 1500",
     velocity30d: 0.3,
     avgPrice: 41200,
     listingCount: 176,
@@ -203,13 +204,9 @@ const MODEL_DATA: MoverEntry[] = [
   },
 ];
 
-const MAKES = [...new Set(MODEL_DATA.map((m) => m.make))].sort();
-
-function getModelsForMake(make: string) {
-  if (!make) return [...new Set(MODEL_DATA.map((m) => m.model))].sort();
-  return MODEL_DATA.filter((m) => m.make === make)
-    .map((m) => m.model)
-    .sort();
+function getModelsForMake(make: string): string[] {
+  if (!make) return [];
+  return CAR_MAKES_MODELS[make] ?? [];
 }
 
 // Generate velocity chart data for a given model and time range
@@ -275,12 +272,12 @@ export default function PriceVelocityPage() {
   );
 
   const activeEntry = useMemo(() => {
-    if (!selectedModel) return MODEL_DATA[0];
+    if (!selectedMake && !selectedModel) return MODEL_DATA[0];
     return (
       MODEL_DATA.find(
         (m) =>
           (!selectedMake || m.make === selectedMake) &&
-          m.model === selectedModel,
+          (!selectedModel || m.model === selectedModel),
       ) ?? MODEL_DATA[0]
     );
   }, [selectedMake, selectedModel]);
@@ -383,7 +380,7 @@ export default function PriceVelocityPage() {
                 className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors"
               >
                 <option value="">All Makes</option>
-                {MAKES.map((m) => (
+                {ALL_MAKES.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -401,10 +398,13 @@ export default function PriceVelocityPage() {
                 id="velocity-model"
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
+                disabled={!selectedMake}
                 data-ocid="price_velocity.model.select"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <option value="">Select Model</option>
+                <option value="">
+                  {selectedMake ? "All Models" : "Select a make first"}
+                </option>
                 {availableModels.map((m) => (
                   <option key={m} value={m}>
                     {m}

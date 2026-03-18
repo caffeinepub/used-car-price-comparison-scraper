@@ -22,6 +22,7 @@ import {
   YAxis,
 } from "recharts";
 import PageHeader from "../components/PageHeader";
+import { ALL_MAKES, CAR_MAKES_MODELS } from "../data/carMakesModels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -117,7 +118,7 @@ const MARKET_ENTRIES: MarketEntry[] = [
     const wk = buildWeeks(165, 6, "spike");
     return {
       make: "Chevrolet",
-      model: "Silverado",
+      model: "Silverado 1500",
       currentVolume: wk[7].volume,
       baselineVolume: 165,
       pctChange: wk[7].pctChange,
@@ -199,13 +200,9 @@ const MARKET_ENTRIES: MarketEntry[] = [
   })(),
 ];
 
-const MAKES = [...new Set(MARKET_ENTRIES.map((m) => m.make))].sort();
-
-function getModelsForMake(make: string) {
-  if (!make) return [...new Set(MARKET_ENTRIES.map((m) => m.model))].sort();
-  return MARKET_ENTRIES.filter((m) => m.make === make)
-    .map((m) => m.model)
-    .sort();
+function getModelsForMake(make: string): string[] {
+  if (!make) return [];
+  return CAR_MAKES_MODELS[make] ?? [];
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -326,12 +323,12 @@ export default function SupplyShockPage() {
   );
 
   const activeEntry = useMemo(() => {
-    if (!selectedModel) return MARKET_ENTRIES[0];
+    if (!selectedMake && !selectedModel) return MARKET_ENTRIES[0];
     return (
       MARKET_ENTRIES.find(
         (m) =>
           (!selectedMake || m.make === selectedMake) &&
-          m.model === selectedModel,
+          (!selectedModel || m.model === selectedModel),
       ) ?? MARKET_ENTRIES[0]
     );
   }, [selectedMake, selectedModel]);
@@ -423,7 +420,7 @@ export default function SupplyShockPage() {
                 className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors"
               >
                 <option value="">All Makes</option>
-                {MAKES.map((m) => (
+                {ALL_MAKES.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -441,10 +438,13 @@ export default function SupplyShockPage() {
                 id="shock-model"
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
+                disabled={!selectedMake}
                 data-ocid="supply_shock.model.select"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <option value="">Select Model</option>
+                <option value="">
+                  {selectedMake ? "All Models" : "Select a make first"}
+                </option>
                 {availableModels.map((m) => (
                   <option key={m} value={m}>
                     {m}

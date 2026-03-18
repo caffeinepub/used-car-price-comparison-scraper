@@ -48,6 +48,13 @@ export type MktInquiry = {
 const LISTINGS_KEY = "atp_marketplace_listings_v2";
 const INQUIRIES_KEY = "atp_marketplace_inquiries_v2";
 
+// The anonymous principal from Internet Identity
+const ANON_PRINCIPAL = "2vxsx-fae";
+
+function isAnonymous(principalId: string) {
+  return principalId === "anonymous" || principalId === ANON_PRINCIPAL;
+}
+
 function loadListings(): MktListing[] {
   try {
     const raw = localStorage.getItem(LISTINGS_KEY);
@@ -110,11 +117,19 @@ export function useMarketplaceStore() {
   const { identity } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toString() ?? "anonymous";
 
+  // Returns true when identity is fully resolved to a real (non-anonymous) principal
+  const isIdentityReady =
+    !!identity && !isAnonymous(identity.getPrincipal().toString());
+
   const getAllPublicListings = useCallback((): MktListing[] => {
-    return loadListings().filter((l) => "available" in l.status);
+    return loadListings().filter(
+      (l) => "available" in l.status && !isAnonymous(l.dealerId),
+    );
   }, []);
 
   const getMyListings = useCallback((): MktListing[] => {
+    // Never return listings for anonymous/unresolved identity
+    if (isAnonymous(principalId)) return [];
     return loadListings().filter((l) => l.dealerId === principalId);
   }, [principalId]);
 
@@ -132,6 +147,12 @@ export function useMarketplaceStore() {
     (
       data: Omit<MktListing, "id" | "dealerId" | "timestamp" | "status">,
     ): MktListing => {
+      // Prevent saving listings under anonymous/unresolved identity
+      if (isAnonymous(principalId)) {
+        throw new Error(
+          "Identity not fully loaded. Please wait a moment and try again.",
+        );
+      }
       const listings = loadListings();
       const newListing: MktListing = {
         ...data,
@@ -206,11 +227,13 @@ export function useMarketplaceStore() {
   );
 
   const getMyInquiries = useCallback((): MktInquiry[] => {
+    if (isAnonymous(principalId)) return [];
     return loadInquiries().filter((i) => i.dealerId === principalId);
   }, [principalId]);
 
   return {
     principalId,
+    isIdentityReady,
     getAllPublicListings,
     getMyListings,
     getListing,

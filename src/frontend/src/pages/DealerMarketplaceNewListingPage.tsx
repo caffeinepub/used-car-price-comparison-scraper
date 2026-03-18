@@ -28,13 +28,14 @@ interface PhotoImage {
 export default function DealerMarketplaceNewListingPage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
-  const { identity, isInitializing } = useInternetIdentity();
+  const { isInitializing } = useInternetIdentity();
   const { actor } = useActor();
-  const { createListing } = useMarketplaceStore();
+  const { createListing, isIdentityReady } = useMarketplaceStore();
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState<PhotoImage[]>([]);
   const [dealerName, setDealerName] = useState("My Dealership");
   const [successMsg, setSuccessMsg] = useState("");
+  const [errMsg, setErrMsg] = useState("");
 
   // VIN decoder state
   const [vin, setVin] = useState("");
@@ -115,10 +116,19 @@ export default function DealerMarketplaceNewListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrMsg("");
 
-    const principalId = identity?.getPrincipal().toString();
-    if (!principalId || principalId === "2vxsx-fae") {
-      // 2vxsx-fae is the anonymous principal
+    // Guard: identity must be fully resolved to a real principal
+    if (!isIdentityReady) {
+      setErrMsg(
+        "Your identity is still loading. Please wait a moment and try again.",
+      );
+      return;
+    }
+
+    // Validate required numeric fields before BigInt conversion
+    if (!form.year || !form.mileage || !form.price) {
+      setErrMsg("Please fill in Year, Mileage, and Price before publishing.");
       return;
     }
 
@@ -127,9 +137,9 @@ export default function DealerMarketplaceNewListingPage() {
       createListing({
         make: form.make,
         model: form.model,
-        year: BigInt(form.year || 0),
-        mileage: BigInt(form.mileage || 0),
-        price: BigInt(form.price || 0),
+        year: BigInt(form.year),
+        mileage: BigInt(form.mileage),
+        price: BigInt(form.price),
         trim: form.trim,
         condition: form.condition,
         description: form.description,
@@ -142,13 +152,17 @@ export default function DealerMarketplaceNewListingPage() {
       });
       setSuccessMsg("Listing published successfully!");
       setTimeout(() => navigate({ to: "/dealer/marketplace" }), 800);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrMsg(
+        err?.message ||
+          "Failed to publish listing. Please ensure you are signed in as a dealer.",
+      );
     }
     setSaving(false);
   };
 
-  // Show loading state while identity is initializing
+  // Show loading state while identity is initializing or role is still resolving
   if (isInitializing || role === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -176,8 +190,6 @@ export default function DealerMarketplaceNewListingPage() {
     );
   }
 
-  const isSignedIn = identity && !identity.getPrincipal().isAnonymous();
-
   const set =
     (field: string) =>
     (
@@ -194,9 +206,16 @@ export default function DealerMarketplaceNewListingPage() {
         description="List a vehicle for sale on the public marketplace"
       />
 
-      {!isSignedIn && (
+      {!isIdentityReady && (
         <div className="mt-4 rounded-md border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
-          You must be signed in as a dealer to publish listings.
+          Waiting for sign-in to complete... If this persists, please sign out
+          and sign in again.
+        </div>
+      )}
+
+      {errMsg && (
+        <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {errMsg}
         </div>
       )}
 
@@ -407,7 +426,7 @@ export default function DealerMarketplaceNewListingPage() {
           </Button>
           <Button
             type="submit"
-            disabled={saving || !isSignedIn}
+            disabled={saving || !isIdentityReady}
             className="flex-1 bg-amber-500 hover:bg-amber-600 text-black disabled:opacity-50"
             data-ocid="new_listing.submit_button"
           >

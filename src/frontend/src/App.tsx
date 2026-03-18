@@ -208,8 +208,12 @@ function useAppRole(): {
 
     (async () => {
       setIsLoading(true);
-      // Reset role immediately so UI doesn't flash the previous user's role
-      setRoleState(null);
+      // Only reset role to null if the user hasn't already explicitly chosen one for
+      // this principal (e.g. via the pre-login picker). This prevents a race condition
+      // where setRole("dealer") fires at the same time as this async block.
+      if (explicitRoleSetRef.current !== principalId) {
+        setRoleState(null);
+      }
       try {
         const isAdmin = await actor.isCallerAdmin();
         if (isAdmin) {
@@ -219,7 +223,6 @@ function useAppRole(): {
         // If the user already chose a role via the pre-login modal or role selection,
         // don't overwrite it — just use what's already in localStorage for this principal
         const stored = principalId ? getStoredRole(principalId) : null;
-        // Only apply stored role if no explicit role was set during this login session
         if (explicitRoleSetRef.current !== principalId) {
           setRoleState(stored);
         }
@@ -606,12 +609,10 @@ const MORE_ITEMS = [
 
 function AppHeader({
   role,
-  clearRole,
   identity,
   onSignInClick,
 }: {
   role: AppRole;
-  clearRole: () => void;
   identity: any;
   onSignInClick: () => void;
 }) {
@@ -649,14 +650,11 @@ function AppHeader({
 
       {/* Right controls */}
       <div className="flex items-center gap-2">
-        {/* Role badge */}
+        {/* Role badge — static display only; to switch roles, sign out and sign back in */}
         {identity && role && role !== "admin" && (
-          <button
-            type="button"
-            onClick={clearRole}
-            title="Click to switch role"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber/30 text-amber bg-amber/10 hover:bg-amber/20 transition-colors text-xs font-semibold"
-            data-ocid="header.role_badge.toggle"
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber/30 text-amber bg-amber/10 text-xs font-semibold"
+            data-ocid="header.role_badge.panel"
           >
             {role === "buyer" ? (
               <Car className="w-3.5 h-3.5 shrink-0" />
@@ -666,8 +664,7 @@ function AppHeader({
             <span className="hidden sm:inline">
               {role === "buyer" ? "Buyer" : "Dealer"}
             </span>
-            <RefreshCw className="w-3 h-3 opacity-60" />
-          </button>
+          </div>
         )}
 
         {/* Admin badge */}
@@ -1104,7 +1101,7 @@ function Layout() {
   const { actor } = useActor();
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
-  const { role, isLoading: roleLoading, setRole, clearRole } = useAppRole();
+  const { role, isLoading: roleLoading, setRole } = useAppRole();
 
   // Pre-login role picker state
   const [showPreLoginModal, setShowPreLoginModal] = useState(false);
@@ -1201,7 +1198,6 @@ function Layout() {
         {/* ── Fixed top header ── */}
         <AppHeader
           role={role}
-          clearRole={clearRole}
           identity={identity}
           onSignInClick={handleSignInClick}
         />

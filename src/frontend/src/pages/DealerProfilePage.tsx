@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
@@ -14,10 +15,12 @@ import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
 import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function DealerProfilePage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
+  const { isInitializing } = useInternetIdentity();
   const { actor } = useActor();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -62,6 +65,18 @@ export default function DealerProfilePage() {
     }
     setSaving(false);
   };
+
+  // Wait for identity/role to fully resolve before showing access wall
+  if (isInitializing || role === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (role !== "dealer") {
     return (

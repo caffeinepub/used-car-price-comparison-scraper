@@ -360,11 +360,19 @@ export default function DealerMarketplaceManagePage() {
   }, [getMyListings, getMyInquiries]);
 
   useEffect(() => {
-    // Only fetch once identity is loaded
-    if (!isInitializing) {
+    // Only fetch once identity is fully loaded (non-anonymous principal)
+    // isInitializing can become false before identity is fully resolved,
+    // so also check that principalId is a real (non-anonymous) principal.
+    const anonPrincipal = "2vxsx-fae";
+    const isReady =
+      !isInitializing &&
+      principalId &&
+      principalId !== "anonymous" &&
+      principalId !== anonPrincipal;
+    if (isReady) {
       fetchData();
     }
-  }, [fetchData, isInitializing]);
+  }, [fetchData, isInitializing, principalId]);
 
   const toggleStatus = (listing: MktListing) => {
     setToggling(listing.id);
