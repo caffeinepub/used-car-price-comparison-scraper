@@ -31,7 +31,7 @@ import {
   TabsTrigger,
 } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
-import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useAppRoleContext, useRoleLoading } from "../hooks/useAppRoleContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
 import type { MktInquiry, MktListing } from "../hooks/useMarketplaceStore";
@@ -341,6 +341,7 @@ function InquiryCard({
 export default function DealerMarketplaceManagePage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
+  const roleLoading = useRoleLoading();
   const { identity, isInitializing } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toString();
   const { getMyListings, getMyInquiries, setListingStatus, deleteListing } =
@@ -390,7 +391,7 @@ export default function DealerMarketplaceManagePage() {
   };
 
   // Show loading while identity initializes
-  if (isInitializing || role === null) {
+  if (isInitializing || roleLoading || role === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

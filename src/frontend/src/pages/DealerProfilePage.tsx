@@ -14,12 +14,13 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
-import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useAppRoleContext, useRoleLoading } from "../hooks/useAppRoleContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function DealerProfilePage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
+  const roleLoading = useRoleLoading();
   const { isInitializing } = useInternetIdentity();
   const { actor } = useActor();
   const [saving, setSaving] = useState(false);
@@ -67,7 +68,7 @@ export default function DealerProfilePage() {
   };
 
   // Wait for identity/role to fully resolve before showing access wall
-  if (isInitializing || role === null) {
+  if (isInitializing || roleLoading || role === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

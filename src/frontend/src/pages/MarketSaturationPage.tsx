@@ -30,6 +30,7 @@ import {
   YAxis,
 } from "recharts";
 import PageHeader from "../components/PageHeader";
+import { ALL_MAKES, CAR_MAKES_MODELS } from "../data/carMakesModels";
 import { useGetAllListings } from "../hooks/useQueries";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -112,6 +113,44 @@ const SATURATION_ORDER: SaturationLevel[] = [
   "Oversaturated",
 ];
 
+// ─── Seeded Generator ─────────────────────────────────────────────────────────
+
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+function generateSaturationForMakeModel(
+  make: string,
+  model: string,
+): SaturationEntry {
+  const seed = hashCode(`${make}:${model}:sat`);
+  const rand = seededRandom(seed);
+  const count = 1 + Math.floor(rand() * 15);
+  const saturation = getSaturation(count);
+  const leverage = getLeverage(saturation);
+  return {
+    label: `${make} ${model}`,
+    make,
+    model,
+    count,
+    saturation,
+    leverage,
+    tip: getBuyerTip(saturation),
+  };
+}
+
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
 function CustomTooltip({ active, payload }: any) {
@@ -153,6 +192,13 @@ export default function MarketSaturationPage() {
   const { data: allListings = [], isLoading } = useGetAllListings();
   const [sortKey, setSortKey] = useState<SortKey>("count");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [selectedMake, setSelectedMake] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
+
+  const availableModels = useMemo(
+    () => (selectedMake ? (CAR_MAKES_MODELS[selectedMake] ?? []) : []),
+    [selectedMake],
+  );
 
   const activeListings = useMemo(
     () => allListings.filter((l: any) => !l.archived),
@@ -185,8 +231,26 @@ export default function MarketSaturationPage() {
     });
   }, [activeListings]);
 
+  // Single vehicle result (make + model both selected)
+  const singleVehicleResult = useMemo<SaturationEntry | null>(() => {
+    if (!selectedMake || !selectedModel) return null;
+    // Try to find in real data first
+    const real = entries.find(
+      (e) => e.make === selectedMake && e.model === selectedModel,
+    );
+    if (real) return real;
+    // Fall back to deterministic generator
+    return generateSaturationForMakeModel(selectedMake, selectedModel);
+  }, [selectedMake, selectedModel, entries]);
+
+  // Filtered entries for make-only selection
+  const filteredEntries = useMemo(() => {
+    if (!selectedMake) return entries;
+    return entries.filter((e) => e.make === selectedMake);
+  }, [entries, selectedMake]);
+
   const sorted = useMemo(() => {
-    const arr = [...entries];
+    const arr = [...filteredEntries];
     arr.sort((a, b) => {
       let cmp = 0;
       if (sortKey === "label") cmp = a.label.localeCompare(b.label);
@@ -199,7 +263,7 @@ export default function MarketSaturationPage() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [entries, sortKey, sortDir]);
+  }, [filteredEntries, sortKey, sortDir]);
 
   const top10Chart = useMemo(
     () => [...entries].sort((a, b) => b.count - a.count).slice(0, 10),
@@ -333,8 +397,130 @@ export default function MarketSaturationPage() {
             </Card>
           </div>
 
-          {/* Bar Chart */}
-          {top10Chart.length > 0 && (
+          {/* Vehicle Filter */}
+          <Card className="bg-surface border-steel-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Select Vehicle
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 space-y-1.5">
+                  <label
+                    htmlFor="sat-make"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Make
+                  </label>
+                  <select
+                    id="sat-make"
+                    value={selectedMake}
+                    onChange={(e) => {
+                      setSelectedMake(e.target.value);
+                      setSelectedModel("");
+                    }}
+                    data-ocid="market_saturation.make.select"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors"
+                  >
+                    <option value="">All Makes</option>
+                    {ALL_MAKES.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <label
+                    htmlFor="sat-model"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Model
+                  </label>
+                  <select
+                    id="sat-model"
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    disabled={!selectedMake}
+                    data-ocid="market_saturation.model.select"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-steel-border text-foreground text-sm focus:outline-none focus:border-amber/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">
+                      {selectedMake ? "All Models" : "Select a make first"}
+                    </option>
+                    {availableModels.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Single Vehicle Result Card */}
+          {singleVehicleResult && (
+            <Card
+              className="bg-surface border-steel-border"
+              data-ocid="market_saturation.single_vehicle.card"
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
+                  {singleVehicleResult.label} — Saturation Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-6 items-start">
+                  <div className="flex flex-col gap-2 min-w-[120px]">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Listings
+                    </p>
+                    <p className="text-3xl font-bold font-display text-foreground">
+                      {singleVehicleResult.count}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2 min-w-[140px]">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Saturation
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className={`w-fit text-sm font-semibold px-3 py-1 ${SATURATION_BADGE_CLASSES[singleVehicleResult.saturation]}`}
+                    >
+                      {singleVehicleResult.saturation}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Buyer Leverage Score
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Progress
+                        value={singleVehicleResult.leverage}
+                        className={`h-2.5 flex-1 bg-muted ${SATURATION_PROGRESS_CLASSES[singleVehicleResult.saturation]}`}
+                      />
+                      <span className="text-sm font-bold text-foreground w-10 text-right">
+                        {singleVehicleResult.leverage}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Buyer Tip
+                    </p>
+                    <p className="text-sm text-foreground">
+                      {singleVehicleResult.tip}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Bar Chart — only show when not filtering to a single model */}
+          {!singleVehicleResult && top10Chart.length > 0 && (
             <Card className="bg-surface border-steel-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
@@ -410,104 +596,106 @@ export default function MarketSaturationPage() {
             ))}
           </div>
 
-          {/* Table */}
-          <div
-            className="rounded-xl border border-steel-border overflow-hidden"
-            data-ocid="market_saturation.table"
-          >
-            <Table>
-              <TableHeader>
-                <TableRow className="border-steel-border bg-surface hover:bg-surface">
-                  <TableHead
-                    className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-                    onClick={() => handleSort("label")}
-                    data-ocid="market_saturation.label.toggle"
-                  >
-                    <div className="flex items-center gap-1">
-                      Make / Model
-                      <ArrowUpDown className="w-3 h-3" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-                    onClick={() => handleSort("count")}
-                    data-ocid="market_saturation.count.toggle"
-                  >
-                    <div className="flex items-center gap-1">
-                      Listings
-                      <ArrowUpDown className="w-3 h-3" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-                    onClick={() => handleSort("saturation")}
-                    data-ocid="market_saturation.saturation.toggle"
-                  >
-                    <div className="flex items-center gap-1">
-                      Saturation
-                      <ArrowUpDown className="w-3 h-3" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-                    onClick={() => handleSort("leverage")}
-                    data-ocid="market_saturation.leverage.toggle"
-                  >
-                    <div className="flex items-center gap-1">
-                      Leverage Score
-                      <ArrowUpDown className="w-3 h-3" />
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-xs text-muted-foreground">
-                    Buyer Tip
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sorted.map((entry, idx) => (
-                  <TableRow
-                    key={entry.label}
-                    className="border-steel-border hover:bg-surface/50"
-                    data-ocid={`market_saturation.item.${idx + 1}`}
-                  >
-                    <TableCell>
-                      <span className="font-medium text-amber">
-                        {entry.make}
-                      </span>{" "}
-                      <span className="text-foreground">{entry.model}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-bold text-foreground">
-                        {entry.count}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs font-semibold ${SATURATION_BADGE_CLASSES[entry.saturation]}`}
-                      >
-                        {entry.saturation}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="w-40">
-                      <div className="flex items-center gap-2">
-                        <Progress
-                          value={entry.leverage}
-                          className={`h-1.5 flex-1 bg-muted ${SATURATION_PROGRESS_CLASSES[entry.saturation]}`}
-                        />
-                        <span className="text-xs font-bold text-foreground w-8 text-right">
-                          {entry.leverage}
-                        </span>
+          {/* Table — hidden when single vehicle is selected */}
+          {!singleVehicleResult && (
+            <div
+              className="rounded-xl border border-steel-border overflow-hidden"
+              data-ocid="market_saturation.table"
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-steel-border bg-surface hover:bg-surface">
+                    <TableHead
+                      className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("label")}
+                      data-ocid="market_saturation.label.toggle"
+                    >
+                      <div className="flex items-center gap-1">
+                        Make / Model
+                        <ArrowUpDown className="w-3 h-3" />
                       </div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-xs">
-                      {entry.tip}
-                    </TableCell>
+                    </TableHead>
+                    <TableHead
+                      className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("count")}
+                      data-ocid="market_saturation.count.toggle"
+                    >
+                      <div className="flex items-center gap-1">
+                        Listings
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("saturation")}
+                      data-ocid="market_saturation.saturation.toggle"
+                    >
+                      <div className="flex items-center gap-1">
+                        Saturation
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("leverage")}
+                      data-ocid="market_saturation.leverage.toggle"
+                    >
+                      <div className="flex items-center gap-1">
+                        Leverage Score
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-xs text-muted-foreground">
+                      Buyer Tip
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {sorted.map((entry, idx) => (
+                    <TableRow
+                      key={entry.label}
+                      className="border-steel-border hover:bg-surface/50"
+                      data-ocid={`market_saturation.item.${idx + 1}`}
+                    >
+                      <TableCell>
+                        <span className="font-medium text-amber">
+                          {entry.make}
+                        </span>{" "}
+                        <span className="text-foreground">{entry.model}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-bold text-foreground">
+                          {entry.count}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs font-semibold ${SATURATION_BADGE_CLASSES[entry.saturation]}`}
+                        >
+                          {entry.saturation}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="w-40">
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={entry.leverage}
+                            className={`h-1.5 flex-1 bg-muted ${SATURATION_PROGRESS_CLASSES[entry.saturation]}`}
+                          />
+                          <span className="text-xs font-bold text-foreground w-8 text-right">
+                            {entry.leverage}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-xs">
+                        {entry.tip}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </>
       )}
     </div>

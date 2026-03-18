@@ -15,7 +15,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { useActor } from "../hooks/useActor";
-import { useAppRoleContext } from "../hooks/useAppRoleContext";
+import { useAppRoleContext, useRoleLoading } from "../hooks/useAppRoleContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useMarketplaceStore } from "../hooks/useMarketplaceStore";
 
@@ -28,6 +28,7 @@ interface PhotoImage {
 export default function DealerMarketplaceNewListingPage() {
   const navigate = useNavigate();
   const role = useAppRoleContext();
+  const roleLoading = useRoleLoading();
   const { isInitializing } = useInternetIdentity();
   const { actor } = useActor();
   const { createListing, isIdentityReady } = useMarketplaceStore();
@@ -163,7 +164,7 @@ export default function DealerMarketplaceNewListingPage() {
   };
 
   // Show loading state while identity is initializing or role is still resolving
-  if (isInitializing || role === null) {
+  if (isInitializing || roleLoading || role === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

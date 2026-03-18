@@ -46,6 +46,44 @@ interface MarketEntry {
   weeklyData: WeekPoint[];
 }
 
+// ─── Seeded Generator ─────────────────────────────────────────────────────────
+
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+function generateEntryForMakeModel(make: string, model: string): MarketEntry {
+  const seed = hashCode(`${make}:${model}`);
+  const rand = seededRandom(seed);
+  const baseline = 50 + Math.floor(rand() * 200);
+  const shockRoll = rand();
+  const shockDirection: "spike" | "drop" | "none" =
+    shockRoll < 0.33 ? "spike" : shockRoll < 0.6 ? "drop" : "none";
+  const shockWeek = 4 + Math.floor(rand() * 4);
+  const wk = buildWeeks(baseline, shockWeek, shockDirection);
+  return {
+    make,
+    model,
+    currentVolume: wk[7].volume,
+    baselineVolume: baseline,
+    pctChange: wk[7].pctChange,
+    status: wk[7].status,
+    weeklyData: wk,
+  };
+}
+
 // ─── Simulated Data ───────────────────────────────────────────────────────────
 
 function buildWeeks(
@@ -323,15 +361,18 @@ export default function SupplyShockPage() {
   );
 
   const activeEntry = useMemo(() => {
-    if (!selectedMake && !selectedModel) return MARKET_ENTRIES[0];
-    return (
-      MARKET_ENTRIES.find(
-        (m) =>
-          (!selectedMake || m.make === selectedMake) &&
-          (!selectedModel || m.model === selectedModel),
-      ) ?? MARKET_ENTRIES[0]
+    const make = selectedMake;
+    const model = selectedModel;
+    if (!make && !model) return MARKET_ENTRIES[0];
+    const prebuilt = MARKET_ENTRIES.find(
+      (m) => (!make || m.make === make) && (!model || m.model === model),
     );
-  }, [selectedMake, selectedModel]);
+    if (prebuilt) return prebuilt;
+    // Generate deterministic data for any make/model not in pre-built list
+    const effectiveMake = make || "Generic";
+    const effectiveModel = model || availableModels[0] || "Model";
+    return generateEntryForMakeModel(effectiveMake, effectiveModel);
+  }, [selectedMake, selectedModel, availableModels]);
 
   const spikes = MARKET_ENTRIES.filter((m) => m.status === "spike").length;
   const drops = MARKET_ENTRIES.filter((m) => m.status === "drop").length;

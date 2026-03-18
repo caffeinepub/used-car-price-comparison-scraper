@@ -206,6 +206,19 @@ function useAppRole(): {
     // double-fire if the effect re-runs while the promise is in flight
     resolvedPrincipalRef.current = principalId;
 
+    // Check sessionStorage for a pending role selected before login (set in App.tsx pre-login modal)
+    // This is the most reliable bridge across the async login gap
+    const sessionPendingRole = sessionStorage.getItem("atp_pending_role") as
+      | "buyer"
+      | "dealer"
+      | null;
+    if (sessionPendingRole === "buyer" || sessionPendingRole === "dealer") {
+      sessionStorage.removeItem("atp_pending_role");
+      setStoredRole(principalId!, sessionPendingRole);
+      explicitRoleSetRef.current = principalId;
+      setRoleState(sessionPendingRole);
+    }
+
     (async () => {
       setIsLoading(true);
       // Only reset role to null if the user hasn't already explicitly chosen one for
@@ -1143,6 +1156,7 @@ function Layout() {
       // Also discard any pending role from the pre-login modal so it doesn't
       // accidentally apply to the next user who signs in
       pendingRole.current = null;
+      sessionStorage.removeItem("atp_pending_role");
       return;
     }
 
@@ -1193,7 +1207,7 @@ function Layout() {
   const showDealerTools = role === "dealer" || role === "admin";
 
   return (
-    <AppRoleContext.Provider value={role}>
+    <AppRoleContext.Provider value={{ role, roleLoading: roleLoading }}>
       <div className="min-h-screen bg-background flex flex-col">
         {/* ── Fixed top header ── */}
         <AppHeader
@@ -1221,11 +1235,13 @@ function Layout() {
             <PreLoginRoleModal
               onSelect={async (role) => {
                 pendingRole.current = role;
+                sessionStorage.setItem("atp_pending_role", role);
                 setShowPreLoginModal(false);
                 try {
                   await login();
                 } catch {
                   pendingRole.current = null;
+                  sessionStorage.removeItem("atp_pending_role");
                 }
               }}
               onClose={() => setShowPreLoginModal(false)}

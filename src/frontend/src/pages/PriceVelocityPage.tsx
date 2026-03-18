@@ -118,6 +118,41 @@ function DirectionBadge({ direction }: { direction: VelocityDirection }) {
   );
 }
 
+// ─── Seeded Generator ─────────────────────────────────────────────────────────
+
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+function generateEntryForMakeModel(make: string, model: string): MoverEntry {
+  const seed = hashCode(`${make}:${model}`);
+  const rand = seededRandom(seed);
+  const velocityRaw = rand() * 20 - 10; // -10 to +10
+  const velocity30d = Math.round(velocityRaw * 10) / 10;
+  const avgPrice = 15000 + Math.floor(rand() * 50000);
+  const listingCount = 20 + Math.floor(rand() * 200);
+  return {
+    make,
+    model,
+    velocity30d,
+    avgPrice,
+    listingCount,
+    direction: getDirection(velocity30d),
+  };
+}
+
 // ─── Simulated Data ───────────────────────────────────────────────────────────
 
 // Each model has a velocity seed that drives chart generation
@@ -272,15 +307,18 @@ export default function PriceVelocityPage() {
   );
 
   const activeEntry = useMemo(() => {
-    if (!selectedMake && !selectedModel) return MODEL_DATA[0];
-    return (
-      MODEL_DATA.find(
-        (m) =>
-          (!selectedMake || m.make === selectedMake) &&
-          (!selectedModel || m.model === selectedModel),
-      ) ?? MODEL_DATA[0]
+    const make = selectedMake;
+    const model = selectedModel;
+    if (!make && !model) return MODEL_DATA[0];
+    const prebuilt = MODEL_DATA.find(
+      (m) => (!make || m.make === make) && (!model || m.model === model),
     );
-  }, [selectedMake, selectedModel]);
+    if (prebuilt) return prebuilt;
+    // Generate deterministic data for any make/model not in pre-built list
+    const effectiveMake = make || "Generic";
+    const effectiveModel = model || availableModels[0] || "Model";
+    return generateEntryForMakeModel(effectiveMake, effectiveModel);
+  }, [selectedMake, selectedModel, availableModels]);
 
   const chartData = useMemo(
     () => generateVelocityChart(activeEntry, timeRange),
